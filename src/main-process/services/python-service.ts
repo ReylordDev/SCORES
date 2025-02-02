@@ -44,6 +44,9 @@ export class PythonService extends EventEmitter {
       case "progress":
         this.handleProgress(message.data as ProgressMessage);
         break;
+      case "file_path":
+        this.emit(PYTHON_SERVICE_EVENTS.FILE_PATH, message.data as string);
+        break;
       case "error":
         consoleLog("Error:", message.data);
         this.emit(

@@ -83,7 +83,7 @@ export default function FileSelection() {
   const navigate = useNavigate();
   const handleFileSelection = (path: string) => {
     window.file.setPath(path);
-    navigate("/processing");
+    navigate("/file_preview");
   };
 
   return (

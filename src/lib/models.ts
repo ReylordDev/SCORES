@@ -1,7 +1,7 @@
 // Python Models
 // These have to match the models in models.py
 
-type Action = "set_file_path";
+type Action = "set_file_path" | "get_file_path" | "set_file_settings";
 
 export interface Command {
   action: Action;
@@ -19,8 +19,14 @@ export interface Error {
 }
 
 export interface Message {
-  type: "progress" | "error";
-  data: ProgressMessage | Error;
+  type: "progress" | "error" | "file_path";
+  data: ProgressMessage | Error | string | null;
+}
+
+export interface FileSettings {
+  delimiter: string;
+  hasHeader: boolean;
+  selectedColumns: number[];
 }
 
 // Frontend-only models
@@ -30,6 +36,7 @@ declare global {
   interface Window {
     electron: {
       showFilePath: (file: File) => string;
+      readFile: (path: string) => Promise<string>;
     };
     settings: {
       getAll: () => Promise<AppSettings>;
@@ -40,6 +47,9 @@ declare global {
     file: {
       // Consider making this a promise-returning function
       setPath: (path: string) => void;
+      requestPath: () => void;
+      onReceivePath: (callback: (path: string) => void) => void;
+      setSettings: (settings: FileSettings) => void;
     };
   }
 }
@@ -51,6 +61,9 @@ export const CHANNEL_TYPES = {
   FILE: "file",
 };
 export const CHANNELS = {
+  ELECTRON: {
+    READ_FILE: "electron:read-file",
+  },
   SETTINGS: {
     GET: "settings:get-all",
   },
@@ -59,11 +72,15 @@ export const CHANNELS = {
   },
   FILE: {
     SET_PATH: "file:set-path",
+    PATH_REQUEST: "file:get-path",
+    PATH_RESPONSE: "file:path",
+    SET_SETTINGS: "file:set-settings",
   },
 };
 
 export const PYTHON_SERVICE_EVENTS = {
   ERROR: "error",
+  FILE_PATH: "file-path",
 };
 
 export const SETTINGS_SERVICE_EVENTS = {

@@ -4,6 +4,7 @@ from utils.logging import initialize_logger
 from models import (
     Command,
     Error,
+    FileSettings,
 )
 from utils.ipc import print_message, print_progress
 from loguru import logger
@@ -20,7 +21,12 @@ class Controller:
     def handle_command(self, command: Command):
         logger.info(f"Received command: {command}")
         if command.action == "set_file_path":
-            self.app_state.set_file_path(command.data["file_path"])
+            self.app_state.set_file_path(command.data["filePath"])
+        elif command.action == "get_file_path":
+            print_message("file_path", self.app_state.get_file_path())
+        elif command.action == "set_file_settings":
+            self.app_state.set_file_settings(FileSettings(**command.data))
+
         else:
             logger.error(f"Invalid action: {command.action}")
             print_message("error", Error(error=f"Invalid action: {command.action}"))
