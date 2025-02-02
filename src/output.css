@@ -942,14 +942,48 @@ video {
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
 }
 
+.bg-gradient-to-l {
+  background-image: linear-gradient(to left, var(--tw-gradient-stops));
+}
+
 .from-primary {
   --tw-gradient-from: var(--primary) var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
+.from-accent-50 {
+  --tw-gradient-from: var(--accent-50) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-accent-300 {
+  --tw-gradient-from: var(--accent-300) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-accent-200 {
+  --tw-gradient-from: var(--accent-200) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
 .to-secondary {
   --tw-gradient-to: var(--secondary) var(--tw-gradient-to-position);
+}
+
+.to-accent-950 {
+  --tw-gradient-to: var(--accent-950) var(--tw-gradient-to-position);
+}
+
+.to-accent-700 {
+  --tw-gradient-to: var(--accent-700) var(--tw-gradient-to-position);
+}
+
+.to-accent-600 {
+  --tw-gradient-to: var(--accent-600) var(--tw-gradient-to-position);
 }
 
 .bg-clip-text {

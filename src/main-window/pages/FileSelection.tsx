@@ -88,12 +88,9 @@ export default function FileSelection() {
       >
         <div className="mb-8 flex w-full flex-col gap-2">
           <h1 className="text-5xl">
-            <span className="text-accent">Word Clustering</span>
-            {/* <span className="text-accentColor">Word</span>{" "}
-            <span className="font-bold text-primaryColor">Clustering</span> */}
-            {/* <span className="bg-gradient-to-r from-primaryColor via-accentColor to-secondaryColor bg-clip-text text-transparent">
-              Word Clustering
-            </span> */}
+            <span className="bg-gradient-to-l from-accent-300 to-accent-600 bg-clip-text text-transparent">
+              Response Clustering
+            </span>
             <br></br>
             based on{" "}
             <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
