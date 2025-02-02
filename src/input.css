@@ -1,0 +1,409 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --text: #160622;
+    --background: #f9f4fd;
+    --primary: #932dd8;
+    --secondary: #e986c6;
+    --accent: #e15a84;
+
+    --text-50: #f4e9fb;
+    --text-100: #e9d3f8;
+    --text-200: #d2a8f0;
+    --text-300: #bc7ce9;
+    --text-400: #a551e1;
+    --text-500: #8f25da;
+    --text-600: #721eae;
+    --text-700: #561683;
+    --text-800: #390f57;
+    --text-900: #1d072c;
+    --text-950: #0e0416;
+
+    --background-50: #f3e9fc;
+    --background-100: #e7d3f8;
+    --background-200: #d0a7f1;
+    --background-300: #b87bea;
+    --background-400: #a04fe3;
+    --background-500: #8922dd;
+    --background-600: #6d1cb0;
+    --background-700: #521584;
+    --background-800: #370e58;
+    --background-900: #1b072c;
+    --background-950: #0e0316;
+
+    --primary-50: #f4e9fb;
+    --primary-100: #e9d4f7;
+    --primary-200: #d3a9ef;
+    --primary-300: #bd7ee7;
+    --primary-400: #a753df;
+    --primary-500: #9128d7;
+    --primary-600: #7420ac;
+    --primary-700: #571881;
+    --primary-800: #3a1056;
+    --primary-900: #1d082b;
+    --primary-950: #0f0416;
+
+    --secondary-50: #fbe9f5;
+    --secondary-100: #f7d4eb;
+    --secondary-200: #efa9d7;
+    --secondary-300: #e77ec2;
+    --secondary-400: #df53ae;
+    --secondary-500: #d7289a;
+    --secondary-600: #ac207b;
+    --secondary-700: #81185c;
+    --secondary-800: #56103e;
+    --secondary-900: #2b081f;
+    --secondary-950: #16040f;
+
+    --accent-50: #fbe9ef;
+    --accent-100: #f7d4df;
+    --accent-200: #efa9bf;
+    --accent-300: #e77e9f;
+    --accent-400: #df537f;
+    --accent-500: #d7285f;
+    --accent-600: #ac204c;
+    --accent-700: #811839;
+    --accent-800: #561026;
+    --accent-900: #2b0813;
+    --accent-950: #16040a;
+  }
+  .dark {
+    --text: #eddcf9;
+    --background: #08020d;
+    --primary: #8e27d3;
+    --secondary: #791656;
+    --accent: #a41e48;
+
+    --text-50: #0e0416;
+    --text-100: #1d072c;
+    --text-200: #390f57;
+    --text-300: #561683;
+    --text-400: #721eae;
+    --text-500: #8f25da;
+    --text-600: #a551e1;
+    --text-700: #bc7ce9;
+    --text-800: #d2a8f0;
+    --text-900: #e9d3f8;
+    --text-950: #f4e9fb;
+
+    --background-50: #0e0316;
+    --background-100: #1b072c;
+    --background-200: #370e58;
+    --background-300: #521584;
+    --background-400: #6d1cb0;
+    --background-500: #8922dd;
+    --background-600: #a04fe3;
+    --background-700: #b87bea;
+    --background-800: #d0a7f1;
+    --background-900: #e7d3f8;
+    --background-950: #f3e9fc;
+
+    --primary-50: #0f0416;
+    --primary-100: #1d082b;
+    --primary-200: #3a1056;
+    --primary-300: #571881;
+    --primary-400: #7420ac;
+    --primary-500: #9128d7;
+    --primary-600: #a753df;
+    --primary-700: #bd7ee7;
+    --primary-800: #d3a9ef;
+    --primary-900: #e9d4f7;
+    --primary-950: #f4e9fb;
+
+    --secondary-50: #16040f;
+    --secondary-100: #2b081f;
+    --secondary-200: #56103e;
+    --secondary-300: #81185c;
+    --secondary-400: #ac207b;
+    --secondary-500: #d7289a;
+    --secondary-600: #df53ae;
+    --secondary-700: #e77ec2;
+    --secondary-800: #efa9d7;
+    --secondary-900: #f7d4eb;
+    --secondary-950: #fbe9f5;
+
+    --accent-50: #16040a;
+    --accent-100: #2b0813;
+    --accent-200: #561026;
+    --accent-300: #811839;
+    --accent-400: #ac204c;
+    --accent-500: #d7285f;
+    --accent-600: #df537f;
+    --accent-700: #e77e9f;
+    --accent-800: #efa9bf;
+    --accent-900: #f7d4df;
+    --accent-950: #fbe9ef;
+  }
+}
+
+,
+@font-face {
+  font-family: "Poppins";
+  src: url("../assets/fonts/Poppins-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("../assets/fonts/Poppins-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("../assets/fonts/Poppins-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("../assets/fonts/Poppins-MediumItalic.ttf") format("truetype");
+  font-weight: 500;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("../assets/fonts/Poppins-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("../assets/fonts/Poppins-SemiBoldItalic.ttf") format("truetype");
+  font-weight: 600;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("../assets/fonts/Poppins-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Poppins";
+  src: url("../assets/fonts/Poppins-BoldItalic.ttf") format("truetype");
+  font-weight: 700;
+  font-style: italic;
+}
+
+body {
+  font-family: "Poppins";
+  font-weight: 500;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: "Poppins";
+  font-weight: 700;
+}
+
+html {
+  font-size: 100%;
+  font-weight: 500;
+} /* 16px */
+
+h1 {
+  font-size: 4.21rem; /* 67.36px */
+}
+
+h2 {
+  font-size: 3.158rem; /* 50.56px */
+}
+
+h3 {
+  font-size: 2.369rem; /* 37.92px */
+}
+
+h4 {
+  font-size: 1.777rem; /* 28.48px */
+}
+
+h5 {
+  font-size: 1.333rem; /* 21.28px */
+}
+
+small {
+  font-size: 0.75rem; /* 12px */
+}
+
+.draggable {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+button {
+  -webkit-app-region: no-drag;
+}
+
+:root {
+  --fallback-title-bar-height: 60px;
+}
+
+#titleBarContainer {
+  top: env(titlebar-area-y, 0);
+  height: env(titlebar-area-height, var(--fallback-title-bar-height));
+}
+
+#titleBar {
+  left: env(titlebar-area-x, 0);
+  width: env(titlebar-area-width, 100%);
+}
+
+#mainContent {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: env(titlebar-area-height, var(--fallback-title-bar-height));
+  overflow-y: scroll;
+}
+
+/* Scrollbar styles */
+
+/* ::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar::-webkit-scrollbar {
+  display: block;
+  background-color: var(--background);
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--accent);
+  width: 5px;
+  border-radius: 5px;
+  padding: 2px;
+  border: 1px solid (var(--background-200));
+}
+
+.scrollbar::-webkit-scrollbar-track:horizontal {
+  background-color: var(--background-200);
+}
+
+.scrollbar::-webkit-scrollbar-button {
+  background-color: var(--background);
+}
+
+.scrollbar::-webkit-scrollbar-button:horizontal {
+  background-color: var(--background-200);
+}
+
+.scrollbar::-webkit-scrollbar-corner {
+  background-color: var(--background);
+}
+
+.scrollbar::-webkit-scrollbar-track-piece {
+  background-color: var(--background);
+}
+
+.scrollbar::-webkit-scrollbar:horizontal {
+  height: 20px;
+} */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar:horizontal {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--accent-100);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+  transition: background 0.3s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-500);
+}
+
+:root {
+  --foreground: 222.2 47.4% 11.2%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 47.4% 11.2%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 47.4% 11.2%;
+
+  --primary-foreground: 210 40% 98%;
+
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  --accent-foreground: 222.2 47.4% 11.2%;
+
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 210 40% 98%;
+
+  --ring: 215 20.2% 65.1%;
+
+  --radius: 0.5rem;
+}
+
+.dark {
+  --foreground: 213 31% 91%;
+
+  --muted: 223 47% 11%;
+  --muted-foreground: 215.4 16.3% 56.9%;
+
+  --accent-foreground: 210 40% 98%;
+
+  --popover: 224 71% 4%;
+  --popover-foreground: 215 20.2% 65.1%;
+
+  --border: 216 34% 17%;
+  --input: 216 34% 17%;
+
+  --card: 224 71% 4%;
+  --card-foreground: 213 31% 91%;
+
+  --primary-foreground: 222.2 47.4% 1.2%;
+
+  --secondary-foreground: 210 40% 98%;
+
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 40% 98%;
+
+  --ring: 216 34% 17%;
+
+  --radius: 0.5rem;
+}
+
+* {
+  @apply border-border;
+}
+body {
+  font-feature-settings:
+    "rlig" 1,
+    "calt" 1;
+}
