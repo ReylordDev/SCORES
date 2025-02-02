@@ -3,7 +3,7 @@ import { PythonService } from "./main-process/services/python-service";
 import { SettingsService } from "./main-process/services/settings-service";
 import { WindowManager } from "./main-process/windows/window-manager";
 import { registerIpcHandlers } from "./main-process/ipc";
-import { AppConfig, consoleLog } from "./main-process/utils/config";
+import { AppConfig, consoleLog } from "./lib/config";
 import { PYTHON_SERVICE_EVENTS } from "./lib/models";
 
 // Handle setup events
@@ -13,7 +13,7 @@ if (require("electron-squirrel-startup")) app.quit();
 const config = new AppConfig();
 const settingsService = new SettingsService(config);
 const pythonService = new PythonService(config, settingsService);
-const windowManager = new WindowManager(config); // continue here
+const windowManager = new WindowManager(config);
 
 app.whenReady().then(async () => {
   await pythonService.initialize();
@@ -28,7 +28,7 @@ app.whenReady().then(async () => {
     app.quit();
   });
 
-  registerIpcHandlers(settingsService);
+  registerIpcHandlers(settingsService, pythonService);
 });
 
 // Quit app

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { EventEmitter } from "events";
-import { AppConfig } from "../utils/config";
+import { AppConfig } from "../../lib/config";
 import { AppSettings, SETTINGS_SERVICE_EVENTS } from "../../lib/models";
 
 export const DEFAULT_SETTINGS: AppSettings = {};

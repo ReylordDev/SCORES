@@ -2,7 +2,7 @@ from typing import Literal, Optional, Union
 from pydantic import BaseModel
 
 
-ActionType = Literal["quit",]
+ActionType = Literal["set_file_path",]
 StatusType = Literal["start", "complete", "error"]
 StepType = Union[
     ActionType,

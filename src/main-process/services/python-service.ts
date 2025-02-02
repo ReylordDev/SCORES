@@ -1,6 +1,6 @@
 import { PythonShell } from "python-shell";
 import { EventEmitter } from "events";
-import { AppConfig, consoleLog } from "../utils/config";
+import { AppConfig, consoleLog } from "../../lib/config";
 import {
   Command,
   Message,

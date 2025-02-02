@@ -7,17 +7,23 @@ from models import (
 )
 from utils.ipc import print_message, print_progress
 from loguru import logger
+from application_state import ApplicationState
 
 
 class Controller:
     def __init__(self):
         print_progress("init", "start")
+        self.app_state = ApplicationState()
 
         print_progress("init", "complete")
 
     def handle_command(self, command: Command):
         logger.info(f"Received command: {command}")
-        pass
+        if command.action == "set_file_path":
+            self.app_state.set_file_path(command.data["file_path"])
+        else:
+            logger.error(f"Invalid action: {command.action}")
+            print_message("error", Error(error=f"Invalid action: {command.action}"))
 
 
 @logger.catch

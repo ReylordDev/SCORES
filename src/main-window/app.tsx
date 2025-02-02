@@ -7,6 +7,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<FileSelection />} />
+        <Route path="/file_preview" element={<div>Hello World</div>} />
       </Routes>
     </Router>
   );

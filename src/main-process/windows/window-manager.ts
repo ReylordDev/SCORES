@@ -1,5 +1,5 @@
 import { BrowserWindow, nativeTheme } from "electron";
-import { AppConfig } from "../utils/config";
+import { AppConfig } from "../../lib/config";
 import path from "path";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;

@@ -3,12 +3,12 @@ import {
   Database,
   FileSearch,
   FileText,
-  MoveLeft,
   Upload,
 } from "lucide-react";
 import { TitleBar } from "../../components/TitleBar";
 import { Button } from "../../components/ui/button";
 import { useRef } from "react";
+import { useNavigate } from "react-router";
 
 function FileSelector({ selectFile }: { selectFile: (path: string) => void }) {
   const checkFiles = (files: FileList | null) => {
@@ -16,7 +16,8 @@ function FileSelector({ selectFile }: { selectFile: (path: string) => void }) {
       const file = files[0];
       if (file && file.size > 0 && file.type === "text/csv") {
         console.log("File selected: ", file);
-        selectFile(file.path);
+        const path = window.electron.showFilePath(file);
+        selectFile(path);
       }
     }
   };
@@ -79,6 +80,12 @@ function FileSelector({ selectFile }: { selectFile: (path: string) => void }) {
 }
 
 export default function FileSelection() {
+  const navigate = useNavigate();
+  const handleFileSelection = (path: string) => {
+    window.file.setPath(path);
+    navigate("/processing");
+  };
+
   return (
     <>
       <TitleBar index={0} />
@@ -100,7 +107,7 @@ export default function FileSelection() {
           <p>Analyze your open-ended survey responses with ease.</p>
         </div>
         <div className="mb-8 flex h-full items-center justify-between">
-          <FileSelector selectFile={(path) => console.log(path)} />
+          <FileSelector selectFile={handleFileSelection} />
           <div className="flex h-full flex-col items-center justify-start gap-8 p-4 text-center xl:p-12 w-1/2">
             <div className="flex flex-col items-center justify-center gap-2">
               <h5>Start by selecting an input file.</h5>

@@ -1,7 +1,7 @@
 // Python Models
 // These have to match the models in models.py
 
-type Action = "quit";
+type Action = "set_file_path";
 
 export interface Command {
   action: Action;
@@ -28,23 +28,37 @@ export interface AppSettings {}
 
 declare global {
   interface Window {
-    controller: {};
+    electron: {
+      showFilePath: (file: File) => string;
+    };
     settings: {
       getAll: () => Promise<AppSettings>;
     };
     url: {
       open: (url: string) => void;
     };
+    file: {
+      // Consider making this a promise-returning function
+      setPath: (path: string) => void;
+    };
   }
 }
 
+export const CHANNEL_TYPES = {
+  ELECTRON: "electron",
+  SETTINGS: "settings",
+  URL: "url",
+  FILE: "file",
+};
 export const CHANNELS = {
-  CONTROLLER: {},
   SETTINGS: {
     GET: "settings:get-all",
   },
   URL: {
     OPEN: "url:open",
+  },
+  FILE: {
+    SET_PATH: "file:set-path",
   },
 };
 
