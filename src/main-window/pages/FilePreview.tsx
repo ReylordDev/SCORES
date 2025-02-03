@@ -278,9 +278,10 @@ export default function FilePreview() {
                 });
               }}
               disabled={selectedColumns.length <= 0}
+              size="lg"
             >
               Continue
-              <ArrowRightCircle size={20} />
+              <ArrowRightCircle />
             </Button>
           </Link>
         </div>

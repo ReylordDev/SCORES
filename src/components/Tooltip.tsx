@@ -184,8 +184,8 @@ export function TooltipContentContainer({
   }
   if (small) {
     return (
-      <div className="flex items-start justify-start gap-2 rounded-lg border-2 border-accentColor bg-backgroundColor p-4">
-        <div className="text-accentColor">
+      <div className="flex items-start justify-start gap-2 rounded-lg border-2 border-accent bg-background p-4">
+        <div className="text-accent">
           <Info className="shrink-0" size={24} />
         </div>
         {children}
@@ -193,11 +193,32 @@ export function TooltipContentContainer({
     );
   }
   return (
-    <div className="flex w-96 flex-col items-start justify-start gap-1 rounded-lg border-2 border-accentColor bg-backgroundColor p-4">
-      <div className="w-full text-accentColor">
+    <div className="flex w-96 flex-col items-start justify-start gap-1 rounded-lg border-2 border-accent bg-background p-4">
+      <div className="w-full text-accent">
         <Info className="shrink-0" size={24} />
       </div>
       {children}
     </div>
+  );
+}
+
+export function TooltipWrapper({
+  wrappedContent,
+  tooltipContent,
+  small,
+}: {
+  wrappedContent: React.ReactNode;
+  tooltipContent: React.ReactNode;
+  small?: boolean;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{wrappedContent}</TooltipTrigger>
+      <TooltipContent>
+        <TooltipContentContainer tutorialMode={true} small={small}>
+          {tooltipContent}
+        </TooltipContentContainer>
+      </TooltipContent>
+    </Tooltip>
   );
 }

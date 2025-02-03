@@ -1,5 +1,4 @@
 from models import FileSettings
-from loguru import logger
 
 
 class ApplicationState:
