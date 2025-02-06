@@ -12,6 +12,7 @@ import time
 
 
 def print_message(type: MessageType, data: MessageDataType):
+    logger.info(f"Printing message: {type} - {data}")
     print(Message(type=type, data=data).model_dump_json(), flush=True)
 
 

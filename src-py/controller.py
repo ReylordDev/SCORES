@@ -1,14 +1,11 @@
 import sys
 from pydantic import ValidationError
 from utils.logging import initialize_logger
-from models import (
-    Command,
-    Error,
-    FileSettings,
-)
+from models import Command, Error, FileSettings, AlgorithmSettings
 from utils.ipc import print_message, print_progress
 from loguru import logger
 from application_state import ApplicationState
+from clusterer import Clusterer
 
 
 class Controller:
@@ -21,11 +18,27 @@ class Controller:
     def handle_command(self, command: Command):
         logger.info(f"Received command: {command}")
         if command.action == "set_file_path":
+            if not command.data or not command.data["filePath"]:
+                print_message("error", Error(error="File path cannot be empty"))
+                return
             self.app_state.set_file_path(command.data["filePath"])
         elif command.action == "get_file_path":
             print_message("file_path", self.app_state.get_file_path())
         elif command.action == "set_file_settings":
+            if not command.data:
+                print_message("error", Error(error="File settings cannot be empty"))
+                return
             self.app_state.set_file_settings(FileSettings(**command.data))
+        elif command.action == "set_algorithm_settings":
+            if not command.data:
+                print_message(
+                    "error", Error(error="Algorithm settings cannot be empty")
+                )
+                return
+            self.app_state.set_algorithm_settings(AlgorithmSettings(**command.data))
+        elif command.action == "run_clustering":
+            clusterer = Clusterer(self.app_state)
+            result = clusterer.run()
 
         else:
             logger.error(f"Invalid action: {command.action}")

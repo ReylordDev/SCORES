@@ -37,10 +37,10 @@ const ColumnHeader = ({
 };
 
 export default function FilePreview() {
-  // const [filePath, setFilePath] = useState<string | null>(null);
-  const [filePath, setFilePath] = useState<string | null>(
-    "C:\\Users\\Luis\\Projects\\Word-Clustering-Tool-for-SocPsych\\example_data\\example.csv"
-  );
+  const [filePath, setFilePath] = useState<string | null>(null);
+  // const [filePath, setFilePath] = useState<string | null>(
+  //   "C:\\Users\\Luis\\Projects\\Word-Clustering-Tool-for-SocPsych\\example_data\\example.csv"
+  // );
   const [hasHeader, setHasHeader] = useState(true);
   const [delimiter, setDelimiter] = useState<string | null>(null);
   const [selectedColumns, setSelectedColumns] = useState<number[]>([]);
@@ -53,10 +53,10 @@ export default function FilePreview() {
     setFilePath(path);
   });
 
-  // useEffect(() => {
-  //   console.log("Requesting file path");
-  //   window.file.requestPath();
-  // }, []);
+  useEffect(() => {
+    console.log("Requesting file path");
+    window.file.requestPath();
+  }, []);
 
   useEffect(() => {
     const findBestDelimiter = async () => {

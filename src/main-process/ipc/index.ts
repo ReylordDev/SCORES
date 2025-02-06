@@ -3,7 +3,7 @@ import { PythonService } from "../services/python-service";
 import { registerURLHandlers } from "./url";
 import { registerSettingsHandlers } from "./settings";
 import { ipcMain } from "electron";
-import { CHANNELS, FileSettings } from "../../lib/models";
+import { CHANNELS, FileSettings, AlgorithmSettings } from "../../lib/models";
 import fs from "fs";
 
 export function registerIpcHandlers(
@@ -34,6 +34,16 @@ export function registerIpcHandlers(
       data: settings,
     });
   });
+
+  ipcMain.on(
+    CHANNELS.ALGORITHM.SET_SETTINGS,
+    (_, settings: AlgorithmSettings) => {
+      pythonService.sendCommand({
+        action: "set_algorithm_settings",
+        data: settings,
+      });
+    }
+  );
 
   ipcMain.handle(CHANNELS.ELECTRON.READ_FILE, async (_, path: string) => {
     return new Promise<string>((resolve, reject) => {

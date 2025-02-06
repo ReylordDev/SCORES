@@ -24,6 +24,10 @@ export default function AlgorithmSettings() {
 
   const submitAlgorithmSettings = () => {
     console.log("Submitting settings...");
+    window.algorithm.setSettings({
+      clusterCount: autoChooseClusters ? "auto" : clusterCount,
+      maxClusters: autoChooseClusters ? maxClusters : undefined,
+    });
   };
 
   return (

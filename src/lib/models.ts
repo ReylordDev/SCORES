@@ -1,7 +1,11 @@
 // Python Models
 // These have to match the models in models.py
 
-type Action = "set_file_path" | "get_file_path" | "set_file_settings";
+type Action =
+  | "set_file_path"
+  | "get_file_path"
+  | "set_file_settings"
+  | "set_algorithm_settings";
 
 export interface Command {
   action: Action;
@@ -29,6 +33,11 @@ export interface FileSettings {
   selectedColumns: number[];
 }
 
+export interface AlgorithmSettings {
+  clusterCount: number | "auto";
+  maxClusters: number | undefined;
+}
+
 // Frontend-only models
 export interface AppSettings {}
 
@@ -51,6 +60,9 @@ declare global {
       onReceivePath: (callback: (path: string) => void) => void;
       setSettings: (settings: FileSettings) => void;
     };
+    algorithm: {
+      setSettings: (settings: AlgorithmSettings) => void;
+    };
   }
 }
 
@@ -59,6 +71,7 @@ export const CHANNEL_TYPES = {
   SETTINGS: "settings",
   URL: "url",
   FILE: "file",
+  ALGORITHM: "algorithm",
 };
 export const CHANNELS = {
   ELECTRON: {
@@ -75,6 +88,9 @@ export const CHANNELS = {
     PATH_REQUEST: "file:get-path",
     PATH_RESPONSE: "file:path",
     SET_SETTINGS: "file:set-settings",
+  },
+  ALGORITHM: {
+    SET_SETTINGS: "algorithm:set-settings",
   },
 };
 
