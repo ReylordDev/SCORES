@@ -21,6 +21,7 @@ from models import (
     OutlierStatistics,
     ClusterSimilarityPair,
     ClusteringResult,
+    Run,
 )
 
 
@@ -328,7 +329,7 @@ class Clusterer:
                 )
                 # re-set the cluster centers to the weighted mean of all their
                 # points and normalize them to unit length
-                merged_clusters[0].center = np.average(
+                new_center = np.average(
                     [cluster.center for cluster in merged_clusters],
                     axis=0,
                     weights=[cluster.count for cluster in merged_clusters],
@@ -340,6 +341,7 @@ class Clusterer:
                     ),
                     ord=2,
                 )
+                merged_clusters[0].center = new_center.tolist()
 
                 for cluster in merged_clusters[1:]:
                     post_merge_cluster_ids.remove(cluster.id)
@@ -395,6 +397,10 @@ class Clusterer:
         merger_stats, clusters = self.merge_clusters(
             clusters, similarity_threshold=0.85
         )
+
+        for cluster in clusters:
+            for response in cluster.responses:
+                response.similarity = cluster.similarity_to_response(response)
 
         return ClusteringResult(
             clusters=clusters,
@@ -472,7 +478,7 @@ def weighted_calinski_harabasz(embeddings, labels, sample_weight, cluster_center
 if __name__ == "__main__":
     from database_manager import DatabaseManager
 
-    database_manager = DatabaseManager()
+    database_manager = DatabaseManager(echo=True)
     app_state = ApplicationState()
     app_state.set_file_path(
         "C:\\Users\\Luis\\Projects\\Word-Clustering-Tool-for-SocPsych\\example_data\\example_short.csv"
@@ -487,7 +493,18 @@ if __name__ == "__main__":
     app_state.set_algorithm_settings(
         AlgorithmSettings(method=ManualClusterCount(cluster_count=50))
     )
+    file_path = app_state.get_file_path()
+    file_settings = app_state.get_file_settings()
     algo_settings = app_state.get_algorithm_settings()
+    assert file_path is not None
+    assert file_settings is not None
     assert algo_settings is not None
     clusterer = Clusterer(app_state)
     result = clusterer.run()
+    run = Run(
+        file_path=file_path,
+        file_settings=file_settings.model_dump_json(),
+        algorithm_settings=algo_settings.model_dump_json(),
+        result=result,
+    )
+    database_manager.save_to_db(result)

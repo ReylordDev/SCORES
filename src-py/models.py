@@ -165,6 +165,7 @@ class Cluster(SQLModel, table=True):
     merger_id: Optional[int] = Field(default=None, foreign_key="merger.id")
     merger: Optional["Merger"] = Relationship(back_populates="clusters")
 
+    # TODO: this is actually a many-to-many relationship
     similarity_pair_id: Optional[uuid.UUID] = Field(
         default=None, foreign_key="clustersimilaritypair.id"
     )
@@ -176,6 +177,8 @@ class Cluster(SQLModel, table=True):
 class ClusterSimilarityPair(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     similarity: float
+
+    # TODO: this is actually a many-to-many relationship
     clusters: list[Cluster] = Relationship(back_populates="similarity_pair")
 
     merger_id: Optional[int] = Field(default=None, foreign_key="merger.id")
@@ -241,15 +244,17 @@ class ClusteringResult(SQLModel, table=True):
 
 class Run(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str
     file_path: str
     created_at: float = Field(default_factory=time.time)
 
-    # file_settings_id: uuid.UUID = Field(foreign_key="filesettings.id")
-    # file_settings: FileSettings = Relationship(back_populates="run")
-    file_settings: FileSettings = Field(sa_column=Column(JSON))
+    file_settings: str = Field(sa_column=Column(JSON))
 
-    # algorithm_settings_id: uuid.UUID = Field(foreign_key="algorithmsettings.id")
-    # algorithm_settings: AlgorithmSettings = Relationship(back_populates="run")
-    algorithm_settings: AlgorithmSettings = Field(sa_column=Column(JSON))
+    algorithm_settings: str = Field(sa_column=Column(JSON))
 
     result: Optional[ClusteringResult] = Relationship(back_populates="run")
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        # self.name = f"Cluster {self.id}"
+        self.__dict__["name"] = f"Run {self.id}"
