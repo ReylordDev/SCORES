@@ -3,10 +3,13 @@ from typing import Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 from pydantic.alias_generators import to_camel
 import numpy as np
+import uuid
 
 
 class CamelModel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
+    model_config = ConfigDict(
+        alias_generator=to_camel, populate_by_name=True, frozen=True
+    )
 
 
 ActionType = Literal[
@@ -76,6 +79,7 @@ class Response(CamelModel):
     embedding: Optional[list[float]] = None
     is_outlier: bool = False
     cluster_id: Optional[int] = None
+    similarity: Optional[float] = None
     count: int
     id: int = Field(default_factory=lambda: next(response_id_counter))
 
@@ -98,12 +102,19 @@ class Cluster(CamelModel):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.name = f"Cluster {self.id}"
+        # self.name = f"Cluster {self.id}"
+        self.__dict__["name"] = f"Cluster {self.id}"  # Bypass frozen for initialization
 
     @computed_field
     @property
     def count(self) -> int:
         return len(self.responses)
+
+    @computed_field
+    @property
+    def most_representative_responses(self) -> list[Response]:
+        """Responses sorted by similarity descending"""
+        return sorted(self.responses, key=lambda r: r.similarity or -1, reverse=True)
 
     def similarity_to_response(self, response: Response) -> float:
         if not response.embedding:
@@ -130,7 +141,8 @@ class Merger(CamelModel):
 
     def __init__(self, **data):
         super().__init__(**data)
-        self.name = f"Merger {self.id}"
+        # self.name = f"Merger {self.id}"
+        self.__dict__["name"] = f"Merger {self.id}"  # Bypass frozen for initialization
 
 
 class MergingStatistics(CamelModel):
@@ -139,6 +151,8 @@ class MergingStatistics(CamelModel):
 
 
 class ClusteringResult(CamelModel):
+    run_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     clusters: list[Cluster]
     outlier_statistics: OutlierStatistics
     merger_statistics: MergingStatistics
+    inter_cluster_similarities: list[ClusterSimilarityPair]

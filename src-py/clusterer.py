@@ -166,6 +166,9 @@ class Clusterer:
         sil_scores, inertias, calinski_scores, bic_scores = [], [], [], []
 
         for K in K_values:
+            # TODO: improve with early stopping
+            if K >= len(embeddings) - 1:
+                continue
             clustering = KMeans(n_clusters=K, n_init="auto", random_state=42).fit(
                 embeddings, sample_weight=response_weights
             )
@@ -185,8 +188,9 @@ class Clusterer:
             calinski_scores.append(calinski)
 
             # BIC
-            bic = -clustering.score(embeddings)
-            bic += 0.5 * K * np.log(len(embeddings))
+            bic = len(embeddings) * np.log(clustering.inertia_) + K * np.log(
+                len(embeddings)
+            )
             bic_scores.append(bic)
 
         # Normalize metrics
@@ -196,7 +200,7 @@ class Clusterer:
         bic_norm = normalize(bic_scores, higher_better=False)
 
         # Combine scores (adjust weights as needed)
-        weights = [0.25, 0.25, 0.25, 0.25]  # Silhouette, Inertia, Calinski, BIC
+        weights = [0.4, 0.1, 0.4, 0.1]  # Silhouette, Inertia, Calinski, BIC
         combined_scores = [
             w * s + w_i * i + w_c * c + w_b * b
             for s, i, c, b in zip(sil_norm, inertia_norm, calinski_norm, bic_norm)
@@ -231,9 +235,12 @@ class Clusterer:
             embeddings, sample_weight=response_weights
         )
         cluster_indices = np.copy(clustering.labels_)
-        cluster_centers = clustering.cluster_centers_ / np.linalg.norm(
-            clustering.cluster_centers_, axis=1, keepdims=True, ord=2
+        valid_clusters = [i for i in range(K) if np.sum(cluster_indices == i) > 0]
+        K = len(valid_clusters)
+        cluster_indices = np.array(
+            [valid_clusters.index(idx) for idx in cluster_indices]
         )
+        cluster_centers = clustering.cluster_centers_
         for i, response in enumerate(responses):
             response.cluster_id = cluster_indices[i]
 
@@ -248,9 +255,6 @@ class Clusterer:
                 ],
             )
             clusters.append(cluster)
-            print(
-                f"Cluster {i}: {cluster.count} responses, centroid: {cluster.center[:3]}, examples: {[response.text for response in cluster.responses[:3]]}"
-            )
 
         return clusters
 
@@ -266,14 +270,13 @@ class Clusterer:
             distance_threshold=1.0 - similarity_threshold,
             linkage="complete",
             metric="cosine",
-        )
-        meta_clustering.fit(np.asarray([cluster.center for cluster in clusters]))
+        ).fit(np.asarray([cluster.center for cluster in clusters]))
+
         cluster_centers = np.asarray(
             [np.asarray(cluster.center) for cluster in clusters]
         )
         meta_clustering_indices = meta_clustering.labels_
 
-        # Cluster IDs match the cluster indices for now
         mergers: list[Merger] = []
         post_merge_cluster_ids = [cluster.id for cluster in clusters]
         for merged_cluster_group_index in np.unique(meta_clustering_indices):
@@ -341,6 +344,23 @@ class Clusterer:
             mergers=mergers, threshold=similarity_threshold
         ), clusters
 
+    def calculate_inter_cluster_similarities(self, clusters: list[Cluster]):
+        # Calculate the similarity between all pairs of clusters
+        cluster_centers = np.asarray(
+            [np.asarray(cluster.center) for cluster in clusters]
+        )
+        S = np.dot(cluster_centers, cluster_centers.T)
+        triu_indices = np.triu_indices(len(S), k=1)
+        cluster_similarity_pairs = []
+        for i, j in zip(triu_indices[0], triu_indices[1]):
+            cluster_similarity_pairs.append(
+                ClusterSimilarityPair(
+                    cluster_ids=(clusters[i].id, clusters[j].id),
+                    similarity=S[i, j],
+                )
+            )
+        return cluster_similarity_pairs
+
     def run(self) -> ClusteringResult:
         responses, full_file_content = self.process_input_file([])
 
@@ -373,6 +393,9 @@ class Clusterer:
             clusters=clusters,
             outlier_statistics=outlier_stats,
             merger_statistics=merger_stats,
+            inter_cluster_similarities=self.calculate_inter_cluster_similarities(
+                clusters
+            ),
         )
 
 
