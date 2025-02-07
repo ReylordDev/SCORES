@@ -1,8 +1,10 @@
 from itertools import count
 from typing import Literal, Optional, Union
-from pydantic import BaseModel, ConfigDict, Field, computed_field
+from pydantic import BaseModel, ConfigDict, computed_field
 from pydantic.alias_generators import to_camel
+from sqlmodel import JSON, Column, SQLModel, Field, Relationship
 import numpy as np
+import time
 import uuid
 
 
@@ -59,46 +61,77 @@ class Message(BaseModel):
     data: MessageDataType
 
 
-class FileSettings(CamelModel):
+class FileSettings(SQLModel):
     delimiter: str
     has_header: bool
-    selected_columns: list[int]
+    selected_columns: list[int] = Field(..., sa_column=Column(JSON))
 
 
-class AlgorithmSettings(CamelModel):
+class AutomaticClusterCount(BaseModel):
+    cluster_count_method: Literal["auto"] = "auto"
+    max_clusters: int
+
+
+class ManualClusterCount(BaseModel):
+    cluster_count_method: Literal["manual"] = "manual"
+    cluster_count: int
+
+
+class AlgorithmSettings(SQLModel):
     # can be improved
-    cluster_count: Union[int, Literal["auto"]]
-    max_clusters: Optional[int] = None
+    method: Union[AutomaticClusterCount, ManualClusterCount] = Field(
+        default=AutomaticClusterCount(max_clusters=10),
+        discriminator="cluster_count_method",
+    )
 
 
 response_id_counter = count(0)
 
 
-class Response(CamelModel):
+class Response(SQLModel, table=True):
+    id: int = Field(default_factory=lambda: next(response_id_counter), primary_key=True)
     text: str
-    embedding: Optional[list[float]] = None
+    embedding: Optional[list[float]] = Field(default=None, sa_column=Column(JSON))
     is_outlier: bool = False
-    cluster_id: Optional[int] = None
     similarity: Optional[float] = None
-    count: int
-    id: int = Field(default_factory=lambda: next(response_id_counter))
+    count: int = 0
+
+    cluster_id: Optional[int] = Field(default=None, foreign_key="cluster.id")
+    cluster: Optional["Cluster"] = Relationship(back_populates="responses")
+
+    # outlier_statistic_id: uuid.UUID = Field(foreign_key="outlier_statistic.id")
+    outlier_statistic: "OutlierStatistic" = Relationship(back_populates="response")
 
 
-class OutlierStatistic(CamelModel):
-    response: Response
+class OutlierStatistic(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     similarity: float
 
+    response_id: int = Field(foreign_key="response.id")
+    response: Response = Relationship(back_populates="outlier_statistic")
 
-class OutlierStatistics(CamelModel):
+    outlier_statistics_id: uuid.UUID = Field(foreign_key="outlierstatistics.id")
+    outlier_statistics: "OutlierStatistics" = Relationship(back_populates="outliers")
+
+
+class OutlierStatistics(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     threshold: float
-    outliers: list[OutlierStatistic]
+    outliers: list[OutlierStatistic] = Relationship(back_populates="outlier_statistics")
+
+    clustering_result_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="clusteringresult.id"
+    )
+    clustering_result: "ClusteringResult" = Relationship(
+        back_populates="outlier_statistics"
+    )
 
 
-class Cluster(CamelModel):
-    id: int
+class Cluster(SQLModel, table=True):
+    id: int = Field(default_factory=lambda: next(response_id_counter), primary_key=True)
     name: str = ""
-    center: list[float]
-    responses: list[Response]
+    center: list[float] = Field(sa_column=Column(JSON))
+    responses: list[Response] = Relationship(back_populates="cluster")
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -124,20 +157,51 @@ class Cluster(CamelModel):
     def similarity_to_cluster(self, cluster: "Cluster") -> float:
         return np.dot(self.center, cluster.center)
 
+    result_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="clusteringresult.id"
+    )
+    result: "ClusteringResult" = Relationship(back_populates="clusters")
 
-class ClusterSimilarityPair(CamelModel):
-    cluster_ids: tuple[int, int]
+    merger_id: Optional[int] = Field(default=None, foreign_key="merger.id")
+    merger: Optional["Merger"] = Relationship(back_populates="clusters")
+
+    similarity_pair_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="clustersimilaritypair.id"
+    )
+    similarity_pair: Optional["ClusterSimilarityPair"] = Relationship(
+        back_populates="clusters"
+    )
+
+
+class ClusterSimilarityPair(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     similarity: float
+    clusters: list[Cluster] = Relationship(back_populates="similarity_pair")
+
+    merger_id: Optional[int] = Field(default=None, foreign_key="merger.id")
+    merger: Optional["Merger"] = Relationship(back_populates="similarity_pairs")
+
+    result_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="clusteringresult.id"
+    )
+    result: Optional["ClusteringResult"] = Relationship(
+        back_populates="inter_cluster_similarities"
+    )
 
 
 merger_id_counter = count(0)
 
 
-class Merger(CamelModel):
-    id: int = Field(default_factory=lambda: next(merger_id_counter))
+class Merger(SQLModel, table=True):
+    id: int = Field(default_factory=lambda: next(merger_id_counter), primary_key=True)
     name: str = ""
-    clusters: list[Cluster]
-    similarity_pairs: list[ClusterSimilarityPair]
+    clusters: list[Cluster] = Relationship(back_populates="merger")
+    similarity_pairs: list[ClusterSimilarityPair] = Relationship(
+        back_populates="merger"
+    )
+
+    merging_statistics_id: uuid.UUID = Field(foreign_key="mergingstatistics.id")
+    merging_statistics: "MergingStatistics" = Relationship(back_populates="mergers")
 
     def __init__(self, **data):
         super().__init__(**data)
@@ -145,14 +209,47 @@ class Merger(CamelModel):
         self.__dict__["name"] = f"Merger {self.id}"  # Bypass frozen for initialization
 
 
-class MergingStatistics(CamelModel):
+class MergingStatistics(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     threshold: float
-    mergers: list[Merger]
+    mergers: list[Merger] = Relationship(back_populates="merging_statistics")
+
+    clustering_result_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="clusteringresult.id"
+    )
+    clustering_result: "ClusteringResult" = Relationship(
+        back_populates="merger_statistics"
+    )
 
 
-class ClusteringResult(CamelModel):
-    run_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    clusters: list[Cluster]
-    outlier_statistics: OutlierStatistics
-    merger_statistics: MergingStatistics
-    inter_cluster_similarities: list[ClusterSimilarityPair]
+class ClusteringResult(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    clusters: list[Cluster] = Relationship(back_populates="result")
+    outlier_statistics: OutlierStatistics = Relationship(
+        back_populates="clustering_result"
+    )
+    merger_statistics: MergingStatistics = Relationship(
+        back_populates="clustering_result"
+    )
+    inter_cluster_similarities: list[ClusterSimilarityPair] = Relationship(
+        back_populates="result"
+    )
+
+    run_id: Optional[uuid.UUID] = Field(default=None, foreign_key="run.id")
+    run: "Run" = Relationship(back_populates="result")
+
+
+class Run(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    file_path: str
+    created_at: float = Field(default_factory=time.time)
+
+    # file_settings_id: uuid.UUID = Field(foreign_key="filesettings.id")
+    # file_settings: FileSettings = Relationship(back_populates="run")
+    file_settings: FileSettings = Field(sa_column=Column(JSON))
+
+    # algorithm_settings_id: uuid.UUID = Field(foreign_key="algorithmsettings.id")
+    # algorithm_settings: AlgorithmSettings = Relationship(back_populates="run")
+    algorithm_settings: AlgorithmSettings = Field(sa_column=Column(JSON))
+
+    result: Optional[ClusteringResult] = Relationship(back_populates="run")

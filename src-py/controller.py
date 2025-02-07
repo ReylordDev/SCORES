@@ -5,6 +5,7 @@ from models import Command, Error, FileSettings, AlgorithmSettings
 from utils.ipc import print_message, print_progress
 from loguru import logger
 from application_state import ApplicationState
+from database_manager import DatabaseManager
 from clusterer import Clusterer
 
 
@@ -12,6 +13,7 @@ class Controller:
     def __init__(self):
         print_progress("init", "start")
         self.app_state = ApplicationState()
+        self.database_manager = DatabaseManager()
 
         print_progress("init", "complete")
 

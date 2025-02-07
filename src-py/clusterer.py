@@ -10,8 +10,10 @@ from loguru import logger
 from collections import Counter
 from models import (
     AlgorithmSettings,
+    AutomaticClusterCount,
     Cluster,
     FileSettings,
+    ManualClusterCount,
     Merger,
     MergingStatistics,
     OutlierStatistic,
@@ -133,34 +135,42 @@ class Clusterer:
 
         outliers = [response for response in responses if response.is_outlier]
 
+        outlier_statistics_summary = OutlierStatistics(
+            threshold=outlier_threshold, outliers=[]
+        )
+
         for i, response in enumerate(outliers):
             sim = avg_neighbor_sim[np.where(outlier_bools)[0][i]]
-            outlier_stats.append(OutlierStatistic(response=response, similarity=sim))
+            outlier_stats.append(
+                OutlierStatistic(
+                    similarity=sim,
+                    response=response,
+                    response_id=response.id,
+                    outlier_statistics_id=outlier_statistics_summary.id,
+                )
+            )
 
-        outlier_statistics_summary = OutlierStatistics(
-            threshold=outlier_threshold, outliers=outlier_stats
-        )
+        outlier_statistics_summary.outliers = outlier_stats
 
         return outlier_statistics_summary
 
     def auto_cluster_count(self, embeddings, response_weights):
-        assert self.algorithm_settings.max_clusters is not None
+        assert self.algorithm_settings.method.cluster_count_method == "auto"
+        max_clusters = self.algorithm_settings.method.max_clusters
 
         # TODO: Implement more sophisticated method
-        if self.algorithm_settings.max_clusters < 50:
+        if max_clusters < 50:
             # for max_num_clusters < 50, we try every possible value
-            K_values = list(range(2, self.algorithm_settings.max_clusters + 1))
-        elif self.algorithm_settings.max_clusters < 100:
+            K_values = list(range(2, max_clusters + 1))
+        elif max_clusters < 100:
             # for max_num_clusters >= 50, we try every fifth value
-            K_values = list(range(2, 51)) + list(
-                range(55, self.algorithm_settings.max_clusters + 1, 5)
-            )
+            K_values = list(range(2, 51)) + list(range(55, max_clusters + 1, 5))
         else:
             # for max_num_clusters >= 100, we try every tenth value
             K_values = (
                 list(range(2, 51))
                 + list(range(55, 101, 5))
-                + list(range(110, self.algorithm_settings.max_clusters + 1, 10))
+                + list(range(110, max_clusters + 1, 10))
             )
 
         sil_scores, inertias, calinski_scores, bic_scores = [], [], [], []
@@ -298,10 +308,7 @@ class Clusterer:
                 for i, j in zip(triu_indices[0], triu_indices[1]):
                     similarity_pairs.append(
                         ClusterSimilarityPair(
-                            cluster_ids=(
-                                merged_cluster_indices[i],
-                                merged_cluster_indices[j],
-                            ),  # type: ignore
+                            clusters=[merged_clusters[i], merged_clusters[j]],
                             similarity=S[i, j],
                         )
                     )
@@ -355,7 +362,7 @@ class Clusterer:
         for i, j in zip(triu_indices[0], triu_indices[1]):
             cluster_similarity_pairs.append(
                 ClusterSimilarityPair(
-                    cluster_ids=(clusters[i].id, clusters[j].id),
+                    clusters=[clusters[i], clusters[j]],
                     similarity=S[i, j],
                 )
             )
@@ -378,10 +385,10 @@ class Clusterer:
 
         response_weights = np.array([response.count for response in responses])
 
-        if self.algorithm_settings.cluster_count == "auto":
+        if self.algorithm_settings.method.cluster_count_method == "auto":
             K = self.auto_cluster_count(embeddings, response_weights)
         else:
-            K = self.algorithm_settings.cluster_count
+            K = self.algorithm_settings.method.cluster_count
 
         clusters = self.start_clustering(responses, embeddings, K, response_weights)
 
@@ -463,6 +470,9 @@ def weighted_calinski_harabasz(embeddings, labels, sample_weight, cluster_center
 
 
 if __name__ == "__main__":
+    from database_manager import DatabaseManager
+
+    database_manager = DatabaseManager()
     app_state = ApplicationState()
     app_state.set_file_path(
         "C:\\Users\\Luis\\Projects\\Word-Clustering-Tool-for-SocPsych\\example_data\\example_short.csv"
@@ -474,36 +484,10 @@ if __name__ == "__main__":
             selected_columns=[1, 2, 3, 4, 5, 6, 7, 8, 9],
         )
     )
-    app_state.set_algorithm_settings(AlgorithmSettings(cluster_count=50))
+    app_state.set_algorithm_settings(
+        AlgorithmSettings(method=ManualClusterCount(cluster_count=50))
+    )
     algo_settings = app_state.get_algorithm_settings()
     assert algo_settings is not None
-    assert isinstance(algo_settings.cluster_count, int)
     clusterer = Clusterer(app_state)
-    responses, full_file_content = clusterer.process_input_file([])
-
-    embedding_model = clusterer.load_embedding_model("BAAI/bge-large-en-v1.5")
-
-    embeddings = clusterer.embed_responses(responses, embedding_model)
-
-    outlier_stats = clusterer.detect_outliers(
-        responses, embeddings, outlier_k=5, z_score_threshold=1.5
-    )
-
-    print(f"Outliers: {len(outlier_stats.outliers)}")
-
-    responses = [response for response in responses if not response.is_outlier]
-    embeddings = np.array([response.embedding for response in responses])
-
-    response_weights = np.array([response.count for response in responses])
-
-    # K = clusterer.auto_cluster_count(embeddings, response_weights)
-    K = algo_settings.cluster_count
-
-    clusters = clusterer.start_clustering(responses, embeddings, K, response_weights)
-
-    print(f"Clusters: {len(clusters)}")
-
-    merger_stats, clusters = clusterer.merge_clusters(
-        clusters, similarity_threshold=0.85
-    )
-    print(f"Mergers: {len(merger_stats.mergers)}")
+    result = clusterer.run()
