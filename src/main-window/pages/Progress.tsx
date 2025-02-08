@@ -24,11 +24,12 @@ export default function Progress() {
   const [startTime, setStartTime] = useState<number | null>(null);
   const [timeElapsed, setTimeElapsed] = useState<number>(0);
   const [pendingTasks, setPendingTasks] = useState<ClusteringStep[]>([]);
-  const [currentTask, setCurrentTask] = useState<
-    [ClusteringStep, number] | null
-  >(null);
+  const [currentTask, setCurrentTask] = useState<{
+    step: ClusteringStep;
+    timestamp: number;
+  } | null>(null);
   const [completedTasks, setCompletedTasks] = useState<
-    [ClusteringStep, number][]
+    { step: ClusteringStep; timestamp: number }[]
   >([]);
   const [errorEncountered, setErrorEncountered] = useState(false);
   const navigate = useNavigate();
@@ -45,14 +46,14 @@ export default function Progress() {
         // TODO: if sort problems occurr, use timestamp information for sorting
         setPendingTasks((tasks) => [...tasks, progress.step]);
       } else if (progress.status === "start") {
-        setCurrentTask([progress.step, progress.timestamp]);
+        setCurrentTask({ step: progress.step, timestamp: progress.timestamp });
         setPendingTasks((tasks) =>
           tasks.filter((task) => task !== progress.step)
         );
       } else if (progress.status === "complete") {
         setCompletedTasks((tasks) => [
           ...tasks,
-          [progress.step, progress.timestamp],
+          { step: progress.step, timestamp: progress.timestamp },
         ]);
         setCurrentTask(null);
       } else if (progress.status === "error") {
@@ -65,7 +66,7 @@ export default function Progress() {
     if (
       pendingTasks.length === 0 &&
       !currentTask &&
-      completedTasks.filter((task) => task[0] === "save").length > 0
+      completedTasks.filter((task) => task.step === "save").length > 0
     ) {
       console.log("Clustering complete");
       navigate("/results");
@@ -156,7 +157,7 @@ export default function Progress() {
           <div className="flex w-full flex-col gap-2">
             {completedTasks.map((message, index) => {
               const previousTime = completedTasks[index - 1]
-                ? completedTasks[index - 1][1]
+                ? completedTasks[index - 1].timestamp
                 : startTime;
               return (
                 <div
@@ -169,15 +170,15 @@ export default function Progress() {
                       className="rounded bg-text-800 text-background"
                     />
                     <div className="text-lg line-through">
-                      {progressionMessages[message[0]]}
+                      {progressionMessages[message.step]}
                     </div>
                   </div>
                   <div className="flex justify-start gap-2">
                     <AdaptiveClock
-                      seconds={Math.floor(message[1] - previousTime)}
+                      seconds={Math.floor(message.timestamp - previousTime)}
                     />
                     <p className="min-w-28">
-                      {formatTime(Math.floor(message[1] - previousTime))}
+                      {formatTime(Math.floor(message.timestamp - previousTime))}
                     </p>
                   </div>
                 </div>
@@ -193,19 +194,21 @@ export default function Progress() {
                     className="rounded border-2 border-primary bg-background text-background"
                   />
                   <div className="text-lg">
-                    {progressionMessages[currentTask[0]]}
+                    {progressionMessages[currentTask.step]}
                   </div>
                 </div>
                 <div className="flex justify-start gap-2">
                   <AdaptiveClock
                     className="text-primary"
                     seconds={Math.floor(
-                      startTime + timeElapsed + 1 - currentTask[1]
+                      startTime + timeElapsed + 1 - currentTask.timestamp
                     )}
                   />
                   <p className="min-w-28">
                     {formatTime(
-                      Math.floor(startTime + timeElapsed + 1 - currentTask[1])
+                      Math.floor(
+                        startTime + timeElapsed + 1 - currentTask.timestamp
+                      )
                     )}
                   </p>
                 </div>
