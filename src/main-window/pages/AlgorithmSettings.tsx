@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/button";
 import { SquarePen, ChartScatter } from "lucide-react";
 import { TooltipWrapper } from "../../components/Tooltip";
 import { Input } from "../../components/ui/input";
+import { ClusterCount } from "../../lib/models";
 
 export default function AlgorithmSettings() {
   const [autoChooseClusters, setAutoChooseClusters] = useState(true);
@@ -24,10 +25,22 @@ export default function AlgorithmSettings() {
 
   const submitAlgorithmSettings = () => {
     console.log("Submitting settings...");
-    window.algorithm.setSettings({
-      clusterCount: autoChooseClusters ? "auto" : clusterCount,
-      maxClusters: autoChooseClusters ? maxClusters : undefined,
-    });
+    const method: ClusterCount = autoChooseClusters
+      ? { cluster_count_method: "auto", max_clusters: maxClusters }
+      : { cluster_count_method: "manual", cluster_count: clusterCount };
+
+    if (method.cluster_count_method === "manual" && clusterCount === null) {
+      console.error("Cluster count must be specified when using manual mode.");
+      return;
+    } else if (method.cluster_count_method === "auto" && maxClusters === null) {
+      console.error(
+        "Max clusters must be specified when using automatic mode."
+      );
+      return;
+    }
+
+    window.algorithm.setSettings({ method });
+    window.algorithm.runClustering();
   };
 
   return (

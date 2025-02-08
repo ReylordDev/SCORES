@@ -45,6 +45,12 @@ export function registerIpcHandlers(
     }
   );
 
+  ipcMain.on(CHANNELS.ALGORITHM.RUN_CLUSTERING, () => {
+    pythonService.sendCommand({
+      action: "run_clustering",
+    });
+  });
+
   ipcMain.handle(CHANNELS.ELECTRON.READ_FILE, async (_, path: string) => {
     return new Promise<string>((resolve, reject) => {
       fs.readFile(path, "utf-8", (err, data) => {

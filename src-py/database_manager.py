@@ -5,7 +5,7 @@ import os
 
 class DatabaseManager:
     def __init__(self, echo=False):
-        sql_file_name = os.environ.get("USER_DATA_PATH", "./") + "database.db"
+        sql_file_name = os.environ.get("USER_DATA_PATH", ".") + "/database.db"
         if not os.path.exists(sql_file_name):
             with open(sql_file_name, "w") as f:
                 f.write("")

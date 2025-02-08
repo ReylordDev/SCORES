@@ -5,7 +5,8 @@ type Action =
   | "set_file_path"
   | "get_file_path"
   | "set_file_settings"
-  | "set_algorithm_settings";
+  | "set_algorithm_settings"
+  | "run_clustering";
 
 export interface Command {
   action: Action;
@@ -33,9 +34,20 @@ export interface FileSettings {
   selectedColumns: number[];
 }
 
+export interface AutomaticClusterCount {
+  cluster_count_method: "auto";
+  max_clusters: number;
+}
+
+interface ManualClusterCount {
+  cluster_count_method: "manual";
+  cluster_count: number;
+}
+
+export type ClusterCount = AutomaticClusterCount | ManualClusterCount;
+
 export interface AlgorithmSettings {
-  clusterCount: number | "auto";
-  maxClusters: number | undefined;
+  method: ClusterCount;
 }
 
 // Frontend-only models
@@ -62,6 +74,7 @@ declare global {
     };
     algorithm: {
       setSettings: (settings: AlgorithmSettings) => void;
+      runClustering: () => void;
     };
   }
 }
@@ -91,6 +104,7 @@ export const CHANNELS = {
   },
   ALGORITHM: {
     SET_SETTINGS: "algorithm:set-settings",
+    RUN_CLUSTERING: "algorithm:run-clustering",
   },
 };
 

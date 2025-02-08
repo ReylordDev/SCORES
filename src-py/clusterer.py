@@ -10,7 +10,6 @@ from loguru import logger
 from collections import Counter
 from models import (
     AlgorithmSettings,
-    AutomaticClusterCount,
     Cluster,
     FileSettings,
     ManualClusterCount,
@@ -252,20 +251,16 @@ class Clusterer:
             [valid_clusters.index(idx) for idx in cluster_indices]
         )
         cluster_centers = clustering.cluster_centers_
-        for i, response in enumerate(responses):
-            response.cluster_id = cluster_indices[i]
 
         clusters = []
         for i in range(K):
-            cluster = Cluster(
-                id=i,
-                center=cluster_centers[i].tolist(),
-                count=np.sum(cluster_indices == i),
-                responses=[
-                    response for response in responses if response.cluster_id == i
-                ],
-            )
+            cluster = Cluster(center=cluster_centers[i].tolist(), responses=[])
             clusters.append(cluster)
+
+        for i, response in enumerate(responses):
+            cluster_index = cluster_indices[i]
+            response.cluster_id = clusters[cluster_index].id
+            clusters[cluster_index].responses.append(response)
 
         return clusters
 
@@ -401,6 +396,8 @@ class Clusterer:
         for cluster in clusters:
             for response in cluster.responses:
                 response.similarity = cluster.similarity_to_response(response)
+
+        logger.info("Clustering complete")
 
         return ClusteringResult(
             clusters=clusters,

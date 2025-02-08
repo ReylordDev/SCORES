@@ -1,4 +1,3 @@
-from itertools import count
 from typing import Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, computed_field
 from pydantic.alias_generators import to_camel
@@ -61,23 +60,23 @@ class Message(BaseModel):
     data: MessageDataType
 
 
-class FileSettings(SQLModel):
+class FileSettings(CamelModel):
     delimiter: str
     has_header: bool
     selected_columns: list[int] = Field(..., sa_column=Column(JSON))
 
 
-class AutomaticClusterCount(BaseModel):
+class AutomaticClusterCount(CamelModel):
     cluster_count_method: Literal["auto"] = "auto"
     max_clusters: int
 
 
-class ManualClusterCount(BaseModel):
+class ManualClusterCount(CamelModel):
     cluster_count_method: Literal["manual"] = "manual"
     cluster_count: int
 
 
-class AlgorithmSettings(SQLModel):
+class AlgorithmSettings(CamelModel):
     # can be improved
     method: Union[AutomaticClusterCount, ManualClusterCount] = Field(
         default=AutomaticClusterCount(max_clusters=10),
@@ -85,18 +84,15 @@ class AlgorithmSettings(SQLModel):
     )
 
 
-response_id_counter = count(0)
-
-
 class Response(SQLModel, table=True):
-    id: int = Field(default_factory=lambda: next(response_id_counter), primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     text: str
     embedding: Optional[list[float]] = Field(default=None, sa_column=Column(JSON))
     is_outlier: bool = False
     similarity: Optional[float] = None
     count: int = 0
 
-    cluster_id: Optional[int] = Field(default=None, foreign_key="cluster.id")
+    cluster_id: Optional[uuid.UUID] = Field(default=None, foreign_key="cluster.id")
     cluster: Optional["Cluster"] = Relationship(back_populates="responses")
 
     # outlier_statistic_id: uuid.UUID = Field(foreign_key="outlier_statistic.id")
@@ -107,7 +103,7 @@ class OutlierStatistic(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     similarity: float
 
-    response_id: int = Field(foreign_key="response.id")
+    response_id: uuid.UUID = Field(foreign_key="response.id")
     response: Response = Relationship(back_populates="outlier_statistic")
 
     outlier_statistics_id: uuid.UUID = Field(foreign_key="outlierstatistics.id")
@@ -128,7 +124,7 @@ class OutlierStatistics(SQLModel, table=True):
 
 
 class Cluster(SQLModel, table=True):
-    id: int = Field(default_factory=lambda: next(response_id_counter), primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = ""
     center: list[float] = Field(sa_column=Column(JSON))
     responses: list[Response] = Relationship(back_populates="cluster")
@@ -162,7 +158,7 @@ class Cluster(SQLModel, table=True):
     )
     result: "ClusteringResult" = Relationship(back_populates="clusters")
 
-    merger_id: Optional[int] = Field(default=None, foreign_key="merger.id")
+    merger_id: Optional[uuid.UUID] = Field(default=None, foreign_key="merger.id")
     merger: Optional["Merger"] = Relationship(back_populates="clusters")
 
     # TODO: this is actually a many-to-many relationship
@@ -181,7 +177,7 @@ class ClusterSimilarityPair(SQLModel, table=True):
     # TODO: this is actually a many-to-many relationship
     clusters: list[Cluster] = Relationship(back_populates="similarity_pair")
 
-    merger_id: Optional[int] = Field(default=None, foreign_key="merger.id")
+    merger_id: Optional[uuid.UUID] = Field(default=None, foreign_key="merger.id")
     merger: Optional["Merger"] = Relationship(back_populates="similarity_pairs")
 
     result_id: Optional[uuid.UUID] = Field(
@@ -192,11 +188,8 @@ class ClusterSimilarityPair(SQLModel, table=True):
     )
 
 
-merger_id_counter = count(0)
-
-
 class Merger(SQLModel, table=True):
-    id: int = Field(default_factory=lambda: next(merger_id_counter), primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = ""
     clusters: list[Cluster] = Relationship(back_populates="merger")
     similarity_pairs: list[ClusterSimilarityPair] = Relationship(

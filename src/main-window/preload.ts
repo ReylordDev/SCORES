@@ -41,4 +41,7 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.ALGORITHM, {
   setSettings: (settings: AlgorithmSettings) => {
     ipcRenderer.send(CHANNELS.ALGORITHM.SET_SETTINGS, settings);
   },
+  runClustering: () => {
+    ipcRenderer.send(CHANNELS.ALGORITHM.RUN_CLUSTERING);
+  },
 });
