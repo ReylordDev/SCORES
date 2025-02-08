@@ -56,7 +56,28 @@ class Controller:
                 result=result,
             )
             self.database_manager.save_run(run)
+            self.app_state.set_run_id(run.id)
 
+        elif command.action == "set_run_id":
+            if not command.data or not command.data["runId"]:
+                print_message("error", Error(error="Run ID cannot be empty"))
+                return
+            self.app_state.set_run_id(command.data["runId"])
+        elif command.action == "get_runs":
+            runs = []
+            for run in self.database_manager.get_runs():
+                runs.append(run)
+            print_message("runs", runs)
+        elif command.action == "get_current_run":
+            run_id = self.app_state.get_run_id()
+            if not run_id:
+                print_message("error", Error(error="Run ID not set"))
+                return
+            run = self.database_manager.get_run(run_id)
+            if not run:
+                print_message("error", Error(error="Run not found"))
+                return
+            print_message("run", run)
         else:
             logger.error(f"Invalid action: {command.action}")
             print_message("error", Error(error=f"Invalid action: {command.action}"))

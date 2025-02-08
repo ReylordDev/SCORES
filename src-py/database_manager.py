@@ -36,11 +36,21 @@ class DatabaseManager:
         with Session(self.engine) as session:
             return session.exec(select(Run)).all()
 
+    def get_run(self, run_id):
+        with Session(self.engine) as session:
+            return session.exec(select(Run).where(Run.id == run_id)).one()
+
     def update_run_name(self, run_id, new_name):
         with Session(self.engine) as session:
             run = session.exec(select(Run).where(Run.id == run_id)).one()
             run.name = new_name
             session.add(run)
+            session.commit()
+
+    def delete_run(self, run_id):
+        with Session(self.engine) as session:
+            run = session.exec(select(Run).where(Run.id == run_id)).one()
+            session.delete(run)
             session.commit()
 
 

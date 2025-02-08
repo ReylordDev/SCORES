@@ -19,6 +19,9 @@ ActionType = Literal[
     "set_file_settings",
     "set_algorithm_settings",
     "run_clustering",
+    "get_runs",
+    "get_current_run",
+    "set_run_id",
 ]
 StatusType = Literal["todo", "start", "complete", "error"]
 ClusteringStepType = Literal[
@@ -60,13 +63,11 @@ class Error(BaseModel):
     error: str
 
 
-MessageType = Literal[
-    "progress",
-    "file_path",
-    "error",
-]
+MessageType = Literal["progress", "file_path", "error", "runs", "run"]
 MessageDataType = Union[
     ProgressMessage,
+    list["Run"],
+    "Run",
     Error,
     str,
     None,

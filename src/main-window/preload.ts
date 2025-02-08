@@ -1,14 +1,17 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
+import { UUID } from "crypto";
 import {
   CHANNEL_TYPES,
   CHANNELS,
   FileSettings,
   AlgorithmSettings,
   ClusteringProgressMessage,
+  Run,
 } from "../lib/models";
 import { contextBridge, ipcRenderer, webUtils } from "electron";
+import { request } from "http";
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -42,6 +45,9 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.ELECTRON, {
   getLogsPath() {
     return ipcRenderer.invoke(CHANNELS.ELECTRON.GET_LOGS_PATH);
   },
+  getLocale() {
+    return ipcRenderer.invoke(CHANNELS.ELECTRON.GET_LOCALE);
+  },
 });
 
 contextBridge.exposeInMainWorld(CHANNEL_TYPES.ALGORITHM, {
@@ -63,5 +69,30 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.PROGRESS, {
         callback(progress);
       }
     );
+  },
+});
+
+contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
+  requestAllRuns: () => {
+    ipcRenderer.send(CHANNELS.DATABASE.ALL_RUNS_REQUEST);
+  },
+  onReceiveAllRuns: (callback: (runs: Run[]) => void) => {
+    ipcRenderer.on(CHANNELS.DATABASE.ALL_RUNS_RESPONSE, (_, runs: Run[]) => {
+      callback(runs);
+    });
+  },
+  requestCurrentRun: () => {
+    ipcRenderer.send(CHANNELS.DATABASE.CURRENT_RUN_REQUEST);
+  },
+  onReceiveCurrentRun: (callback: (run: Run) => void) => {
+    ipcRenderer.on(CHANNELS.DATABASE.CURRENT_RUN_RESPONSE, (_, run: Run) => {
+      callback(run);
+    });
+  },
+});
+
+contextBridge.exposeInMainWorld(CHANNEL_TYPES.STATE, {
+  setRunId: (runId: UUID) => {
+    ipcRenderer.send(CHANNELS.STATE.SET_RUN_ID, runId);
   },
 });

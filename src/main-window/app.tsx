@@ -4,6 +4,7 @@ import FileSelection from "./pages/FileSelection";
 import FilePreview from "./pages/FilePreview";
 import AlgorithmSettings from "./pages/AlgorithmSettings";
 import Progress from "./pages/Progress";
+import Results from "./pages/Results";
 
 const App = () => {
   return (
@@ -13,7 +14,7 @@ const App = () => {
         <Route path="/file_preview" element={<FilePreview />} />
         <Route path="/algorithm_settings" element={<AlgorithmSettings />} />
         <Route path="/progress" element={<Progress />} />
-        <Route path="/results" element={<div>Hello World</div>} />
+        <Route path="/results" element={<Results />} />
       </Routes>
     </Router>
   );

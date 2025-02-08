@@ -2,10 +2,11 @@ import { SettingsService } from "../services/settings-service";
 import { PythonService } from "../services/python-service";
 import { registerURLHandlers } from "./url";
 import { registerSettingsHandlers } from "./settings";
-import { ipcMain, shell } from "electron";
+import { app, ipcMain, shell } from "electron";
 import { CHANNELS, FileSettings, AlgorithmSettings } from "../../lib/models";
 import fs from "fs";
 import { AppConfig } from "../../lib/config";
+import { UUID } from "crypto";
 
 export function registerIpcHandlers(
   settingsService: SettingsService,
@@ -71,5 +72,30 @@ export function registerIpcHandlers(
 
   ipcMain.on(CHANNELS.ELECTRON.SHOW_ITEM_IN_FOLDER, (_, path: string) => {
     shell.showItemInFolder(path);
+  });
+
+  ipcMain.handle(CHANNELS.ELECTRON.GET_LOCALE, async () => {
+    return app.getLocale();
+  });
+
+  ipcMain.on(CHANNELS.DATABASE.ALL_RUNS_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "get_runs",
+    });
+  });
+
+  ipcMain.on(CHANNELS.DATABASE.CURRENT_RUN_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "get_current_run",
+    });
+  });
+
+  ipcMain.on(CHANNELS.STATE.SET_RUN_ID, (_, runId: UUID) => {
+    pythonService.sendCommand({
+      action: "set_run_id",
+      data: {
+        runId,
+      },
+    });
   });
 }

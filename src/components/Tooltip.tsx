@@ -206,13 +206,15 @@ export function TooltipWrapper({
   wrappedContent,
   tooltipContent,
   small,
+  placement,
 }: {
   wrappedContent: React.ReactNode;
   tooltipContent: React.ReactNode;
   small?: boolean;
+  placement?: Placement;
 }) {
   return (
-    <Tooltip>
+    <Tooltip placement={placement}>
       <TooltipTrigger asChild>{wrappedContent}</TooltipTrigger>
       <TooltipContent>
         <TooltipContentContainer tutorialMode={true} small={small}>

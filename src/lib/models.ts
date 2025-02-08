@@ -1,12 +1,17 @@
 // Python Models
 // These have to match the models in models.py
 
+import { UUID } from "crypto";
+
 type Action =
   | "set_file_path"
   | "get_file_path"
   | "set_file_settings"
   | "set_algorithm_settings"
-  | "run_clustering";
+  | "run_clustering"
+  | "get_runs"
+  | "get_current_run"
+  | "set_run_id";
 
 export interface Command {
   action: Action;
@@ -41,8 +46,8 @@ export interface Error {
 }
 
 export interface Message {
-  type: "progress" | "error" | "file_path";
-  data: ProgressMessage | Error | string | null;
+  type: "progress" | "error" | "file_path" | "runs" | "run";
+  data: ProgressMessage | Error | string | null | Run[] | Run;
 }
 
 export interface FileSettings {
@@ -67,6 +72,106 @@ export interface AlgorithmSettings {
   method: ClusterCount;
 }
 
+interface Response {
+  id: UUID;
+  text: string;
+  embedding: number[] | null;
+  is_outlier: boolean;
+  similarity: number | null;
+  count: number;
+  cluster_id: UUID | null;
+  cluster: Cluster | null;
+  outlier_statistic: OutlierStatistic | null;
+}
+
+interface Cluster {
+  id: UUID;
+  name: string;
+  center: number[];
+  responses: Response[];
+  count: number;
+  most_representative_responses: Response[];
+
+  result_id: UUID;
+  result: ClusteringResult;
+
+  merger_id: UUID;
+  merger: Merger;
+
+  similarity_pair_id: UUID;
+  similarity_pair: ClusterSimilarityPair;
+}
+
+interface OutlierStatistic {
+  id: UUID;
+  similarity: number;
+
+  response_id: UUID;
+  response: Response;
+
+  outlier_statistics_id: UUID;
+  outlier_statistics: OutlierStatistics;
+}
+
+interface OutlierStatistics {
+  id: UUID;
+  threshold: number;
+  outliers: OutlierStatistic[];
+
+  clustering_result_id: UUID;
+  clustering_result: ClusteringResult;
+}
+
+interface ClusterSimilarityPair {
+  id: UUID;
+  similarity: number;
+  clusters: Cluster[];
+
+  merger_id: UUID;
+  merger: Merger;
+
+  result_id: UUID;
+  result: ClusteringResult;
+}
+
+interface Merger {
+  id: UUID;
+  name: string;
+  clusters: Cluster[];
+  similarity_pairs: ClusterSimilarityPair[];
+
+  merging_statistics_id: UUID;
+  merging_statistics: MergingStatistics;
+}
+
+interface MergingStatistics {
+  id: UUID;
+  threshold: number;
+  mergers: Merger[];
+
+  clustering_result_id: UUID;
+  clustering_result: ClusteringResult;
+}
+
+interface ClusteringResult {
+  id: UUID;
+  clusters: Cluster[];
+  outlier_statistics: OutlierStatistics;
+  merger_statistics: MergingStatistics;
+  inter_cluster_similarities: ClusterSimilarityPair[];
+  run_id: UUID;
+  run: Run;
+}
+
+export interface Run {
+  id: UUID;
+  name: string;
+  file_path: string;
+  created_at: number;
+  file_settings: string; // FileSettings;
+  algorithm_settings: string; //AlgorithmSettings;
+}
+
 // Frontend-only models
 export interface AppSettings {
   darkMode: boolean;
@@ -79,6 +184,7 @@ declare global {
       showItemInFolder: (path: string) => void;
       readFile: (path: string) => Promise<string>;
       getLogsPath: () => Promise<string>;
+      getLocale: () => Promise<string>;
     };
     settings: {
       getAll: () => Promise<AppSettings>;
@@ -103,6 +209,15 @@ declare global {
         callback: (progress: ClusteringProgressMessage) => void
       ) => void;
     };
+    database: {
+      requestAllRuns: () => void;
+      onReceiveAllRuns: (callback: (runs: Run[]) => void) => void;
+      requestCurrentRun: () => void;
+      onReceiveCurrentRun: (callback: (run: Run) => void) => void;
+    };
+    state: {
+      setRunId: (runId: UUID) => void;
+    };
   }
 }
 
@@ -113,12 +228,15 @@ export const CHANNEL_TYPES = {
   FILE: "file",
   ALGORITHM: "algorithm",
   PROGRESS: "progress",
+  DATABASE: "database",
+  STATE: "state",
 };
 export const CHANNELS = {
   ELECTRON: {
     READ_FILE: "electron:read-file",
     GET_LOGS_PATH: "electron:get-logs-path",
     SHOW_ITEM_IN_FOLDER: "electron:show-item-in-folder",
+    GET_LOCALE: "electron:get-locale",
   },
   SETTINGS: {
     GET: "settings:get-all",
@@ -139,12 +257,25 @@ export const CHANNELS = {
   CLUSTERING_PROGRESS: {
     UPDATE: "cluster-progress:update",
   },
+  DATABASE: {
+    ALL_RUNS_REQUEST: "database:all-runs-request",
+    ALL_RUNS_RESPONSE: "database:all-runs-response",
+    CURRENT_RUN_REQUEST: "database:current-run-request",
+    CURRENT_RUN_RESPONSE: "database:current-run-response",
+  },
+  STATE: {
+    SET_RUN_ID: "state:set-run-id",
+  },
 };
 
 export const PYTHON_SERVICE_EVENTS = {
   ERROR: "error",
   FILE_PATH: "file-path",
   ClUSTERING_PROGRESS: "cluster-progress",
+  DATABASE: {
+    ALL_RUNS: "database-all-runs",
+    CURRENT_RUN: "database-current-run",
+  },
 };
 
 export const SETTINGS_SERVICE_EVENTS = {

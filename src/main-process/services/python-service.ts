@@ -8,6 +8,7 @@ import {
   PYTHON_SERVICE_EVENTS,
   Error,
   ClusteringProgressMessage,
+  Run,
 } from "../../lib/models";
 import path from "path";
 import { SettingsService } from "./settings-service";
@@ -53,6 +54,18 @@ export class PythonService extends EventEmitter {
         this.emit(
           PYTHON_SERVICE_EVENTS.ERROR,
           (message.data as unknown as Error).error
+        );
+        break;
+      case "runs":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.DATABASE.ALL_RUNS,
+          message.data as Run[]
+        );
+        break;
+      case "run":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_RUN,
+          message.data as Run
         );
         break;
       default:

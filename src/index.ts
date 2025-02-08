@@ -46,6 +46,20 @@ app.whenReady().then(async () => {
     }
   );
 
+  pythonService.on(PYTHON_SERVICE_EVENTS.DATABASE.ALL_RUNS, (runs) => {
+    windowManager.sendMainWindowMessage(
+      CHANNELS.DATABASE.ALL_RUNS_RESPONSE,
+      runs
+    );
+  });
+
+  pythonService.on(PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_RUN, (run) => {
+    windowManager.sendMainWindowMessage(
+      CHANNELS.DATABASE.CURRENT_RUN_RESPONSE,
+      run
+    );
+  });
+
   registerIpcHandlers(settingsService, pythonService, config);
 });
 
