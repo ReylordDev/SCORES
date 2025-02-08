@@ -1,5 +1,5 @@
 import csv
-
+from utils.ipc import print_progress
 from matplotlib import pyplot as plt
 import numpy as np
 from sentence_transformers import SentenceTransformer
@@ -35,8 +35,20 @@ class Clusterer:
         self.file_settings = file_settings
         self.algorithm_settings = algorithm_settings
         self.output_dir = "output"
+        print_progress("process_input_file", "todo")
+        print_progress("load_model", "todo")
+        print_progress("embed_responses", "todo")
+        # TODO: Optional outlier detection
+        print_progress("detect_outliers", "todo")
+        if self.algorithm_settings.method.cluster_count_method == "auto":
+            print_progress("auto_cluster_count", "todo")
+        print_progress("cluster", "todo")
+        # TODO: Optional merging
+        print_progress("merge", "todo")
+        print_progress("save", "todo")
 
     def process_input_file(self, excluded_words: list[str]):
+        print_progress("process_input_file", "start")
         rows: list[list[str]] = []
         response_counter: Counter[str] = Counter()
         try:
@@ -77,27 +89,35 @@ class Clusterer:
                 for response, count in response_counter.items()
             ]
             full_file_content = [headers] + rows
+            print_progress("process_input_file", "complete")
             return responses, full_file_content
         except Exception as e:
+            print_progress("process_input_file", "error")
             logger.error(f"Error reading file: {e}")
             return [], []
 
     def load_embedding_model(self, language_model: str):
+        print_progress("load_model", "start")
         try:
-            return SentenceTransformer(language_model)
+            model = SentenceTransformer(language_model)
+            print_progress("load_model", "complete")
+            return model
         except Exception as e:
+            print_progress("load_model", "error")
             logger.error(f"Error loading embedding model: {e}")
             raise
 
     def embed_responses(
         self, responses: list[Response], embedding_model: SentenceTransformer
     ):
+        print_progress("embed_responses", "start")
         # Side Effect: Embeds the responses and sets the embeddings in the Response objects
         norm_embeddings = embedding_model.encode(
             [response.text for response in responses], normalize_embeddings=True
         )
         for i, response in enumerate(responses):
             response.embedding = norm_embeddings[i].tolist()
+        print_progress("embed_responses", "complete")
         return norm_embeddings
 
     def detect_outliers(
@@ -107,9 +127,11 @@ class Clusterer:
         outlier_k: int,
         z_score_threshold: float,
     ):
+        print_progress("detect_outliers", "start")
         # Potential for visualization: plot the distribution of average neighbor similarities
         if len(responses) == 0:
             logger.warning("No responses to analyze for outliers")
+            print_progress("detect_outliers", "complete")
             return OutlierStatistics(threshold=0.0, outliers=[])
         if outlier_k >= len(responses) - 1:
             outlier_k = len(responses) - 2
@@ -152,9 +174,11 @@ class Clusterer:
 
         outlier_statistics_summary.outliers = outlier_stats
 
+        print_progress("detect_outliers", "complete")
         return outlier_statistics_summary
 
     def auto_cluster_count(self, embeddings, response_weights):
+        print_progress("auto_cluster_count", "start")
         assert self.algorithm_settings.method.cluster_count_method == "auto"
         max_clusters = self.algorithm_settings.method.max_clusters
 
@@ -231,6 +255,7 @@ class Clusterer:
             best_K,
         )
 
+        print_progress("auto_cluster_count", "complete")
         return best_K
 
     def start_clustering(
@@ -240,6 +265,7 @@ class Clusterer:
         K: int,
         response_weights: np.ndarray,
     ):
+        print_progress("cluster", "start")
         # Side Effect: Assigns cluster IDs to responses
         clustering = KMeans(n_clusters=K, n_init="auto", random_state=42).fit(
             embeddings, sample_weight=response_weights
@@ -262,6 +288,7 @@ class Clusterer:
             response.cluster_id = clusters[cluster_index].id
             clusters[cluster_index].responses.append(response)
 
+        print_progress("cluster", "complete")
         return clusters
 
     def merge_clusters(
@@ -269,6 +296,7 @@ class Clusterer:
         clusters: list[Cluster],
         similarity_threshold: float,
     ):
+        print_progress("merge", "start")
         # merge the closest clusters using Agglomorative Clustering
         # until everything is closer than the threshold
         meta_clustering = AgglomerativeClustering(
@@ -344,9 +372,12 @@ class Clusterer:
         clusters = [
             cluster for cluster in clusters if cluster.id in post_merge_cluster_ids
         ]
-        return MergingStatistics(
-            mergers=mergers, threshold=similarity_threshold
-        ), clusters
+        merging_statistics = (
+            MergingStatistics(mergers=mergers, threshold=similarity_threshold),
+            clusters,
+        )
+        print_progress("merge", "complete")
+        return merging_statistics
 
     def calculate_inter_cluster_similarities(self, clusters: list[Cluster]):
         # Calculate the similarity between all pairs of clusters
@@ -366,6 +397,7 @@ class Clusterer:
         return cluster_similarity_pairs
 
     def run(self) -> ClusteringResult:
+        print_progress("start", "start")
         responses, full_file_content = self.process_input_file([])
 
         embedding_model = self.load_embedding_model("BAAI/bge-large-en-v1.5")
@@ -396,8 +428,6 @@ class Clusterer:
         for cluster in clusters:
             for response in cluster.responses:
                 response.similarity = cluster.similarity_to_response(response)
-
-        logger.info("Clustering complete")
 
         return ClusteringResult(
             clusters=clusters,

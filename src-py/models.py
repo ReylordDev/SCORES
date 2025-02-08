@@ -20,10 +20,22 @@ ActionType = Literal[
     "set_algorithm_settings",
     "run_clustering",
 ]
-StatusType = Literal["start", "complete", "error"]
+StatusType = Literal["todo", "start", "complete", "error"]
+ClusteringStepType = Literal[
+    "start",
+    "process_input_file",
+    "load_model",
+    "embed_responses",
+    "detect_outliers",
+    "auto_cluster_count",
+    "cluster",
+    "merge",
+    "save",
+]
 StepType = Union[
     ActionType,
-    Literal["init",],
+    Literal["init"],
+    ClusteringStepType,
 ]
 
 
@@ -35,7 +47,13 @@ class Command(BaseModel):
 class ProgressMessage(BaseModel):
     step: StepType
     status: StatusType
-    timestamp: float
+    timestamp: float = Field(default_factory=time.time)
+
+
+class ClusteringProgressMessage(BaseModel):
+    step: ClusteringStepType
+    status: StatusType
+    timestamp: float = Field(default_factory=time.time)
 
 
 class Error(BaseModel):

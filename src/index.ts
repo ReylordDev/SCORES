@@ -4,7 +4,11 @@ import { SettingsService } from "./main-process/services/settings-service";
 import { WindowManager } from "./main-process/windows/window-manager";
 import { registerIpcHandlers } from "./main-process/ipc";
 import { AppConfig, consoleLog } from "./lib/config";
-import { CHANNELS, PYTHON_SERVICE_EVENTS } from "./lib/models";
+import {
+  CHANNELS,
+  ClusteringProgressMessage,
+  PYTHON_SERVICE_EVENTS,
+} from "./lib/models";
 
 // Handle setup events
 if (require("electron-squirrel-startup")) app.quit();
@@ -32,7 +36,17 @@ app.whenReady().then(async () => {
     app.quit();
   });
 
-  registerIpcHandlers(settingsService, pythonService);
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.ClUSTERING_PROGRESS,
+    (progress: ClusteringProgressMessage) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.CLUSTERING_PROGRESS.UPDATE,
+        progress
+      );
+    }
+  );
+
+  registerIpcHandlers(settingsService, pythonService, config);
 });
 
 // Quit app

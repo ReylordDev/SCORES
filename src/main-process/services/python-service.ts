@@ -7,6 +7,7 @@ import {
   ProgressMessage,
   PYTHON_SERVICE_EVENTS,
   Error,
+  ClusteringProgressMessage,
 } from "../../lib/models";
 import path from "path";
 import { SettingsService } from "./settings-service";
@@ -61,6 +62,31 @@ export class PythonService extends EventEmitter {
 
   private handleProgress(progress: ProgressMessage) {
     consoleLog(`Progress: ${progress.step} - ${progress.status}`);
+    switch (progress.step) {
+      case "set_file_path":
+      case "get_file_path":
+      case "set_file_settings":
+      case "set_algorithm_settings":
+      case "run_clustering":
+      case "init":
+        break;
+      case "start":
+      case "process_input_file":
+      case "load_model":
+      case "embed_responses":
+      case "detect_outliers":
+      case "auto_cluster_count":
+      case "cluster":
+      case "merge":
+      case "save":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.ClUSTERING_PROGRESS,
+          progress as ClusteringProgressMessage
+        );
+        break;
+      default:
+        break;
+    }
   }
 
   sendCommand(command: Command) {

@@ -2,13 +2,15 @@ import { SettingsService } from "../services/settings-service";
 import { PythonService } from "../services/python-service";
 import { registerURLHandlers } from "./url";
 import { registerSettingsHandlers } from "./settings";
-import { ipcMain } from "electron";
+import { ipcMain, shell } from "electron";
 import { CHANNELS, FileSettings, AlgorithmSettings } from "../../lib/models";
 import fs from "fs";
+import { AppConfig } from "../../lib/config";
 
 export function registerIpcHandlers(
   settingsService: SettingsService,
-  pythonService: PythonService
+  pythonService: PythonService,
+  config: AppConfig
 ) {
   registerSettingsHandlers(settingsService);
   registerURLHandlers();
@@ -61,5 +63,13 @@ export function registerIpcHandlers(
         resolve(data);
       });
     });
+  });
+
+  ipcMain.handle(CHANNELS.ELECTRON.GET_LOGS_PATH, async () => {
+    return config.dataDir + "/logs";
+  });
+
+  ipcMain.on(CHANNELS.ELECTRON.SHOW_ITEM_IN_FOLDER, (_, path: string) => {
+    shell.showItemInFolder(path);
   });
 }

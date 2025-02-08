@@ -4,7 +4,9 @@ import { EventEmitter } from "events";
 import { AppConfig } from "../../lib/config";
 import { AppSettings, SETTINGS_SERVICE_EVENTS } from "../../lib/models";
 
-export const DEFAULT_SETTINGS: AppSettings = {};
+export const DEFAULT_SETTINGS: AppSettings = {
+  darkMode: false,
+};
 
 export class SettingsService extends EventEmitter {
   private settings: AppSettings;

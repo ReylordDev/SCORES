@@ -13,9 +13,26 @@ export interface Command {
   data?: object;
 }
 
+export type ClusteringStep =
+  | "start"
+  | "process_input_file"
+  | "load_model"
+  | "embed_responses"
+  | "detect_outliers"
+  | "auto_cluster_count"
+  | "cluster"
+  | "merge"
+  | "save";
+
 export interface ProgressMessage {
-  step: Action | "init";
-  status: "start" | "complete" | "error";
+  step: ClusteringStep | Action | "init";
+  status: "todo" | "start" | "complete" | "error";
+  timestamp: number;
+}
+
+export interface ClusteringProgressMessage {
+  step: ClusteringStep;
+  status: "todo" | "start" | "complete" | "error";
   timestamp: number;
 }
 
@@ -51,13 +68,17 @@ export interface AlgorithmSettings {
 }
 
 // Frontend-only models
-export interface AppSettings {}
+export interface AppSettings {
+  darkMode: boolean;
+}
 
 declare global {
   interface Window {
     electron: {
       showFilePath: (file: File) => string;
+      showItemInFolder: (path: string) => void;
       readFile: (path: string) => Promise<string>;
+      getLogsPath: () => Promise<string>;
     };
     settings: {
       getAll: () => Promise<AppSettings>;
@@ -76,6 +97,12 @@ declare global {
       setSettings: (settings: AlgorithmSettings) => void;
       runClustering: () => void;
     };
+    progress: {
+      onUpdate: (callback: (progress: ProgressMessage) => void) => void;
+      onClusteringUpdate: (
+        callback: (progress: ClusteringProgressMessage) => void
+      ) => void;
+    };
   }
 }
 
@@ -85,10 +112,13 @@ export const CHANNEL_TYPES = {
   URL: "url",
   FILE: "file",
   ALGORITHM: "algorithm",
+  PROGRESS: "progress",
 };
 export const CHANNELS = {
   ELECTRON: {
     READ_FILE: "electron:read-file",
+    GET_LOGS_PATH: "electron:get-logs-path",
+    SHOW_ITEM_IN_FOLDER: "electron:show-item-in-folder",
   },
   SETTINGS: {
     GET: "settings:get-all",
@@ -106,11 +136,15 @@ export const CHANNELS = {
     SET_SETTINGS: "algorithm:set-settings",
     RUN_CLUSTERING: "algorithm:run-clustering",
   },
+  CLUSTERING_PROGRESS: {
+    UPDATE: "cluster-progress:update",
+  },
 };
 
 export const PYTHON_SERVICE_EVENTS = {
   ERROR: "error",
   FILE_PATH: "file-path",
+  ClUSTERING_PROGRESS: "cluster-progress",
 };
 
 export const SETTINGS_SERVICE_EVENTS = {

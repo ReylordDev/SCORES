@@ -55,8 +55,7 @@ class Controller:
                 algorithm_settings=algorithm_settings.model_dump_json(),
                 result=result,
             )
-            self.database_manager.save_to_db(run)
-            logger.info("Clustering result saved to database")
+            self.database_manager.save_run(run)
 
         else:
             logger.error(f"Invalid action: {command.action}")

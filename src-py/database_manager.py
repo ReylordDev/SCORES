@@ -1,11 +1,13 @@
 from sqlmodel import create_engine, SQLModel, Session, select
 from models import Run
 import os
+from utils.utils import get_user_data_path
+from utils.ipc import print_progress
 
 
 class DatabaseManager:
     def __init__(self, echo=False):
-        sql_file_name = os.environ.get("USER_DATA_PATH", ".") + "/database.db"
+        sql_file_name = get_user_data_path() + "/database.db"
         if not os.path.exists(sql_file_name):
             with open(sql_file_name, "w") as f:
                 f.write("")
@@ -19,6 +21,16 @@ class DatabaseManager:
         with Session(self.engine) as session:
             session.add(obj)
             session.commit()
+
+    def save_run(self, run: Run):
+        print_progress("save", "start")
+        try:
+            self.save_to_db(run)
+            print_progress("save", "complete")
+            return
+        except:
+            print_progress("save", "error")
+            raise
 
     def get_runs(self):
         with Session(self.engine) as session:

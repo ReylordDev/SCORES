@@ -41,6 +41,7 @@ export default function AlgorithmSettings() {
 
     window.algorithm.setSettings({ method });
     window.algorithm.runClustering();
+    navigate("/progress");
   };
 
   return (
