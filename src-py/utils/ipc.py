@@ -1,7 +1,7 @@
 from loguru import logger
 from models import (
-    ProgressMessage,
     Message,
+    ProgressMessage,
     StepType,
     StatusType,
     MessageType,

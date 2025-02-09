@@ -13,17 +13,28 @@ import {
   AlertTriangle,
   GitMerge,
   CheckCheck,
+  FolderOpen,
+  Play,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
-// import ExpandableButton from "./ExpandableButton";
 import { useState, useEffect } from "react";
 import { formatTime } from "../../lib/utils";
-// import { Args } from "../models";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../../components/ui/dropdown-menu";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 
-// import ClusterAssignmentModal from "./ClusterAssignmentModal";
-// import ClusterSimilarityModal from "./ClusterSimilaritiesModal";
-// import OutliersModal from "./OutliersModal";
-// import MergedClustersModal from "./MergedClustersModal";
 import { TooltipWrapper } from "../../components/Tooltip";
 import { Run } from "../../lib/models";
 
@@ -101,67 +112,30 @@ function TotalTimeDropdown({ path }: { path: string }) {
   );
 }
 
-const isValidFileName = (name: string) => {
-  const condition =
-    name.length > 0 &&
-    !name.includes("/") &&
-    !name.includes("\\") &&
-    !name.includes(":") &&
-    !name.includes("*") &&
-    !name.includes("?") &&
-    !name.includes('"') &&
-    !name.includes("<") &&
-    !name.includes(">") &&
-    !name.includes("|");
-  return condition;
-};
-
 export default function Results() {
   const [run, setRun] = useState<Run | undefined>(undefined);
+  const [runName, setRunName] = useState<string | undefined>(undefined);
   const [resultsDir, setResultsDir] = useState<string | undefined>(undefined);
   const [runNameInput, setRunNameInput] = useState<string | undefined>(
     undefined
   );
   const [editingRunName, setEditingRunName] = useState(false);
   const [showInputError, setShowInputError] = useState(false);
-  const [clusterAssignmentsModalOpen, setClusterAssignmentsModalOpen] =
-    useState(false);
-  const [clusterSimilarityModalOpen, setClusterSimilarityModalOpen] =
-    useState(false);
-  const [outliersModalOpen, setOutliersModalOpen] = useState(false);
-  const [mergedClustersModalOpen, setMergedClustersModalOpen] = useState(false);
-
   const navigate = useNavigate();
-  const anyModalOpen =
-    outliersModalOpen ||
-    mergedClustersModalOpen ||
-    clusterSimilarityModalOpen ||
-    clusterAssignmentsModalOpen;
 
   const updateRunName = (newName: string) => {
-    // Todo: Implement this
-    console.log(`Updating run name to ${newName}`);
+    window.database.updateRunName(run.id, newName);
+    setRunName(newName);
   };
 
   window.database.onReceiveCurrentRun((run) => {
     setRun(run);
+    setRunName(run.name);
   });
 
   useEffect(() => {
     window.database.requestCurrentRun();
   }, []);
-
-  // useEffect(() => {
-  //   window.python
-  //     .getResultsDir()
-  //     .then((resultsDir) => {
-  //       console.log(`Results dir: ${resultsDir}`);
-  //       setResultsDir(resultsDir);
-  //     })
-  //     .catch((err) => {
-  //       console.error(err);
-  //     });
-  // }, []);
 
   // useEffect(() => {
   //   window.python
@@ -214,49 +188,12 @@ export default function Results() {
   }
 
   return (
-    <>
+    <div className="w-screen h-screen">
       <TitleBar index={4} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-24 pt-6 text-text xl:gap-8 xl:px-32 xl:pb-8"
+        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"
       >
-        {/* <ClusterAssignmentModal
-          path={`${resultsDir}/cluster_assignments.csv`}
-          delimiter={args.fileSettings.delimiter}
-          isOpen={clusterAssignmentsModalOpen}
-          setIsOpen={setClusterAssignmentsModalOpen}
-        />
-        <ClusterSimilarityModal
-          similaritiesPath={`${resultsDir}/pairwise_similarities.json`}
-          clusterAssignmentsPath={`${resultsDir}/cluster_assignments.csv`}
-          delimiter={args.fileSettings.delimiter}
-          isOpen={clusterSimilarityModalOpen}
-          setIsOpen={setClusterSimilarityModalOpen}
-        /> */}
-        {/* {args.algorithmSettings.advancedOptions.nearestNeighbors &&
-          args.algorithmSettings.advancedOptions.zScoreThreshold && (
-            <OutliersModal
-              path={`${resultsDir}/outliers.json`}
-              nearestNeighbors={
-                args.algorithmSettings.advancedOptions.nearestNeighbors
-              }
-              zScoreThreshold={
-                args.algorithmSettings.advancedOptions.zScoreThreshold
-              }
-              isOpen={outliersModalOpen}
-              setIsOpen={setOutliersModalOpen}
-            />
-          )}
-        {args.algorithmSettings.advancedOptions.similarityThreshold && (
-          <MergedClustersModal
-            path={`${resultsDir}/merged_clusters.json`}
-            mergeThreshold={
-              args.algorithmSettings.advancedOptions.similarityThreshold
-            }
-            isOpen={mergedClustersModalOpen}
-            setIsOpen={setMergedClustersModalOpen}
-          />
-        )} */}
         <div className="flex flex-col">
           <div className="flex w-full flex-col justify-start gap-2">
             <div className="flex w-full items-center gap-4">
@@ -267,21 +204,16 @@ export default function Results() {
                   className="rounded-md border border-secondary p-2 pl-5 text-4xl font-bold focus:outline-none focus:ring focus:ring-secondary focus:ring-opacity-50 disabled:border-gray-300"
                 />
               ) : (
-                <h1 className="text-ellipsis p-2 pl-5 text-4xl">{run.name}</h1>
+                <h1 className="text-ellipsis p-2 pl-5 text-4xl">{runName}</h1>
               )}
               {editingRunName ? (
                 <Button
                   onClick={() => {
                     if (!runNameInput) return;
-                    if (runNameInput === run.name) {
+                    if (runNameInput === runName) {
                       setEditingRunName(false);
                       return;
                     }
-                    if (!isValidFileName(runNameInput)) {
-                      setShowInputError(true);
-                      return;
-                    }
-                    // window.python.setRunName(runNameInput);
                     updateRunName(runNameInput);
                     setEditingRunName(false);
                   }}
@@ -296,7 +228,7 @@ export default function Results() {
                     <button
                       onClick={() => {
                         setEditingRunName(true);
-                        setRunNameInput(run.name);
+                        setRunNameInput(runName);
                       }}
                     >
                       <Pencil className="text-secondary" size={32} />
@@ -320,16 +252,13 @@ export default function Results() {
               </p>
             </div>
           </div>
-          <div className="mt-4 flex justify-between">
-            <div className="flex w-1/2 flex-col items-center justify-start gap-8 xl:gap-12">
+          <div className="flex flex-col items-center justify-start gap-8 xl:gap-12">
+            <div className="flex gap-8 w-full justify-start">
               <TooltipWrapper
                 wrappedContent={
-                  <Button
-                    // onClick={() => window.python.showItemInFolder(resultsDir)}
-                    className="w-2/3"
-                  >
-                    <FileText />
-                    Results Directory
+                  <Button onClick={() => console.log("Open Output Location")}>
+                    <FolderOpen />
+                    Open Output Location
                   </Button>
                 }
                 tooltipContent={
@@ -338,120 +267,94 @@ export default function Results() {
                   </p>
                 }
               />
-              <TooltipWrapper
-                wrappedContent={
-                  <div className="w-2/3">
-                    <Button
-                      onClick={() => setClusterAssignmentsModalOpen(true)}
-                      className="w-full"
-                    >
-                      <List />
-                      Cluster Assignments
-                    </Button>
-                  </div>
-                }
-                tooltipContent={
-                  <p className="text-left">
-                    Click to view the created clusters and their assigned
-                    responses.
-                  </p>
-                }
-              />
-              <TooltipWrapper
-                wrappedContent={
-                  <div className="w-2/3">
-                    <Button
-                      onClick={() => setClusterSimilarityModalOpen(true)}
-                      className="w-full"
-                    >
-                      <GitCompare />
-                      Cluster Similarities
-                    </Button>
-                  </div>
-                }
-                tooltipContent={
-                  <p className="text-left">
-                    Click to view the similarities between clusters.
-                  </p>
-                }
-              />
-              <TooltipWrapper
-                wrappedContent={
-                  <div className="w-2/3">
-                    <Button
-                      onClick={() => setOutliersModalOpen(true)}
-                      className="w-full"
-                      // disabled={
-                      //   !args.algorithmSettings.advancedOptions
-                      //     .nearestNeighbors ||
-                      //   !args.algorithmSettings.advancedOptions.zScoreThreshold
-                      // }
-                    >
-                      <AlertTriangle />
-                      Outliers
-                    </Button>
-                  </div>
-                }
-                tooltipContent={
-                  <p className="text-left">
-                    Click to view the outliers in the data that were excluded
-                    from the clusters.
-                  </p>
-                }
-              />
-              <TooltipWrapper
-                wrappedContent={
-                  <div className="w-2/3">
-                    <Button
-                      onClick={() => setMergedClustersModalOpen(true)}
-                      className="w-full"
-                      // disabled={
-                      //   !args.algorithmSettings.advancedOptions
-                      //     .similarityThreshold
-                      // }
-                    >
-                      <GitMerge />
-                      Merged Clusters
-                    </Button>
-                  </div>
-                }
-                tooltipContent={
-                  <p className="text-left">
-                    Click to view the clusters that were merged during the
-                    agglomerative clustering process.
-                  </p>
-                }
-              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button>
+                    <Play />
+                    New Run
+                    <ChevronDown />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="">
+                  <DropdownMenuItem className="text-lg">
+                    Select New File
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-lg">
+                    Change Algorithm Settings
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-            <div className="flex w-2/3 flex-col items-center justify-start gap-8 xl:gap-12">
-              {/* <ExpandableButton
-                text="Start a new run"
-                option1="Change the algorithm settings"
-                onClick1={() => {
-                  window.python.resetClusterProgress();
-                  navigate("/algorithm_settings");
-                }}
-                option2="Select a new input file"
-                onClick2={() => {
-                  window.python.resetClusterProgress();
-                  resetFileSettings();
-                  resetAlgorithmSettings();
-                  navigate("/");
-                }}
-              /> */}
-              <Button
-                onClick={() => {
-                  // window.python.resetClusterProgress();
-                  navigate("/algorithm_settings");
-                }}
-              >
-                Change the algorithm settings
-              </Button>
-              <TotalTimeDropdown path={`${resultsDir}/timestamps.json`} />
+            <div className="grid gap-8 grid-cols-2">
+              <Card className="w-96">
+                <CardHeader>
+                  <CardTitle>Cluster Assignments</CardTitle>
+                  <CardDescription>
+                    See which responses were grouped together
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    onClick={() => console.log("Open Cluster Assignments")}
+                  >
+                    <List />
+                    Open Cluster Assignments
+                  </Button>
+                  {/* <p>Card Content</p> */}
+                </CardContent>
+                {/* <CardFooter>
+                <p>Card Footer</p>
+              </CardFooter> */}
+              </Card>
+              <Card className="w-96">
+                <CardHeader>
+                  <CardTitle>Cluster Similarities</CardTitle>
+                  <CardDescription>
+                    Compare the similarities between clusters
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    onClick={() => console.log("Open Cluster Similarities")}
+                  >
+                    <GitCompare />
+                    Open Cluster Similarities
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card className="w-96">
+                <CardHeader>
+                  <CardTitle>Outliers</CardTitle>
+                  <CardDescription>
+                    Identify responses that don't fit into any cluster
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button onClick={() => console.log("Open Outliers")}>
+                    <AlertTriangle />
+                    Open Outliers
+                  </Button>
+                </CardContent>
+              </Card>
+              <Card className="w-96">
+                <CardHeader>
+                  <CardTitle>Cluster Mergers</CardTitle>
+                  <CardDescription>
+                    See which clusters were merged together
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button onClick={() => console.log("Open Mergers")}>
+                    <GitMerge />
+                    Open Cluster Mergers
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -1,7 +1,16 @@
 import sys
 from pydantic import ValidationError
 from utils.logging import initialize_logger
-from models import Command, Error, FileSettings, AlgorithmSettings, Run
+from models import (
+    Command,
+    Error,
+    FilePathPayload,
+    FileSettings,
+    AlgorithmSettings,
+    Run,
+    RunNamePayload,
+    RunPayload,
+)
 from utils.ipc import print_message, print_progress
 from loguru import logger
 from application_state import ApplicationState
@@ -20,24 +29,24 @@ class Controller:
     def handle_command(self, command: Command):
         logger.info(f"Received command: {command}")
         if command.action == "set_file_path":
-            if not command.data or not command.data["filePath"]:
+            if not command.data or not isinstance(command.data, FilePathPayload):
                 print_message("error", Error(error="File path cannot be empty"))
                 return
-            self.app_state.set_file_path(command.data["filePath"])
+            self.app_state.set_file_path(command.data.file_path)
         elif command.action == "get_file_path":
             print_message("file_path", self.app_state.get_file_path())
         elif command.action == "set_file_settings":
-            if not command.data:
+            if not command.data or not isinstance(command.data, FileSettings):
                 print_message("error", Error(error="File settings cannot be empty"))
                 return
-            self.app_state.set_file_settings(FileSettings(**command.data))
+            self.app_state.set_file_settings(command.data)
         elif command.action == "set_algorithm_settings":
-            if not command.data:
+            if not command.data or not isinstance(command.data, AlgorithmSettings):
                 print_message(
                     "error", Error(error="Algorithm settings cannot be empty")
                 )
                 return
-            self.app_state.set_algorithm_settings(AlgorithmSettings(**command.data))
+            self.app_state.set_algorithm_settings(command.data)
         elif command.action == "run_clustering":
             file_settings = self.app_state.get_file_settings()
             if not file_settings:
@@ -59,10 +68,10 @@ class Controller:
             self.app_state.set_run_id(run.id)
 
         elif command.action == "set_run_id":
-            if not command.data or not command.data["runId"]:
+            if not command.data or not isinstance(command.data, RunPayload):
                 print_message("error", Error(error="Run ID cannot be empty"))
                 return
-            self.app_state.set_run_id(command.data["runId"])
+            self.app_state.set_run_id(command.data.run_id)
         elif command.action == "get_runs":
             runs = []
             for run in self.database_manager.get_runs():
@@ -78,6 +87,13 @@ class Controller:
                 print_message("error", Error(error="Run not found"))
                 return
             print_message("run", run)
+        elif command.action == "update_run_name":
+            if not command.data or not isinstance(command.data, RunNamePayload):
+                print_message("error", Error(error="Run name cannot be empty"))
+                return
+            self.database_manager.update_run_name(
+                command.data.run_id, command.data.name
+            )
         else:
             logger.error(f"Invalid action: {command.action}")
             print_message("error", Error(error=f"Invalid action: {command.action}"))

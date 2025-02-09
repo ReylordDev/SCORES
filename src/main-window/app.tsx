@@ -15,6 +15,7 @@ const App = () => {
         <Route path="/algorithm_settings" element={<AlgorithmSettings />} />
         <Route path="/progress" element={<Progress />} />
         <Route path="/results" element={<Results />} />
+        {/* <Route path="/" element={<Results />} /> */}
       </Routes>
     </Router>
   );

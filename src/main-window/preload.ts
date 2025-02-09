@@ -89,6 +89,9 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
       callback(run);
     });
   },
+  updateRunName: (runId: UUID, name: string) => {
+    ipcRenderer.send(CHANNELS.DATABASE.UPDATE_RUN_NAME, runId, name);
+  },
 });
 
 contextBridge.exposeInMainWorld(CHANNEL_TYPES.STATE, {

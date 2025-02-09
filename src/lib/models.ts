@@ -11,11 +11,18 @@ type Action =
   | "run_clustering"
   | "get_runs"
   | "get_current_run"
-  | "set_run_id";
+  | "set_run_id"
+  | "update_run_name";
 
 export interface Command {
   action: Action;
-  data?: object;
+  data?:
+    | { filePath: string }
+    | FileSettings
+    | AlgorithmSettings
+    | null
+    | { runId: UUID }
+    | { runId: UUID; name: string };
 }
 
 export type ClusteringStep =
@@ -214,6 +221,7 @@ declare global {
       onReceiveAllRuns: (callback: (runs: Run[]) => void) => void;
       requestCurrentRun: () => void;
       onReceiveCurrentRun: (callback: (run: Run) => void) => void;
+      updateRunName: (runId: UUID, name: string) => void;
     };
     state: {
       setRunId: (runId: UUID) => void;
@@ -241,6 +249,7 @@ export const CHANNELS = {
   SETTINGS: {
     GET: "settings:get-all",
   },
+  // Can be moved to Electron
   URL: {
     OPEN: "url:open",
   },
@@ -262,6 +271,7 @@ export const CHANNELS = {
     ALL_RUNS_RESPONSE: "database:all-runs-response",
     CURRENT_RUN_REQUEST: "database:current-run-request",
     CURRENT_RUN_RESPONSE: "database:current-run-response",
+    UPDATE_RUN_NAME: "database:update-run-name",
   },
   STATE: {
     SET_RUN_ID: "state:set-run-id",

@@ -98,4 +98,17 @@ export function registerIpcHandlers(
       },
     });
   });
+
+  ipcMain.on(
+    CHANNELS.DATABASE.UPDATE_RUN_NAME,
+    (_, runId: UUID, name: string) => {
+      pythonService.sendCommand({
+        action: "update_run_name",
+        data: {
+          runId,
+          name,
+        },
+      });
+    }
+  );
 }

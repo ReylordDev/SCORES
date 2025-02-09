@@ -22,6 +22,7 @@ ActionType = Literal[
     "get_runs",
     "get_current_run",
     "set_run_id",
+    "update_run_name",
 ]
 StatusType = Literal["todo", "start", "complete", "error"]
 ClusteringStepType = Literal[
@@ -42,9 +43,30 @@ StepType = Union[
 ]
 
 
-class Command(BaseModel):
+class FilePathPayload(CamelModel):
+    file_path: str
+
+
+class RunPayload(CamelModel):
+    run_id: uuid.UUID
+
+
+class RunNamePayload(CamelModel):
+    run_id: uuid.UUID
+    name: str
+
+
+class Command(CamelModel):
     action: ActionType
-    data: Optional[dict] = None
+    data: Optional[
+        Union[
+            FilePathPayload,
+            "FileSettings",
+            "AlgorithmSettings",
+            RunPayload,
+            RunNamePayload,
+        ]
+    ] = None
 
 
 class ProgressMessage(BaseModel):
