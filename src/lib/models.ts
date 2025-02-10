@@ -286,6 +286,7 @@ export const PYTHON_SERVICE_EVENTS = {
     ALL_RUNS: "database-all-runs",
     CURRENT_RUN: "database-current-run",
   },
+  READY: "ready",
 };
 
 export const SETTINGS_SERVICE_EVENTS = {

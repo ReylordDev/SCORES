@@ -81,7 +81,6 @@ export class PythonService extends EventEmitter {
       case "set_file_settings":
       case "set_algorithm_settings":
       case "run_clustering":
-      case "init":
         break;
       case "start":
       case "process_input_file":
@@ -96,6 +95,11 @@ export class PythonService extends EventEmitter {
           PYTHON_SERVICE_EVENTS.ClUSTERING_PROGRESS,
           progress as ClusteringProgressMessage
         );
+        break;
+      case "init":
+        if (progress.status === "complete") {
+          this.emit(PYTHON_SERVICE_EVENTS.READY);
+        }
         break;
       default:
         break;

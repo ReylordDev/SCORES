@@ -21,7 +21,10 @@ const windowManager = new WindowManager(config);
 
 app.whenReady().then(async () => {
   await pythonService.initialize();
-  windowManager.createMainWindow();
+
+  pythonService.on(PYTHON_SERVICE_EVENTS.READY, () => {
+    windowManager.createMainWindow();
+  });
 
   pythonService.on(PYTHON_SERVICE_EVENTS.FILE_PATH, (filePath: string) => {
     windowManager.sendMainWindowMessage(CHANNELS.FILE.PATH_RESPONSE, filePath);

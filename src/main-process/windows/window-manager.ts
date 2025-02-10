@@ -32,23 +32,6 @@ export class WindowManager {
 
     this.mainWindow = mainWindow;
   }
-  //   const mainWindow = new BrowserWindow({
-  //     height: 1024,
-  //     width: 1440,
-  //     webPreferences: {
-  //       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-  //     },
-  //     show: false,
-  //   });
-  //   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-  //   mainWindow.on("close", (e) => {
-  //     if (mainWindow.isVisible()) {
-  //       e.preventDefault();
-  //       mainWindow.hide();
-  //     }
-  //   });
-  //   this.mainWindow = mainWindow;
-  // }
 
   toggleMainWindow() {
     if (this.mainWindow.isVisible()) {
