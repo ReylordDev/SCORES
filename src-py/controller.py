@@ -7,6 +7,7 @@ from models import (
     FilePathPayload,
     FileSettings,
     AlgorithmSettings,
+    ManualClusterCount,
     Run,
     RunNamePayload,
     RunPayload,
@@ -116,4 +117,33 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    DEBUG = True
+    if DEBUG:
+        controller = Controller()
+        controller.handle_command(
+            Command(
+                action="set_file_path",
+                data=FilePathPayload(
+                    file_path="C:\\Users\\Luis\\Projects\\Word-Clustering-Tool-for-SocPsych\\example_data\\example_short.csv"
+                ),
+            )
+        )
+        controller.handle_command(
+            Command(
+                action="set_file_settings",
+                data=FileSettings(
+                    delimiter=";",
+                    has_header=True,
+                    selected_columns=[1, 2, 3, 4, 5, 6, 7, 8, 9],
+                ),
+            )
+        )
+        controller.handle_command(
+            Command(
+                action="set_algorithm_settings",
+                data=AlgorithmSettings(method=ManualClusterCount(cluster_count=25)),
+            )
+        )
+        controller.handle_command(Command(action="run_clustering"))
+    else:
+        main()

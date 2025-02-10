@@ -1,4 +1,5 @@
 import csv
+import uuid
 from utils.ipc import print_progress
 from matplotlib import pyplot as plt
 import numpy as np
@@ -115,10 +116,11 @@ class Clusterer:
         norm_embeddings = embedding_model.encode(
             [response.text for response in responses], normalize_embeddings=True
         )
+        embeddings_map: dict[uuid.UUID, np.ndarray] = {}
         for i, response in enumerate(responses):
-            response.embedding = norm_embeddings[i].tolist()
+            embeddings_map[response.id] = norm_embeddings[i]
         print_progress("embed_responses", "complete")
-        return norm_embeddings
+        return embeddings_map
 
     def detect_outliers(
         self,
@@ -402,15 +404,22 @@ class Clusterer:
 
         embedding_model = self.load_embedding_model("BAAI/bge-large-en-v1.5")
 
-        embeddings = self.embed_responses(responses, embedding_model)
+        embeddings_map = self.embed_responses(responses, embedding_model)
+        embeddings = np.asarray(list(embeddings_map.values()))
 
         outlier_stats = self.detect_outliers(
-            responses, embeddings, outlier_k=5, z_score_threshold=1.5
+            responses,
+            embeddings,
+            outlier_k=5,
+            z_score_threshold=1.5,
         )
 
         # Update responses to exclude outliers
         responses = [response for response in responses if not response.is_outlier]
-        embeddings = np.array([response.embedding for response in responses])
+        embeddings_map = {
+            response.id: embeddings_map[response.id] for response in responses
+        }
+        embeddings = np.asarray(list(embeddings_map.values()))
 
         response_weights = np.array([response.count for response in responses])
 
@@ -427,7 +436,9 @@ class Clusterer:
 
         for cluster in clusters:
             for response in cluster.responses:
-                response.similarity = cluster.similarity_to_response(response)
+                response.similarity = cluster.similarity_to_response(
+                    response, embeddings_map
+                )
 
         return ClusteringResult(
             clusters=clusters,

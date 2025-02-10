@@ -130,7 +130,6 @@ class AlgorithmSettings(CamelModel):
 class Response(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     text: str
-    embedding: Optional[list[float]] = Field(default=None, sa_column=Column(JSON))
     is_outlier: bool = False
     similarity: Optional[float] = None
     count: int = 0
@@ -188,10 +187,10 @@ class Cluster(SQLModel, table=True):
         """Responses sorted by similarity descending"""
         return sorted(self.responses, key=lambda r: r.similarity or -1, reverse=True)
 
-    def similarity_to_response(self, response: Response) -> float:
-        if not response.embedding:
-            raise ValueError("Response does not have an embedding")
-        return np.dot(self.center, response.embedding)
+    def similarity_to_response(
+        self, response: Response, embeddings_map: dict[uuid.UUID, np.ndarray]
+    ) -> float:
+        return np.dot(self.center, embeddings_map[response.id])
 
     def similarity_to_cluster(self, cluster: "Cluster") -> float:
         return np.dot(self.center, cluster.center)
