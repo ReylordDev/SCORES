@@ -256,7 +256,11 @@ export default function Results() {
             <div className="flex gap-8 w-full justify-start">
               <TooltipWrapper
                 wrappedContent={
-                  <Button onClick={() => console.log("Open Output Location")}>
+                  <Button
+                    onClick={() =>
+                      window.electron.showItemInFolder(run.output_file_path)
+                    }
+                  >
                     <FolderOpen />
                     Open Output Location
                   </Button>

@@ -141,7 +141,7 @@ function PreviousRunsDialog() {
   console.log(locale);
 
   return (
-    <DialogContent className="max-w-full w-4/5 h-4/5 select-none">
+    <DialogContent className="max-w-full w-4/5 h-4/5 select-none flex flex-col">
       <DialogHeader className="w-full">
         <DialogTitle className="text-4xl">
           Review Previous Run Result
@@ -150,7 +150,7 @@ function PreviousRunsDialog() {
           Choose a previous result to review.
         </DialogDescription>
       </DialogHeader>
-      <div className="scrollbar max-h-[70vh] flex-grow overflow-y-auto p-6">
+      <div className="scrollbar max-h-[70vh] flex-grow  overflow-y-auto p-6">
         <Table>
           <TableHeader>
             <TableRow>

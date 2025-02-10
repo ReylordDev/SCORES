@@ -1,3 +1,4 @@
+import os
 from typing import Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, computed_field
 from pydantic.alias_generators import to_camel
@@ -5,6 +6,7 @@ from sqlmodel import JSON, Column, SQLModel, Field, Relationship
 import numpy as np
 import time
 import uuid
+from utils.utils import get_user_data_path
 
 
 class CamelModel(BaseModel):
@@ -275,6 +277,14 @@ class ClusteringResult(SQLModel, table=True):
     run_id: Optional[uuid.UUID] = Field(default=None, foreign_key="run.id")
     run: "Run" = Relationship(back_populates="result")
 
+    @computed_field
+    @property
+    def get_all_responses(self) -> list[Response]:
+        responses = []
+        for cluster in self.clusters:
+            responses.extend(cluster.responses)
+        return responses
+
 
 class Run(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -292,3 +302,11 @@ class Run(SQLModel, table=True):
         super().__init__(**data)
         # self.name = f"Cluster {self.id}"
         self.__dict__["name"] = f"Run {self.id}"
+
+    @computed_field
+    @property
+    def output_file_path(self) -> str:
+        results_dir = f"{get_user_data_path()}/results/{self.id}"
+        os.makedirs(results_dir, exist_ok=True)
+        output_file_path = f"{results_dir}/output.csv"
+        return output_file_path

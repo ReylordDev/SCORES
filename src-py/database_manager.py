@@ -1,6 +1,7 @@
+import csv
 import uuid
 from sqlmodel import create_engine, SQLModel, Session, select
-from models import Run
+from models import FileSettings, Run
 import os
 from utils.utils import get_user_data_path
 from utils.ipc import print_progress
@@ -53,6 +54,49 @@ class DatabaseManager:
             run = session.exec(select(Run).where(Run.id == run_id)).one()
             session.delete(run)
             session.commit()
+
+    def create_output_file(self, run: Run):
+        if not run.result:
+            raise ValueError("Run result is empty")
+
+        file_settings = FileSettings.model_validate_json(run.file_settings)
+
+        responses = run.result.get_all_responses
+        response_text_map = {response.text: response for response in responses}
+        rows = []
+        with open(run.file_path, "r", encoding="utf-8") as f:
+            reader = csv.reader(f, delimiter=file_settings.delimiter)
+            if file_settings.has_header:
+                header = next(reader)
+                rows.append(header)
+            for row in reader:
+                for i in file_settings.selected_columns:
+                    # get the next response provided by the current participant
+                    text = row[i]
+                    response = response_text_map.get(text.strip().lower())
+                    if response is None or response.cluster is None:
+                        row.append("")
+                        continue
+                    # TODO: need an index for the cluster
+                    row.append(response.cluster.id.hex)
+                rows.append(row)
+
+        with open(run.output_file_path, "w", encoding="utf-8") as f:
+            writer = csv.writer(
+                f, delimiter=file_settings.delimiter, lineterminator="\n"
+            )
+            if file_settings.has_header:
+                # add the new columns to the header
+                new_header = rows[0].copy()
+                for i in file_settings.selected_columns:
+                    selected_header = rows[0][i]
+                    new_header.append(f"{selected_header}_cluster_index")
+
+                # write the header
+                writer.writerow(new_header)
+                writer.writerows(rows[1:])
+            else:
+                writer.writerows(rows)
 
 
 if __name__ == "__main__":

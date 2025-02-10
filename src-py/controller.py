@@ -64,8 +64,9 @@ class Controller:
                 algorithm_settings=algorithm_settings.model_dump_json(),
                 result=result,
             )
-            self.database_manager.save_run(run)
             self.app_state.set_run_id(run.id)
+            self.database_manager.create_output_file(run)
+            self.database_manager.save_run(run)
 
         elif command.action == "set_run_id":
             if not command.data or not isinstance(command.data, RunPayload):
