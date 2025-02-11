@@ -7,10 +7,8 @@ import { AppConfig, consoleLog } from "./lib/config";
 import {
   CHANNELS,
   ClusteringProgressMessage,
-  ClusteringResult,
   CurrentRunMessage,
   PYTHON_SERVICE_EVENTS,
-  Run,
 } from "./lib/models";
 
 // Handle setup events

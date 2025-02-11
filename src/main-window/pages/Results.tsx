@@ -47,14 +47,24 @@ export default function Results() {
     setRunName(newName);
   };
 
-  window.database.onReceiveCurrentRun(({ run, timesteps }) => {
-    console.log(run);
-    setRun(run);
-    setRunName(run.name);
-    setTimesteps(timesteps);
-  });
+  useEffect(() => {
+    console.log("Subscribing to current run");
+    // Memory Leak
+    const unsubscribe = window.database.onReceiveCurrentRun(
+      ({ run, timesteps }) => {
+        console.log("Received current run", run);
+        setRun(run);
+        setRunName(run.name);
+        setTimesteps(timesteps);
+      }
+    );
+    return () => {
+      unsubscribe(); // Assuming the subscription returns a cleanup function
+    };
+  }, []);
 
   useEffect(() => {
+    console.log("Requesting current run");
     window.database.requestCurrentRun();
   }, []);
 

@@ -48,10 +48,13 @@ export default function FilePreview() {
 
   const exampleLineCount = 10;
 
-  window.file.onReceivePath((path) => {
-    console.log("Received file path: ", path);
-    setFilePath(path);
-  });
+  useEffect(() => {
+    const unsubscribe = window.file.onReceivePath((path) => {
+      console.log("Received file path: ", path);
+      setFilePath(path);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     console.log("Requesting file path");

@@ -123,9 +123,12 @@ function PreviousRunsDialog() {
     navigate("/results");
   };
 
-  window.database.onReceiveAllRuns((runs: Run[]) => {
-    setPreviousRuns(runs);
-  });
+  useEffect(() => {
+    const unsubscribe = window.database.onReceiveAllRuns((runs: Run[]) => {
+      setPreviousRuns(runs);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     console.log("Requesting all runs");

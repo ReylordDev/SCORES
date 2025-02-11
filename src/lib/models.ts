@@ -230,7 +230,7 @@ declare global {
       // Consider making this a promise-returning function
       setPath: (path: string) => void;
       requestPath: () => void;
-      onReceivePath: (callback: (path: string) => void) => void;
+      onReceivePath: (callback: (path: string) => void) => () => void;
       setSettings: (settings: FileSettings) => void;
     };
     algorithm: {
@@ -241,15 +241,15 @@ declare global {
       onUpdate: (callback: (progress: ProgressMessage) => void) => void;
       onClusteringUpdate: (
         callback: (progress: ClusteringProgressMessage) => void
-      ) => void;
+      ) => () => void;
     };
     database: {
       requestAllRuns: () => void;
-      onReceiveAllRuns: (callback: (runs: Run[]) => void) => void;
+      onReceiveAllRuns: (callback: (runs: Run[]) => void) => () => void;
       requestCurrentRun: () => void;
       onReceiveCurrentRun: (
         callback: (currentRun: CurrentRunMessage) => void
-      ) => void;
+      ) => () => void;
       updateRunName: (runId: UUID, name: string) => void;
     };
     state: {

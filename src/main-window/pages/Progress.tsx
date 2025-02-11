@@ -24,7 +24,7 @@ export default function Progress() {
   const [logsPath, setLogsPath] = useState<string | null>(null);
 
   useEffect(() => {
-    window.progress.onClusteringUpdate((progress) => {
+    const unsubscribe = window.progress.onClusteringUpdate((progress) => {
       console.log(progress);
       if (progress.step === "start") {
         setStartTime(progress.timestamp);
@@ -48,6 +48,8 @@ export default function Progress() {
         setErrorEncountered(true);
       }
     });
+
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
