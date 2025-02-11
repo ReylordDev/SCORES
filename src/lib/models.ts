@@ -238,7 +238,6 @@ declare global {
       runClustering: () => void;
     };
     progress: {
-      onUpdate: (callback: (progress: ProgressMessage) => void) => void;
       onClusteringUpdate: (
         callback: (progress: ClusteringProgressMessage) => void
       ) => () => void;
