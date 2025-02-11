@@ -11,6 +11,7 @@ from models import (
     Run,
     RunNamePayload,
     RunPayload,
+    CurrentRunMessage,
 )
 from utils.ipc import print_message, print_progress
 from loguru import logger
@@ -49,25 +50,26 @@ class Controller:
                 return
             self.app_state.set_algorithm_settings(command.data)
         elif command.action == "run_clustering":
-            file_settings = self.app_state.get_file_settings()
-            if not file_settings:
-                print_message("error", Error(error="File settings not set"))
-                return
-            algorithm_settings = self.app_state.get_algorithm_settings()
-            if not algorithm_settings:
-                print_message("error", Error(error="Algorithm settings not set"))
-                return
-            clusterer = Clusterer(self.app_state)
-            result = clusterer.run()
-            run = Run(
-                file_path=self.app_state.get_file_path(),
-                file_settings=file_settings.model_dump_json(),
-                algorithm_settings=algorithm_settings.model_dump_json(),
-                result=result,
-            )
-            self.app_state.set_run_id(run.id)
-            self.database_manager.create_output_file(run)
-            self.database_manager.save_run(run)
+            with self.database_manager.create_session() as session:
+                file_settings = self.app_state.get_file_settings()
+                if not file_settings:
+                    print_message("error", Error(error="File settings not set"))
+                    return
+                algorithm_settings = self.app_state.get_algorithm_settings()
+                if not algorithm_settings:
+                    print_message("error", Error(error="Algorithm settings not set"))
+                    return
+                clusterer = Clusterer(self.app_state)
+                result = clusterer.run()
+                run = Run(
+                    file_path=self.app_state.get_file_path(),
+                    file_settings=file_settings.model_dump_json(),
+                    algorithm_settings=algorithm_settings.model_dump_json(),
+                    result=result,
+                )
+                self.app_state.set_run_id(run.id)
+                self.database_manager.create_output_file(run)
+                self.database_manager.save_run(session, run, result.timesteps)
 
         elif command.action == "set_run_id":
             if not command.data or not isinstance(command.data, RunPayload):
@@ -75,20 +77,29 @@ class Controller:
                 return
             self.app_state.set_run_id(command.data.run_id)
         elif command.action == "get_runs":
-            runs = []
-            for run in self.database_manager.get_runs():
-                runs.append(run)
-            print_message("runs", runs)
+            with self.database_manager.create_session() as session:
+                runs = []
+                for run in self.database_manager.get_runs(session):
+                    runs.append(run)
+                print_message("runs", runs)
         elif command.action == "get_current_run":
-            run_id = self.app_state.get_run_id()
-            if not run_id:
-                print_message("error", Error(error="Run ID not set"))
-                return
-            run = self.database_manager.get_run(run_id)
-            if not run:
-                print_message("error", Error(error="Run not found"))
-                return
-            print_message("run", run)
+            with self.database_manager.create_session() as session:
+                run_id = self.app_state.get_run_id()
+                # TEMP:
+                # run_id = uuid.UUID("3408308c47114003ac3b1fc69ee4fc87")
+                if not run_id:
+                    print_message("error", Error(error="Run ID not set"))
+                    return
+                run = self.database_manager.get_run(session, run_id)
+                if not run:
+                    print_message("error", Error(error="Run not found"))
+                    return
+                if not run.result:
+                    print_message("error", Error(error="Run not finished"))
+                    return
+                print_message(
+                    "run", CurrentRunMessage(run=run, timesteps=run.result.timesteps)
+                )
         elif command.action == "update_run_name":
             if not command.data or not isinstance(command.data, RunNamePayload):
                 print_message("error", Error(error="Run name cannot be empty"))
@@ -117,8 +128,9 @@ def main():
 
 
 if __name__ == "__main__":
-    DEBUG = True
+    DEBUG = False
     if DEBUG:
+        initialize_logger()
         controller = Controller()
         controller.handle_command(
             Command(

@@ -6,19 +6,7 @@ import { formatTime } from "../../lib/utils";
 import ProgressIndicator from "../../components/IndeterminateProgressIndicator";
 import { Button } from "../../components/ui/button";
 import AdaptiveClock from "../../components/AdaptiveClock";
-import { ClusteringStep } from "../../lib/models";
-
-const progressionMessages: Record<ClusteringStep, string> = {
-  start: "Starting clustering process",
-  process_input_file: "Reading input file",
-  load_model: "Loading language model",
-  embed_responses: "Embedding responses",
-  detect_outliers: "Detecting outliers",
-  auto_cluster_count: "Automatically determining cluster count",
-  cluster: "Clustering",
-  merge: "Merging clusters",
-  save: "Saving results",
-};
+import { ClusteringStep, progressionMessages } from "../../lib/models";
 
 export default function Progress() {
   const [startTime, setStartTime] = useState<number | null>(null);

@@ -6,12 +6,14 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatTime(timeInSeconds: number): string {
-  if (timeInSeconds === 0) {
+  if (timeInSeconds == 0) {
     return "<1 sec";
   }
   const hours = Math.floor(timeInSeconds / 3600);
   const minutes = Math.floor((timeInSeconds % 3600) / 60);
   const seconds = timeInSeconds % 60;
+
+  const precision = timeInSeconds < 10 ? (timeInSeconds < 1 ? 1 : 2) : 3;
 
   let formattedTime = "";
 
@@ -20,7 +22,7 @@ export function formatTime(timeInSeconds: number): string {
   } else if (minutes > 0) {
     formattedTime += `${minutes}:${seconds.toString().padStart(2, "0")} min`;
   } else {
-    formattedTime += `${seconds} sec`;
+    formattedTime += `${seconds.toPrecision(precision)} sec`;
   }
 
   return formattedTime;
@@ -97,4 +99,8 @@ export function formatDate(timestamp: number, locale: string) {
     minute: "numeric",
     second: "numeric",
   });
+}
+
+export function iterateRecord<K extends string, V>(record: Record<K, V>) {
+  return Object.entries(record) as [K, V][];
 }

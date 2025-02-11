@@ -48,13 +48,18 @@ export interface ClusteringProgressMessage {
   timestamp: number;
 }
 
+export interface CurrentRunMessage {
+  run: Run;
+  timesteps: Timesteps;
+}
+
 export interface Error {
   error: string;
 }
 
 export interface Message {
   type: "progress" | "error" | "file_path" | "runs" | "run";
-  data: ProgressMessage | Error | string | null | Run[] | Run;
+  data: ProgressMessage | Error | string | null | Run[] | CurrentRunMessage;
 }
 
 export interface FileSettings {
@@ -160,14 +165,22 @@ interface MergingStatistics {
   clustering_result: ClusteringResult;
 }
 
-interface ClusteringResult {
+export interface Timesteps {
+  id: UUID;
+  total_duration: number;
+  steps: Record<ClusteringStep, number>;
+}
+
+export interface ClusteringResult {
   id: UUID;
   clusters: Cluster[];
   outlier_statistics: OutlierStatistics;
   merger_statistics: MergingStatistics;
   inter_cluster_similarities: ClusterSimilarityPair[];
+  timesteps: Timesteps;
   run_id: UUID;
   run: Run;
+  all_responses: Response[];
 }
 
 export interface Run {
@@ -181,6 +194,19 @@ export interface Run {
 }
 
 // Frontend-only models
+
+export const progressionMessages: Record<ClusteringStep, string> = {
+  start: "Starting clustering process",
+  process_input_file: "Reading input file",
+  load_model: "Loading language model",
+  embed_responses: "Embedding responses",
+  detect_outliers: "Detecting outliers",
+  auto_cluster_count: "Automatically determining cluster count",
+  cluster: "Clustering",
+  merge: "Merging clusters",
+  save: "Saving results",
+};
+
 export interface AppSettings {
   darkMode: boolean;
 }
@@ -221,7 +247,9 @@ declare global {
       requestAllRuns: () => void;
       onReceiveAllRuns: (callback: (runs: Run[]) => void) => void;
       requestCurrentRun: () => void;
-      onReceiveCurrentRun: (callback: (run: Run) => void) => void;
+      onReceiveCurrentRun: (
+        callback: (currentRun: CurrentRunMessage) => void
+      ) => void;
       updateRunName: (runId: UUID, name: string) => void;
     };
     state: {

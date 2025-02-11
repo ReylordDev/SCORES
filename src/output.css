@@ -911,10 +911,6 @@ video {
   width: 0.5rem;
 }
 
-.w-2\/3 {
-  width: 66.666667%;
-}
-
 .w-20 {
   width: 5rem;
 }
@@ -941,6 +937,10 @@ video {
 
 .w-96 {
   width: 24rem;
+}
+
+.w-\[48rem\] {
+  width: 48rem;
 }
 
 .w-fit {
@@ -1040,6 +1040,10 @@ video {
 
 .grid-cols-2 {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .flex-col {
@@ -1277,11 +1281,6 @@ video {
 .bg-zinc-900 {
   --tw-bg-opacity: 1;
   background-color: rgb(24 24 27 / var(--tw-bg-opacity));
-}
-
-.bg-blue-500 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(59 130 246 / var(--tw-bg-opacity));
 }
 
 .bg-gradient-to-l {

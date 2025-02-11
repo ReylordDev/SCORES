@@ -7,7 +7,10 @@ import { AppConfig, consoleLog } from "./lib/config";
 import {
   CHANNELS,
   ClusteringProgressMessage,
+  ClusteringResult,
+  CurrentRunMessage,
   PYTHON_SERVICE_EVENTS,
+  Run,
 } from "./lib/models";
 
 // Handle setup events
@@ -49,19 +52,22 @@ app.whenReady().then(async () => {
     }
   );
 
-  pythonService.on(PYTHON_SERVICE_EVENTS.DATABASE.ALL_RUNS, (runs) => {
+  pythonService.on(PYTHON_SERVICE_EVENTS.DATABASE.ALL_RUNS, (data) => {
     windowManager.sendMainWindowMessage(
       CHANNELS.DATABASE.ALL_RUNS_RESPONSE,
-      runs
+      data
     );
   });
 
-  pythonService.on(PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_RUN, (run) => {
-    windowManager.sendMainWindowMessage(
-      CHANNELS.DATABASE.CURRENT_RUN_RESPONSE,
-      run
-    );
-  });
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_RUN,
+    (data: CurrentRunMessage) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.DATABASE.CURRENT_RUN_RESPONSE,
+        data
+      );
+    }
+  );
 
   registerIpcHandlers(settingsService, pythonService, config);
 });

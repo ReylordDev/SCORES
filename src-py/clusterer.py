@@ -1,5 +1,6 @@
 import csv
 import uuid
+import time
 from utils.ipc import print_progress
 from matplotlib import pyplot as plt
 import numpy as np
@@ -20,6 +21,7 @@ from models import (
     Response,
     OutlierStatistics,
     ClusterSimilarityPair,
+    Timesteps,
     ClusteringResult,
     Run,
 )
@@ -36,6 +38,7 @@ class Clusterer:
         self.file_settings = file_settings
         self.algorithm_settings = algorithm_settings
         self.output_dir = "output"
+        self.timesteps = Timesteps(steps={})
         print_progress("process_input_file", "todo")
         print_progress("load_model", "todo")
         print_progress("embed_responses", "todo")
@@ -91,6 +94,7 @@ class Clusterer:
             ]
             full_file_content = [headers] + rows
             print_progress("process_input_file", "complete")
+            self.timesteps.steps["process_input_file"] = time.time()
             return responses, full_file_content
         except Exception as e:
             print_progress("process_input_file", "error")
@@ -102,6 +106,7 @@ class Clusterer:
         try:
             model = SentenceTransformer(language_model)
             print_progress("load_model", "complete")
+            self.timesteps.steps["load_model"] = time.time()
             return model
         except Exception as e:
             print_progress("load_model", "error")
@@ -120,6 +125,7 @@ class Clusterer:
         for i, response in enumerate(responses):
             embeddings_map[response.id] = norm_embeddings[i]
         print_progress("embed_responses", "complete")
+        self.timesteps.steps["embed_responses"] = time.time()
         return embeddings_map
 
     def detect_outliers(
@@ -134,6 +140,7 @@ class Clusterer:
         if len(responses) == 0:
             logger.warning("No responses to analyze for outliers")
             print_progress("detect_outliers", "complete")
+            self.timesteps.steps["detect_outliers"] = time.time()
             return OutlierStatistics(threshold=0.0, outliers=[])
         if outlier_k >= len(responses) - 1:
             outlier_k = len(responses) - 2
@@ -177,6 +184,7 @@ class Clusterer:
         outlier_statistics_summary.outliers = outlier_stats
 
         print_progress("detect_outliers", "complete")
+        self.timesteps.steps["detect_outliers"] = time.time()
         return outlier_statistics_summary
 
     def auto_cluster_count(self, embeddings, response_weights):
@@ -258,6 +266,7 @@ class Clusterer:
         )
 
         print_progress("auto_cluster_count", "complete")
+        self.timesteps.steps["auto_cluster_count"] = time.time()
         return best_K
 
     def start_clustering(
@@ -291,6 +300,7 @@ class Clusterer:
             clusters[cluster_index].responses.append(response)
 
         print_progress("cluster", "complete")
+        self.timesteps.steps["cluster"] = time.time()
         return clusters
 
     def merge_clusters(
@@ -379,6 +389,7 @@ class Clusterer:
             clusters,
         )
         print_progress("merge", "complete")
+        self.timesteps.steps["merge"] = time.time()
         return merging_statistics
 
     def calculate_inter_cluster_similarities(self, clusters: list[Cluster]):
@@ -400,6 +411,7 @@ class Clusterer:
 
     def run(self) -> ClusteringResult:
         print_progress("start", "start")
+        self.timesteps.steps["start"] = time.time()
         responses, full_file_content = self.process_input_file([])
 
         embedding_model = self.load_embedding_model("BAAI/bge-large-en-v1.5")
@@ -447,6 +459,7 @@ class Clusterer:
             inter_cluster_similarities=self.calculate_inter_cluster_similarities(
                 clusters
             ),
+            timesteps=self.timesteps,
         )
 
 

@@ -9,6 +9,8 @@ import {
   Error,
   ClusteringProgressMessage,
   Run,
+  ClusteringResult,
+  CurrentRunMessage,
 } from "../../lib/models";
 import path from "path";
 import { SettingsService } from "./settings-service";
@@ -65,7 +67,7 @@ export class PythonService extends EventEmitter {
       case "run":
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_RUN,
-          message.data as Run
+          message.data as CurrentRunMessage
         );
         break;
       default:

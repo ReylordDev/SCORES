@@ -83,6 +83,11 @@ class ClusteringProgressMessage(BaseModel):
     timestamp: float = Field(default_factory=time.time)
 
 
+class CurrentRunMessage(BaseModel):
+    run: "Run"
+    timesteps: "Timesteps"
+
+
 class Error(BaseModel):
     error: str
 
@@ -91,8 +96,8 @@ MessageType = Literal["progress", "file_path", "error", "runs", "run"]
 MessageDataType = Union[
     ProgressMessage,
     list["Run"],
-    "Run",
     Error,
+    CurrentRunMessage,
     str,
     None,
 ]
@@ -260,6 +265,25 @@ class MergingStatistics(SQLModel, table=True):
     )
 
 
+class Timesteps(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    steps: dict[ClusteringStepType, float] = Field(sa_column=Column(JSON))
+
+    @computed_field
+    @property
+    def total_duration(self) -> float:
+        if "start" not in self.steps or "save" not in self.steps:
+            return 0
+        start_time = self.steps["start"]
+        end_time = self.steps["save"]
+        return end_time - start_time
+
+    clustering_result_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="clusteringresult.id"
+    )
+    clustering_result: "ClusteringResult" = Relationship(back_populates="timesteps")
+
+
 class ClusteringResult(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     clusters: list[Cluster] = Relationship(back_populates="result")
@@ -272,12 +296,11 @@ class ClusteringResult(SQLModel, table=True):
     inter_cluster_similarities: list[ClusterSimilarityPair] = Relationship(
         back_populates="result"
     )
+    timesteps: Timesteps = Relationship(back_populates="clustering_result")
 
     run_id: Optional[uuid.UUID] = Field(default=None, foreign_key="run.id")
     run: "Run" = Relationship(back_populates="result")
 
-    @computed_field
-    @property
     def get_all_responses(self) -> list[Response]:
         responses = []
         for cluster in self.clusters:

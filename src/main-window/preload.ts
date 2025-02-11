@@ -9,9 +9,10 @@ import {
   AlgorithmSettings,
   ClusteringProgressMessage,
   Run,
+  ClusteringResult,
+  CurrentRunMessage,
 } from "../lib/models";
 import { contextBridge, ipcRenderer, webUtils } from "electron";
-import { request } from "http";
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
@@ -84,10 +85,13 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
   requestCurrentRun: () => {
     ipcRenderer.send(CHANNELS.DATABASE.CURRENT_RUN_REQUEST);
   },
-  onReceiveCurrentRun: (callback: (run: Run) => void) => {
-    ipcRenderer.on(CHANNELS.DATABASE.CURRENT_RUN_RESPONSE, (_, run: Run) => {
-      callback(run);
-    });
+  onReceiveCurrentRun: (callback: (currentRun: CurrentRunMessage) => void) => {
+    ipcRenderer.on(
+      CHANNELS.DATABASE.CURRENT_RUN_RESPONSE,
+      (_, currentRun: CurrentRunMessage) => {
+        callback(currentRun);
+      }
+    );
   },
   updateRunName: (runId: UUID, name: string) => {
     ipcRenderer.send(CHANNELS.DATABASE.UPDATE_RUN_NAME, runId, name);

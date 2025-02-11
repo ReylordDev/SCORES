@@ -1,7 +1,8 @@
 import csv
+import time
 import uuid
 from sqlmodel import create_engine, SQLModel, Session, select
-from models import FileSettings, Run
+from models import ClusteringResult, FileSettings, Run, Timesteps
 import os
 from utils.utils import get_user_data_path
 from utils.ipc import print_progress
@@ -19,28 +20,30 @@ class DatabaseManager:
     def get_engine(self):
         return self.engine
 
+    def create_session(self):
+        return Session(self.engine)
+
     def save_to_db(self, obj):
         with Session(self.engine) as session:
             session.add(obj)
             session.commit()
 
-    def save_run(self, run: Run):
+    def save_run(self, session: Session, run: Run, timesteps: Timesteps):
         print_progress("save", "start")
         try:
-            self.save_to_db(run)
+            session.add(run)
             print_progress("save", "complete")
-            return
+            timesteps.steps["save"] = time.time()
+            session.commit()
         except:
             print_progress("save", "error")
             raise
 
-    def get_runs(self):
-        with Session(self.engine) as session:
-            return session.exec(select(Run)).all()
+    def get_runs(self, session: Session):
+        return session.exec(select(Run)).all()
 
-    def get_run(self, run_id: uuid.UUID):
-        with Session(self.engine) as session:
-            return session.exec(select(Run).where(Run.id == run_id)).one()
+    def get_run(self, session: Session, run_id: uuid.UUID):
+        return session.exec(select(Run).where(Run.id == run_id)).one()
 
     def update_run_name(self, run_id: uuid.UUID, new_name: str):
         with Session(self.engine) as session:
@@ -55,13 +58,18 @@ class DatabaseManager:
             session.delete(run)
             session.commit()
 
+    def get_run_result(self, session: Session, run_id: uuid.UUID):
+        return session.exec(
+            select(ClusteringResult).where(ClusteringResult.run_id == run_id)
+        ).one()
+
     def create_output_file(self, run: Run):
         if not run.result:
             raise ValueError("Run result is empty")
 
         file_settings = FileSettings.model_validate_json(run.file_settings)
 
-        responses = run.result.get_all_responses
+        responses = run.result.get_all_responses()
         response_text_map = {response.text: response for response in responses}
         rows = []
         with open(run.file_path, "r", encoding="utf-8") as f:
@@ -101,10 +109,12 @@ class DatabaseManager:
 
 if __name__ == "__main__":
     db_manager = DatabaseManager()
-    runs = db_manager.get_runs()
-    for run in runs:
-        print(run)
-    db_manager.update_run_name(runs[0].id, "New Name")
-    runs = db_manager.get_runs()
-    for run in runs:
-        print(run)
+    session = db_manager.create_session()
+    with session:
+        runs = db_manager.get_runs(session=session)
+        for run in runs:
+            print(run)
+        db_manager.update_run_name(runs[0].id, "New Name")
+        runs = db_manager.get_runs(session=session)
+        for run in runs:
+            print(run)

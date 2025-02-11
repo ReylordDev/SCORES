@@ -1,13 +1,9 @@
 import { useNavigate } from "react-router";
 import { TitleBar } from "../../components/TitleBar";
 import {
-  Clock,
   Pencil,
   Save,
-  Check,
-  ChevronUp,
   ChevronDown,
-  FileText,
   List,
   GitCompare,
   AlertTriangle,
@@ -18,7 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { useState, useEffect } from "react";
-import { formatTime } from "../../lib/utils";
+import { formatTime, iterateRecord } from "../../lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,97 +26,20 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
 
 import { TooltipWrapper } from "../../components/Tooltip";
-import { Run } from "../../lib/models";
-
-interface TimeStamp {
-  name: string;
-  time: number;
-}
-
-function TotalTimeDropdown({ path }: { path: string }) {
-  const [open, setOpen] = useState(false);
-  const [timeStamps, setTimeStamps] = useState<TimeStamp[]>([]);
-
-  // useEffect(() => {
-  //   window.python
-  //     .readJsonFile(path)
-  //     .then((data) => {
-  //       const obj = data as { timeStamps: TimeStamp[] };
-  //       setTimeStamps(obj.timeStamps);
-  //     })
-  //     .catch((err) => {
-  //       console.error(err);
-  //     });
-  // }, [path]);
-
-  console.log(timeStamps);
-
-  if (!timeStamps || timeStamps.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="flex w-full flex-col items-center justify-start">
-      <Button
-        className="w-2/3"
-        onClick={() => {
-          console.log("Open Total Time");
-          setOpen(!open);
-        }}
-      >
-        {<Clock />}
-        {`Total Time: ${formatTime(
-          Math.floor(
-            timeStamps[timeStamps.length - 1].time - timeStamps[0].time
-          )
-        )}`}
-        {open ? <ChevronUp /> : <ChevronDown />}
-      </Button>
-      {open && (
-        <div className="flex w-full flex-col gap-2 p-4">
-          {timeStamps.map((step, index) => {
-            if (index === 0) {
-              return null;
-            }
-            return (
-              <div key={index} className="flex w-full justify-between">
-                <div className="flex items-center gap-2">
-                  <Check
-                    className="rounded bg-accent text-background"
-                    size={20}
-                  />
-                  {step.name}
-                </div>
-                <div className="flex min-w-28 items-center justify-start gap-2">
-                  <Clock size={20} />
-                  {formatTime(
-                    Math.floor(step.time - timeStamps[index - 1].time)
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+import { progressionMessages, Run, Timesteps } from "../../lib/models";
+import { Progress } from "../../components/ui/progress";
 
 export default function Results() {
-  const [run, setRun] = useState<Run | undefined>(undefined);
-  const [runName, setRunName] = useState<string | undefined>(undefined);
-  const [resultsDir, setResultsDir] = useState<string | undefined>(undefined);
-  const [runNameInput, setRunNameInput] = useState<string | undefined>(
-    undefined
-  );
+  const [run, setRun] = useState<Run | null>(null);
+  const [timesteps, setTimesteps] = useState<Timesteps | null>(null);
+  const [runName, setRunName] = useState<string | null>(null);
+  const [runNameInput, setRunNameInput] = useState<string | null>(null);
   const [editingRunName, setEditingRunName] = useState(false);
-  const [showInputError, setShowInputError] = useState(false);
   const navigate = useNavigate();
 
   const updateRunName = (newName: string) => {
@@ -128,60 +47,16 @@ export default function Results() {
     setRunName(newName);
   };
 
-  window.database.onReceiveCurrentRun((run) => {
+  window.database.onReceiveCurrentRun(({ run, timesteps }) => {
+    console.log(run);
     setRun(run);
     setRunName(run.name);
+    setTimesteps(timesteps);
   });
 
   useEffect(() => {
     window.database.requestCurrentRun();
   }, []);
-
-  // useEffect(() => {
-  //   window.python
-  //     .getRunName()
-  //     .then((runName) => {
-  //       console.log(`Run name: ${runName}`);
-  //       setRunName(runName);
-  //     })
-  //     .catch((err) => {
-  //       console.error(err);
-  //     });
-  // }, [resultsDir]);
-
-  // useEffect(() => {
-  //   if (!resultsDir) return;
-  //   try {
-  //     window.python
-  //       .readJsonFile(`${resultsDir}/args.json`)
-  //       .then((args) => {
-  //         console.log(args);
-  //         setArgs(args as Args);
-  //       })
-  //       .catch((err) => {
-  //         console.error(err);
-  //       });
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // }, [resultsDir]);
-
-  // This part should probably just redirect to file selection
-  // if (!args || !resultsDir) {
-  //   return (
-  //     <>
-  //       <TitleBar index={4} />
-  //       <div
-  //         id="mainContent"
-  //         className="dark:dark flex flex-col items-center justify-start gap-4 bg-background px-24 xl:gap-8 xl:px-32 xl:pb-8"
-  //       >
-  //         <div className="mt-24 flex w-full justify-center p-8">
-  //           <h1 className="text-4xl">No Run Selected</h1>
-  //         </div>
-  //       </div>
-  //     </>
-  //   );
-  // }
 
   if (!run) {
     return <div>Loading</div>;
@@ -242,9 +117,6 @@ export default function Results() {
                 />
               )}
             </div>
-            {showInputError && (
-              <p className="text-red-500">Input is not a valid file name</p>
-            )}
             <div className="flex items-center gap-2 pb-4 pl-5 text-accent">
               <CheckCheck className="rounded bg-background" size={24} />
               <p className="text-xl font-semibold">
@@ -290,8 +162,8 @@ export default function Results() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <div className="grid gap-8 grid-cols-2">
-              <Card className="w-96">
+            <div className="grid gap-8 grid-cols-3">
+              <Card>
                 <CardHeader>
                   <CardTitle>Cluster Assignments</CardTitle>
                   <CardDescription>
@@ -305,13 +177,9 @@ export default function Results() {
                     <List />
                     Open Cluster Assignments
                   </Button>
-                  {/* <p>Card Content</p> */}
                 </CardContent>
-                {/* <CardFooter>
-                <p>Card Footer</p>
-              </CardFooter> */}
               </Card>
-              <Card className="w-96">
+              <Card>
                 <CardHeader>
                   <CardTitle>Cluster Similarities</CardTitle>
                   <CardDescription>
@@ -327,7 +195,7 @@ export default function Results() {
                   </Button>
                 </CardContent>
               </Card>
-              <Card className="w-96">
+              <Card>
                 <CardHeader>
                   <CardTitle>Outliers</CardTitle>
                   <CardDescription>
@@ -341,7 +209,7 @@ export default function Results() {
                   </Button>
                 </CardContent>
               </Card>
-              <Card className="w-96">
+              <Card>
                 <CardHeader>
                   <CardTitle>Cluster Mergers</CardTitle>
                   <CardDescription>
@@ -353,6 +221,45 @@ export default function Results() {
                     <GitMerge />
                     Open Cluster Mergers
                   </Button>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Run Duration</CardTitle>
+                  <CardDescription>
+                    Total Duration: {formatTime(timesteps.total_duration)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {iterateRecord(timesteps.steps).map(
+                    ([step, timestamp], index) => {
+                      if (step !== "start")
+                        return (
+                          <div key={step} className="flex flex-col">
+                            <div className="flex justify-between">
+                              <p>{progressionMessages[step]}</p>
+                              <p>
+                                {formatTime(
+                                  timestamp -
+                                    iterateRecord(timesteps.steps)[index - 1][1]
+                                )}
+                              </p>
+                            </div>
+                            <Progress
+                              value={
+                                ((timestamp -
+                                  iterateRecord(timesteps.steps)[
+                                    index - 1
+                                  ][1]) *
+                                  100) /
+                                timesteps.total_duration
+                              }
+                              max={timesteps.total_duration}
+                            />
+                          </div>
+                        );
+                    }
+                  )}
                 </CardContent>
               </Card>
             </div>
