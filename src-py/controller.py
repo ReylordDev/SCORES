@@ -2,12 +2,14 @@ import sys
 from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
+    Cluster,
     Command,
     Error,
     FilePathPayload,
     FileSettings,
     AlgorithmSettings,
     ManualClusterCount,
+    Response,
     Run,
     RunNamePayload,
     RunPayload,
@@ -107,6 +109,16 @@ class Controller:
             self.database_manager.update_run_name(
                 command.data.run_id, command.data.name
             )
+        elif command.action == "get_clusters":
+            with self.database_manager.create_session() as session:
+                run_id = self.app_state.get_run_id()
+                if not run_id:
+                    print_message("error", Error(error="Run ID not set"))
+                    return
+                clusters: list[tuple[Cluster, list[Response]]] = []
+                for cluster in self.database_manager.get_clusters(session, run_id):
+                    clusters.append((cluster, cluster.responses))
+                print_message("clusters", clusters)
         else:
             logger.error(f"Invalid action: {command.action}")
             print_message("error", Error(error=f"Invalid action: {command.action}"))
@@ -157,5 +169,6 @@ if __name__ == "__main__":
             )
         )
         controller.handle_command(Command(action="run_clustering"))
+        controller.handle_command(Command(action="get_clusters"))
     else:
         main()

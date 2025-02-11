@@ -6,7 +6,9 @@ import {
   CHANNELS,
   ClusteringProgressMessage,
   Run,
+  Response,
   CurrentRunMessage,
+  Cluster,
 } from "../lib/models";
 import {
   contextBridge,
@@ -93,6 +95,16 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
   },
   updateRunName: (runId, name) => {
     ipcRenderer.send(CHANNELS.DATABASE.UPDATE_RUN_NAME, runId, name);
+  },
+  requestCurrentClusters: () => {
+    ipcRenderer.send(CHANNELS.DATABASE.CURRENT_CLUSTERS_REQUEST);
+  },
+  onReceiveCurrentClusters: (callback) => {
+    const listener = (_: IpcRendererEvent, clusters: [Cluster, Response[]][]) =>
+      callback(clusters);
+    ipcRenderer.on(CHANNELS.DATABASE.CURRENT_CLUSTERS_RESPONSE, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.DATABASE.CURRENT_CLUSTERS_RESPONSE, listener);
   },
 } satisfies Window["database"]);
 

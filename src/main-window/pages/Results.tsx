@@ -181,9 +181,7 @@ export default function Results() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button
-                    onClick={() => console.log("Open Cluster Assignments")}
-                  >
+                  <Button onClick={() => navigate("/cluster_assignments")}>
                     <List />
                     Open Cluster Assignments
                   </Button>

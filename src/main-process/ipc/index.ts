@@ -90,6 +90,12 @@ export function registerIpcHandlers(
     });
   });
 
+  ipcMain.on(CHANNELS.DATABASE.CURRENT_CLUSTERS_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "get_clusters",
+    });
+  });
+
   ipcMain.on(CHANNELS.STATE.SET_RUN_ID, (_, runId: UUID) => {
     pythonService.sendCommand({
       action: "set_run_id",

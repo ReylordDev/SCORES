@@ -2,7 +2,7 @@ import csv
 import time
 import uuid
 from sqlmodel import create_engine, SQLModel, Session, select
-from models import ClusteringResult, FileSettings, Run, Timesteps
+from models import Cluster, ClusteringResult, FileSettings, Response, Run, Timesteps
 import os
 from utils.utils import get_user_data_path
 from utils.ipc import print_progress
@@ -62,6 +62,13 @@ class DatabaseManager:
         return session.exec(
             select(ClusteringResult).where(ClusteringResult.run_id == run_id)
         ).one()
+
+    def get_clusters(self, session: Session, run_id: uuid.UUID):
+        return session.exec(
+            select(Cluster)
+            .join(ClusteringResult)
+            .where(ClusteringResult.run_id == run_id)
+        ).all()
 
     def create_output_file(self, run: Run):
         if not run.result:

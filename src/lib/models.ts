@@ -12,7 +12,8 @@ type Action =
   | "get_runs"
   | "get_current_run"
   | "set_run_id"
-  | "update_run_name";
+  | "update_run_name"
+  | "get_clusters";
 
 export interface Command {
   action: Action;
@@ -58,8 +59,15 @@ export interface Error {
 }
 
 export interface Message {
-  type: "progress" | "error" | "file_path" | "runs" | "run";
-  data: ProgressMessage | Error | string | null | Run[] | CurrentRunMessage;
+  type: "progress" | "error" | "file_path" | "runs" | "run" | "clusters";
+  data:
+    | ProgressMessage
+    | Error
+    | string
+    | null
+    | Run[]
+    | [Cluster, Response[]][]
+    | CurrentRunMessage;
 }
 
 export interface FileSettings {
@@ -84,7 +92,7 @@ export interface AlgorithmSettings {
   method: ClusterCount;
 }
 
-interface Response {
+export interface Response {
   id: UUID;
   text: string;
   embedding: number[] | null;
@@ -96,13 +104,13 @@ interface Response {
   outlier_statistic: OutlierStatistic | null;
 }
 
-interface Cluster {
+export interface Cluster {
   id: UUID;
   name: string;
   center: number[];
   responses: Response[];
   count: number;
-  most_representative_responses: Response[];
+  // most_representative_responses: Response[];
 
   result_id: UUID;
   result: ClusteringResult;
@@ -250,6 +258,10 @@ declare global {
         callback: (currentRun: CurrentRunMessage) => void
       ) => () => void;
       updateRunName: (runId: UUID, name: string) => void;
+      requestCurrentClusters: () => void;
+      onReceiveCurrentClusters: (
+        callback: (clusters: [Cluster, Response[]][]) => void
+      ) => () => void;
     };
     state: {
       setRunId: (runId: UUID) => void;
@@ -300,6 +312,8 @@ export const CHANNELS = {
     CURRENT_RUN_REQUEST: "database:current-run-request",
     CURRENT_RUN_RESPONSE: "database:current-run-response",
     UPDATE_RUN_NAME: "database:update-run-name",
+    CURRENT_CLUSTERS_REQUEST: "database:current-clusters-request",
+    CURRENT_CLUSTERS_RESPONSE: "database:current-clusters-response",
   },
   STATE: {
     SET_RUN_ID: "state:set-run-id",
@@ -313,6 +327,7 @@ export const PYTHON_SERVICE_EVENTS = {
   DATABASE: {
     ALL_RUNS: "database-all-runs",
     CURRENT_RUN: "database-current-run",
+    CURRENT_CLUSTERS: "database-current-clusters",
   },
   READY: "ready",
 };

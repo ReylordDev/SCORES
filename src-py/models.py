@@ -25,6 +25,7 @@ ActionType = Literal[
     "get_current_run",
     "set_run_id",
     "update_run_name",
+    "get_clusters",
 ]
 StatusType = Literal["todo", "start", "complete", "error"]
 ClusteringStepType = Literal[
@@ -92,10 +93,11 @@ class Error(BaseModel):
     error: str
 
 
-MessageType = Literal["progress", "file_path", "error", "runs", "run"]
+MessageType = Literal["progress", "file_path", "error", "runs", "run", "clusters"]
 MessageDataType = Union[
     ProgressMessage,
     list["Run"],
+    list[tuple["Cluster", list["Response"]]],
     Error,
     CurrentRunMessage,
     str,
@@ -186,11 +188,9 @@ class Cluster(SQLModel, table=True):
     def count(self) -> int:
         return len(self.responses)
 
-    @computed_field
-    @property
-    def most_representative_responses(self) -> list[Response]:
-        """Responses sorted by similarity descending"""
-        return sorted(self.responses, key=lambda r: r.similarity or -1, reverse=True)
+    # def get_most_representative_responses(self) -> list[Response]:
+    #     """Responses sorted by similarity descending"""
+    #     return sorted(self.responses, key=lambda r: r.similarity or -1, reverse=True)
 
     def similarity_to_response(
         self, response: Response, embeddings_map: dict[uuid.UUID, np.ndarray]

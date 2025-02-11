@@ -6,6 +6,7 @@ import { registerIpcHandlers } from "./main-process/ipc";
 import { AppConfig, consoleLog } from "./lib/config";
 import {
   CHANNELS,
+  Cluster,
   ClusteringProgressMessage,
   CurrentRunMessage,
   PYTHON_SERVICE_EVENTS,
@@ -62,6 +63,16 @@ app.whenReady().then(async () => {
     (data: CurrentRunMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.DATABASE.CURRENT_RUN_RESPONSE,
+        data
+      );
+    }
+  );
+
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTERS,
+    (data: [Cluster, Response][]) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.DATABASE.CURRENT_CLUSTERS_RESPONSE,
         data
       );
     }
