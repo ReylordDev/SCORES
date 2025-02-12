@@ -2,7 +2,12 @@ import { SettingsService } from "../services/settings-service";
 import { PythonService } from "../services/python-service";
 import { registerSettingsHandlers } from "./settings";
 import { app, ipcMain, shell } from "electron";
-import { CHANNELS, FileSettings, AlgorithmSettings } from "../../lib/models";
+import {
+  CHANNELS,
+  FileSettings,
+  AlgorithmSettings,
+  ClusterNamePayload,
+} from "../../lib/models";
 import fs from "fs";
 import { AppConfig } from "../../lib/config";
 import { UUID } from "crypto";
@@ -103,6 +108,16 @@ export function registerIpcHandlers(
       action: "get_cluster_similarities",
     });
   });
+
+  ipcMain.on(
+    CHANNELS.DATABASE.UPDATE_CLUSTER_NAME,
+    (_, payload: ClusterNamePayload) => {
+      pythonService.sendCommand({
+        action: "update_cluster_name",
+        data: payload,
+      });
+    }
+  );
 
   ipcMain.on(CHANNELS.STATE.SET_RUN_ID, (_, runId: UUID) => {
     pythonService.sendCommand({

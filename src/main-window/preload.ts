@@ -9,6 +9,7 @@ import {
   CurrentRunMessage,
   ClusterAssignmentsMessage,
   ClusterSimilaritiesMessage,
+  ClusterNamePayload,
 } from "../lib/models";
 import {
   contextBridge,
@@ -134,6 +135,9 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
         CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_RESPONSE,
         listener
       );
+  },
+  updateClusterName: (payload: ClusterNamePayload) => {
+    ipcRenderer.send(CHANNELS.DATABASE.UPDATE_CLUSTER_NAME, payload);
   },
 } satisfies Window["database"]);
 

@@ -27,6 +27,7 @@ ActionType = Literal[
     "update_run_name",
     "get_cluster_assignments",
     "get_cluster_similarities",
+    "update_cluster_name",
 ]
 StatusType = Literal["todo", "start", "complete", "error"]
 ClusteringStepType = Literal[
@@ -60,6 +61,11 @@ class RunNamePayload(CamelModel):
     name: str
 
 
+class ClusterNamePayload(CamelModel):
+    cluster_id: uuid.UUID
+    name: str
+
+
 class Command(CamelModel):
     action: ActionType
     data: Optional[
@@ -69,6 +75,7 @@ class Command(CamelModel):
             "AlgorithmSettings",
             RunPayload,
             RunNamePayload,
+            ClusterNamePayload,
         ]
     ] = None
 

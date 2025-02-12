@@ -14,7 +14,13 @@ type Action =
   | "set_run_id"
   | "update_run_name"
   | "get_cluster_assignments"
-  | "get_cluster_similarities";
+  | "get_cluster_similarities"
+  | "update_cluster_name";
+
+export interface ClusterNamePayload {
+  clusterId: UUID;
+  name: string;
+}
 
 export interface Command {
   action: Action;
@@ -24,7 +30,8 @@ export interface Command {
     | AlgorithmSettings
     | null
     | { runId: UUID }
-    | { runId: UUID; name: string };
+    | { runId: UUID; name: string }
+    | ClusterNamePayload;
 }
 
 export type ClusteringStep =
@@ -293,6 +300,7 @@ declare global {
       onReceiveCurrentClusterSimilarities: (
         callback: (clusterSimilarities: ClusterSimilaritiesMessage) => void
       ) => () => void;
+      updateClusterName: (payload: ClusterNamePayload) => void;
     };
     state: {
       setRunId: (runId: UUID) => void;
@@ -345,6 +353,7 @@ export const CHANNELS = {
       "database:current-cluster-similarities-request",
     CURRENT_CLUSTER_SIMILARITIES_RESPONSE:
       "database:current-cluster-similarities-response",
+    UPDATE_CLUSTER_NAME: "database:update-cluster-name",
   },
   STATE: {
     SET_RUN_ID: "state:set-run-id",

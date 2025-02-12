@@ -15,6 +15,7 @@ from models import (
     RunNamePayload,
     RunPayload,
     CurrentRunMessage,
+    ClusterNamePayload,
 )
 from utils.ipc import print_message, print_progress
 from loguru import logger
@@ -150,6 +151,14 @@ class Controller:
                             )
                         ]
                     ),
+                )
+        elif command.action == "update_cluster_name":
+            if not command.data or not isinstance(command.data, ClusterNamePayload):
+                print_message("error", Error(error="Cluster name cannot be empty"))
+                return
+            with self.database_manager.create_session() as session:
+                self.database_manager.update_cluster_name(
+                    session, command.data.cluster_id, command.data.name
                 )
 
         else:

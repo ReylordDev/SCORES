@@ -89,6 +89,14 @@ class DatabaseManager:
             .all()
         )
 
+    def update_cluster_name(
+        self, session: Session, cluster_id: uuid.UUID, new_name: str
+    ):
+        cluster = session.exec(select(Cluster).where(Cluster.id == cluster_id)).one()
+        cluster.name = new_name
+        session.add(cluster)
+        session.commit()
+
     def create_output_file(self, run: Run):
         if not run.result:
             raise ValueError("Run result is empty")

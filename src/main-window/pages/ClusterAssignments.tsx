@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, List, Search, Ellipsis } from "lucide-react";
+import { ChevronDown, ChevronUp, List, Pencil, Save } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { TitleBar } from "../../components/TitleBar";
 import { _ClusterAssignmentDetail } from "../../lib/models";
@@ -9,7 +9,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
@@ -26,6 +25,21 @@ function ClusterAssignment({
   handleClusterClick: (clusterId: string) => void;
 }) {
   const [previewCount, setPreviewCount] = useState(25);
+  const [isEditing, setIsEditing] = useState(false);
+  const [nameInput, setNameInput] = useState(cluster.name);
+
+  const handleNameUpdate = () => {
+    if (!nameInput || nameInput === cluster.name) {
+      setIsEditing(false);
+      return;
+    }
+    window.database.updateClusterName({
+      clusterId: cluster.id,
+      name: nameInput,
+    });
+    window.database.requestCurrentClusterAssignments();
+    setIsEditing(false);
+  };
 
   console.log(`ClusterAssignment: ${cluster.id}`);
 
@@ -37,7 +51,41 @@ function ClusterAssignment({
       <CardHeader>
         <div className="flex justify-between items-center w-full">
           <div className="flex flex-col gap-1">
-            <CardTitle>{cluster.name}</CardTitle>
+            {isEditing ? (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="flex gap-4 items-center"
+              >
+                <input
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  className="rounded-md border border-secondary p-2 text-xl focus:outline-none focus:ring focus:ring-secondary focus:ring-opacity-50"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleNameUpdate();
+                    if (e.key === "Escape") {
+                      setNameInput(cluster.name);
+                      setIsEditing(false);
+                    }
+                  }}
+                />
+                <Button onClick={handleNameUpdate}>
+                  <Save className="text-white" size={24} />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <CardTitle>{cluster.name}</CardTitle>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsEditing(true);
+                  }}
+                >
+                  <Pencil className="text-secondary" size={16} />
+                </button>
+              </div>
+            )}
             <CardDescription>
               {cluster.responses.length} responses
             </CardDescription>

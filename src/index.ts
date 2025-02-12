@@ -23,9 +23,12 @@ const pythonService = new PythonService(config, settingsService);
 const windowManager = new WindowManager(config);
 
 app.whenReady().then(async () => {
+  windowManager.createStartupWindow();
+
   await pythonService.initialize();
 
   pythonService.on(PYTHON_SERVICE_EVENTS.READY, () => {
+    windowManager.closeStartupWindow();
     windowManager.createMainWindow();
   });
 
