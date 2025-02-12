@@ -26,6 +26,7 @@ ActionType = Literal[
     "set_run_id",
     "update_run_name",
     "get_clusters",
+    "get_cluster_similarities",
 ]
 StatusType = Literal["todo", "start", "complete", "error"]
 ClusteringStepType = Literal[
@@ -89,17 +90,30 @@ class CurrentRunMessage(BaseModel):
     timesteps: "Timesteps"
 
 
+class ClusterSimilaritiesMessage(BaseModel):
+    class SimilarityCluster(BaseModel):
+        id: uuid.UUID
+        name: str
+        responses: list["Response"]
+        similarity_pairs: dict[uuid.UUID, float]
+
+    clusters: list[SimilarityCluster]
+
+
 class Error(BaseModel):
     error: str
 
 
-MessageType = Literal["progress", "file_path", "error", "runs", "run", "clusters"]
+MessageType = Literal[
+    "progress", "file_path", "error", "runs", "run", "clusters", "cluster_similarities"
+]
 MessageDataType = Union[
     ProgressMessage,
     list["Run"],
     list[tuple["Cluster", list["Response"]]],
     Error,
     CurrentRunMessage,
+    ClusterSimilaritiesMessage,
     str,
     None,
 ]
@@ -172,6 +186,37 @@ class OutlierStatistics(SQLModel, table=True):
     )
 
 
+class SimilarityPair(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    similarity: float
+
+    cluster_1_id: uuid.UUID = Field(foreign_key="cluster.id")
+    cluster_2_id: uuid.UUID = Field(foreign_key="cluster.id")
+
+    cluster_1: "Cluster" = Relationship(
+        back_populates="similarity_pairs_as_cluster_1",
+        sa_relationship_kwargs={
+            "primaryjoin": "SimilarityPair.cluster_1_id==Cluster.id"
+        },
+    )
+    cluster_2: "Cluster" = Relationship(
+        back_populates="similarity_pairs_as_cluster_2",
+        sa_relationship_kwargs={
+            "primaryjoin": "SimilarityPair.cluster_2_id==Cluster.id"
+        },
+    )
+
+    merger_id: Optional[uuid.UUID] = Field(default=None, foreign_key="merger.id")
+    merger: Optional["Merger"] = Relationship(back_populates="similarity_pairs")
+
+    result_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="clusteringresult.id"
+    )
+    result: Optional["ClusteringResult"] = Relationship(
+        back_populates="inter_cluster_similarities"
+    )
+
+
 class Cluster(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = ""
@@ -208,40 +253,40 @@ class Cluster(SQLModel, table=True):
     merger_id: Optional[uuid.UUID] = Field(default=None, foreign_key="merger.id")
     merger: Optional["Merger"] = Relationship(back_populates="clusters")
 
-    # TODO: this is actually a many-to-many relationship
-    similarity_pair_id: Optional[uuid.UUID] = Field(
-        default=None, foreign_key="clustersimilaritypair.id"
+    similarity_pairs_as_cluster_1: list[SimilarityPair] = Relationship(
+        back_populates="cluster_1",
+        sa_relationship_kwargs={
+            "primaryjoin": "SimilarityPair.cluster_1_id==Cluster.id"
+        },
     )
-    similarity_pair: Optional["ClusterSimilarityPair"] = Relationship(
-        back_populates="clusters"
+    similarity_pairs_as_cluster_2: list[SimilarityPair] = Relationship(
+        back_populates="cluster_2",
+        sa_relationship_kwargs={
+            "primaryjoin": "SimilarityPair.cluster_2_id==Cluster.id"
+        },
     )
 
-
-class ClusterSimilarityPair(SQLModel, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    similarity: float
-
-    # TODO: this is actually a many-to-many relationship
-    clusters: list[Cluster] = Relationship(back_populates="similarity_pair")
-
-    merger_id: Optional[uuid.UUID] = Field(default=None, foreign_key="merger.id")
-    merger: Optional["Merger"] = Relationship(back_populates="similarity_pairs")
-
-    result_id: Optional[uuid.UUID] = Field(
-        default=None, foreign_key="clusteringresult.id"
-    )
-    result: Optional["ClusteringResult"] = Relationship(
-        back_populates="inter_cluster_similarities"
-    )
+    @computed_field
+    @property
+    def similarity_pairs(self) -> dict[uuid.UUID, float]:
+        # return self.similarity_pairs_as_cluster_1 + self.similarity_pairs_as_cluster_2
+        dict_1 = {
+            pair.cluster_2.id: pair.similarity
+            for pair in self.similarity_pairs_as_cluster_1
+        }
+        dict_2 = {
+            pair.cluster_1.id: pair.similarity
+            for pair in self.similarity_pairs_as_cluster_2
+        }
+        dict_1.update(dict_2)
+        return dict_1
 
 
 class Merger(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str = ""
     clusters: list[Cluster] = Relationship(back_populates="merger")
-    similarity_pairs: list[ClusterSimilarityPair] = Relationship(
-        back_populates="merger"
-    )
+    similarity_pairs: list[SimilarityPair] = Relationship(back_populates="merger")
 
     merging_statistics_id: uuid.UUID = Field(foreign_key="mergingstatistics.id")
     merging_statistics: "MergingStatistics" = Relationship(back_populates="mergers")
@@ -293,7 +338,7 @@ class ClusteringResult(SQLModel, table=True):
     merger_statistics: MergingStatistics = Relationship(
         back_populates="clustering_result"
     )
-    inter_cluster_similarities: list[ClusterSimilarityPair] = Relationship(
+    inter_cluster_similarities: list[SimilarityPair] = Relationship(
         back_populates="result"
     )
     timesteps: Timesteps = Relationship(back_populates="clustering_result")

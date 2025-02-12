@@ -8,6 +8,7 @@ import {
   CHANNELS,
   Cluster,
   ClusteringProgressMessage,
+  ClusterSimilaritiesMessage,
   CurrentRunMessage,
   PYTHON_SERVICE_EVENTS,
 } from "./lib/models";
@@ -73,6 +74,16 @@ app.whenReady().then(async () => {
     (data: [Cluster, Response][]) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.DATABASE.CURRENT_CLUSTERS_RESPONSE,
+        data
+      );
+    }
+  );
+
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTER_SIMILARITIES,
+    (data: ClusterSimilaritiesMessage) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_RESPONSE,
         data
       );
     }

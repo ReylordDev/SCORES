@@ -3,6 +3,7 @@ from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
     Cluster,
+    ClusterSimilaritiesMessage,
     Command,
     Error,
     FilePathPayload,
@@ -87,8 +88,6 @@ class Controller:
         elif command.action == "get_current_run":
             with self.database_manager.create_session() as session:
                 run_id = self.app_state.get_run_id()
-                # TEMP:
-                # run_id = uuid.UUID("3408308c47114003ac3b1fc69ee4fc87")
                 if not run_id:
                     print_message("error", Error(error="Run ID not set"))
                     return
@@ -119,6 +118,29 @@ class Controller:
                 for cluster in self.database_manager.get_clusters(session, run_id):
                     clusters.append((cluster, cluster.responses))
                 print_message("clusters", clusters)
+        elif command.action == "get_cluster_similarities":
+            with self.database_manager.create_session() as session:
+                run_id = self.app_state.get_run_id()
+                if not run_id:
+                    print_message("error", Error(error="Run ID not set"))
+                    return
+                print_message(
+                    "cluster_similarities",
+                    ClusterSimilaritiesMessage(
+                        clusters=[
+                            ClusterSimilaritiesMessage.SimilarityCluster(
+                                id=cluster.id,
+                                name=cluster.name,
+                                responses=cluster.responses,
+                                similarity_pairs=cluster.similarity_pairs,
+                            )
+                            for cluster in self.database_manager.get_cluster_similarities(
+                                session, run_id
+                            )
+                        ]
+                    ),
+                )
+
         else:
             logger.error(f"Invalid action: {command.action}")
             print_message("error", Error(error=f"Invalid action: {command.action}"))
@@ -168,7 +190,7 @@ if __name__ == "__main__":
                 data=AlgorithmSettings(method=ManualClusterCount(cluster_count=25)),
             )
         )
-        controller.handle_command(Command(action="run_clustering"))
-        controller.handle_command(Command(action="get_clusters"))
+        # controller.handle_command(Command(action="run_clustering"))
+        controller.handle_command(Command(action="get_cluster_similarities"))
     else:
         main()

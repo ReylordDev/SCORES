@@ -20,7 +20,7 @@ from models import (
     OutlierStatistic,
     Response,
     OutlierStatistics,
-    ClusterSimilarityPair,
+    SimilarityPair,
     Timesteps,
     ClusteringResult,
     Run,
@@ -343,8 +343,9 @@ class Clusterer:
                 ]
                 for i, j in zip(triu_indices[0], triu_indices[1]):
                     similarity_pairs.append(
-                        ClusterSimilarityPair(
-                            clusters=[merged_clusters[i], merged_clusters[j]],
+                        SimilarityPair(
+                            cluster_1_id=merged_clusters[i].id,
+                            cluster_2_id=merged_clusters[j].id,
                             similarity=S[i, j],
                         )
                     )
@@ -402,8 +403,9 @@ class Clusterer:
         cluster_similarity_pairs = []
         for i, j in zip(triu_indices[0], triu_indices[1]):
             cluster_similarity_pairs.append(
-                ClusterSimilarityPair(
-                    clusters=[clusters[i], clusters[j]],
+                SimilarityPair(
+                    cluster_1_id=clusters[i].id,
+                    cluster_2_id=clusters[j].id,
                     similarity=S[i, j],
                 )
             )

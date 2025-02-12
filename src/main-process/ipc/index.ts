@@ -96,6 +96,12 @@ export function registerIpcHandlers(
     });
   });
 
+  ipcMain.on(CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "get_cluster_similarities",
+    });
+  });
+
   ipcMain.on(CHANNELS.STATE.SET_RUN_ID, (_, runId: UUID) => {
     pythonService.sendCommand({
       action: "set_run_id",

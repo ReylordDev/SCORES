@@ -195,9 +195,7 @@ export default function Results() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button
-                    onClick={() => console.log("Open Cluster Similarities")}
-                  >
+                  <Button onClick={() => navigate("/cluster_similarities")}>
                     <GitCompare />
                     Open Cluster Similarities
                   </Button>

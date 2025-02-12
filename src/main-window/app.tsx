@@ -6,6 +6,7 @@ import AlgorithmSettings from "./pages/AlgorithmSettings";
 import Progress from "./pages/Progress";
 import Results from "./pages/Results";
 import ClusterAssignments from "./pages/ClusterAssignments";
+import ClusterSimilarities from "./pages/ClusterSimilarities";
 
 const App = () => {
   return (
@@ -17,6 +18,7 @@ const App = () => {
         <Route path="/progress" element={<Progress />} />
         <Route path="/results" element={<Results />} />
         <Route path="/cluster_assignments" element={<ClusterAssignments />} />
+        <Route path="/cluster_similarities" element={<ClusterSimilarities />} />
       </Routes>
     </Router>
   );

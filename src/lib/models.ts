@@ -13,7 +13,8 @@ type Action =
   | "get_current_run"
   | "set_run_id"
   | "update_run_name"
-  | "get_clusters";
+  | "get_clusters"
+  | "get_cluster_similarities";
 
 export interface Command {
   action: Action;
@@ -54,19 +55,38 @@ export interface CurrentRunMessage {
   timesteps: Timesteps;
 }
 
+export interface _SimilarityCluster {
+  id: UUID;
+  name: string;
+  responses: Response[];
+  similarity_pairs: Record<UUID, number>;
+}
+
+export interface ClusterSimilaritiesMessage {
+  clusters: _SimilarityCluster[];
+}
+
 export interface Error {
   error: string;
 }
 
 export interface Message {
-  type: "progress" | "error" | "file_path" | "runs" | "run" | "clusters";
+  type:
+    | "progress"
+    | "error"
+    | "file_path"
+    | "runs"
+    | "run"
+    | "clusters"
+    | "cluster_similarities";
   data:
     | ProgressMessage
     | Error
     | string
     | null
     | Run[]
-    | [Cluster, Response[]][]
+    | [Cluster, Response[]][] // TODO: Single Source of Truth
+    | ClusterSimilaritiesMessage
     | CurrentRunMessage;
 }
 
@@ -142,7 +162,7 @@ interface OutlierStatistics {
   clustering_result: ClusteringResult;
 }
 
-interface ClusterSimilarityPair {
+export interface ClusterSimilarityPair {
   id: UUID;
   similarity: number;
   clusters: Cluster[];
@@ -262,6 +282,10 @@ declare global {
       onReceiveCurrentClusters: (
         callback: (clusters: [Cluster, Response[]][]) => void
       ) => () => void;
+      requestCurrentClusterSimilarities: () => void;
+      onReceiveCurrentClusterSimilarities: (
+        callback: (clusterSimilarities: ClusterSimilaritiesMessage) => void
+      ) => () => void;
     };
     state: {
       setRunId: (runId: UUID) => void;
@@ -314,6 +338,10 @@ export const CHANNELS = {
     UPDATE_RUN_NAME: "database:update-run-name",
     CURRENT_CLUSTERS_REQUEST: "database:current-clusters-request",
     CURRENT_CLUSTERS_RESPONSE: "database:current-clusters-response",
+    CURRENT_CLUSTER_SIMILARITIES_REQUEST:
+      "database:current-cluster-similarities-request",
+    CURRENT_CLUSTER_SIMILARITIES_RESPONSE:
+      "database:current-cluster-similarities-response",
   },
   STATE: {
     SET_RUN_ID: "state:set-run-id",
@@ -328,6 +356,7 @@ export const PYTHON_SERVICE_EVENTS = {
     ALL_RUNS: "database-all-runs",
     CURRENT_RUN: "database-current-run",
     CURRENT_CLUSTERS: "database-current-clusters",
+    CURRENT_CLUSTER_SIMILARITIES: "database-current-cluster-similarities",
   },
   READY: "ready",
 };

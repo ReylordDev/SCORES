@@ -9,6 +9,7 @@ import {
   Response,
   CurrentRunMessage,
   Cluster,
+  ClusterSimilaritiesMessage,
 } from "../lib/models";
 import {
   contextBridge,
@@ -105,6 +106,24 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
     ipcRenderer.on(CHANNELS.DATABASE.CURRENT_CLUSTERS_RESPONSE, listener);
     return () =>
       ipcRenderer.off(CHANNELS.DATABASE.CURRENT_CLUSTERS_RESPONSE, listener);
+  },
+  requestCurrentClusterSimilarities: () => {
+    ipcRenderer.send(CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_REQUEST);
+  },
+  onReceiveCurrentClusterSimilarities: (callback) => {
+    const listener = (
+      _: IpcRendererEvent,
+      clusterSimilarities: ClusterSimilaritiesMessage
+    ) => callback(clusterSimilarities);
+    ipcRenderer.on(
+      CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_RESPONSE,
+      listener
+    );
+    return () =>
+      ipcRenderer.off(
+        CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_RESPONSE,
+        listener
+      );
   },
 } satisfies Window["database"]);
 

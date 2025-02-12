@@ -2,7 +2,15 @@ import csv
 import time
 import uuid
 from sqlmodel import create_engine, SQLModel, Session, select
-from models import Cluster, ClusteringResult, FileSettings, Response, Run, Timesteps
+from sqlalchemy.orm import selectinload, joinedload
+from models import (
+    Cluster,
+    ClusteringResult,
+    FileSettings,
+    Run,
+    Timesteps,
+    SimilarityPair,
+)
 import os
 from utils.utils import get_user_data_path
 from utils.ipc import print_progress
@@ -69,6 +77,17 @@ class DatabaseManager:
             .join(ClusteringResult)
             .where(ClusteringResult.run_id == run_id)
         ).all()
+
+    def get_cluster_similarities(self, session: Session, run_id: uuid.UUID):
+        return (
+            session.exec(
+                select(Cluster)
+                .join(ClusteringResult)
+                .where(ClusteringResult.run_id == run_id)
+            )
+            .unique()
+            .all()
+        )
 
     def create_output_file(self, run: Run):
         if not run.result:

@@ -8,6 +8,7 @@ import {
   PYTHON_SERVICE_EVENTS,
   Error,
   ClusteringProgressMessage,
+  ClusterSimilaritiesMessage,
   Run,
   CurrentRunMessage,
   Cluster,
@@ -75,6 +76,12 @@ export class PythonService extends EventEmitter {
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTERS,
           message.data as [Cluster, Response[]][]
+        );
+        break;
+      case "cluster_similarities":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTER_SIMILARITIES,
+          message.data as ClusterSimilaritiesMessage
         );
         break;
       default:
