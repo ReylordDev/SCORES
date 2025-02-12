@@ -5,10 +5,11 @@ import {
   FileText,
   Upload,
   Trash2,
+  Search,
 } from "lucide-react";
 import { TitleBar } from "../../components/TitleBar";
 import { Button } from "../../components/ui/button";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { TooltipWrapper } from "../../components/Tooltip";
 import {
@@ -41,6 +42,7 @@ import {
   AlertDialogTrigger,
 } from "../../components/ui/alert-dialog";
 import { UUID } from "crypto";
+import { Input } from "../../components/ui/input";
 
 function FileSelector({ selectFile }: { selectFile: (path: string) => void }) {
   const checkFiles = (files: FileList | null) => {
@@ -128,7 +130,18 @@ function FileSelector({ selectFile }: { selectFile: (path: string) => void }) {
 function PreviousRunsDialog() {
   const [previousRuns, setPreviousRuns] = useState<Run[]>([]);
   const [locale, setLocale] = useState("en-US");
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+
+  const filteredRuns = useMemo(() => {
+    if (!searchTerm) return previousRuns;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    return previousRuns.filter(
+      (run) =>
+        run.name.toLowerCase().includes(lowerSearchTerm) ||
+        run.file_path.toLowerCase().includes(lowerSearchTerm)
+    );
+  }, [previousRuns, searchTerm]);
 
   const handleRunSelection = (run: Run) => {
     console.log("Selected run: ", run);
@@ -171,7 +184,19 @@ function PreviousRunsDialog() {
           Choose a previous result to review.
         </DialogDescription>
       </DialogHeader>
-      <div className="scrollbar max-h-[70vh] flex-grow  overflow-y-auto p-6">
+      <div className="px-6 pt-2">
+        <div className="relative flex items-center">
+          <Input
+            type="text"
+            placeholder="Search by name or file path..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-12"
+          />
+          <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 select-none opacity-50" />
+        </div>
+      </div>
+      <div className="scrollbar max-h-[70vh] flex-grow overflow-y-auto p-6">
         <Table>
           <TableHeader>
             <TableRow>
@@ -182,7 +207,7 @@ function PreviousRunsDialog() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {previousRuns
+            {filteredRuns
               .sort((a, b) => b.created_at - a.created_at)
               .map((run, index) => (
                 <TableRow
