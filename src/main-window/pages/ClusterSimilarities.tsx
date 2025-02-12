@@ -387,7 +387,7 @@ export default function ClusterSimilarities() {
 
   return (
     <div className="w-screen h-screen">
-      <TitleBar index={4} />
+      <TitleBar index={5} />
       <div
         id="mainContent"
         className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"

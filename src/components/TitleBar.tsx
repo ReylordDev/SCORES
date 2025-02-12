@@ -8,15 +8,10 @@ const routes = [
   "algorithm_settings",
   "progress",
   "results",
+  "result_details",
 ];
 
-export function TitleBar({
-  index,
-  resetState,
-}: {
-  index: number;
-  resetState?: () => void;
-}) {
+export function TitleBar({ index }: { index: number }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
@@ -77,11 +72,10 @@ export function TitleBar({
             />
           </svg>
         </Link>
-        {index > 0 ? (
+        {index > 0 && index !== 4 ? (
           <Link
             to={`/${routes[index - 1] === "progress" ? routes[index - 2] : routes[index - 1]}`}
             className="no-drag rounded p-1 hover:bg-background-50"
-            onClick={resetState}
           >
             <Undo size={24} />
           </Link>
