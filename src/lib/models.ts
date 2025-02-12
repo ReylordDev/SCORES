@@ -12,6 +12,7 @@ type Action =
   | "get_runs"
   | "get_current_run"
   | "set_run_id"
+  | "reset_run_id"
   | "update_run_name"
   | "get_cluster_assignments"
   | "get_cluster_similarities"
@@ -306,6 +307,7 @@ declare global {
     };
     state: {
       setRunId: (runId: UUID) => void;
+      resetRunId: () => void;
     };
   }
 }
@@ -360,6 +362,7 @@ export const CHANNELS = {
   },
   STATE: {
     SET_RUN_ID: "state:set-run-id",
+    RESET_RUN_ID: "state:reset-run-id",
   },
 };
 

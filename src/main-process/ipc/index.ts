@@ -128,6 +128,12 @@ export function registerIpcHandlers(
     });
   });
 
+  ipcMain.on(CHANNELS.STATE.RESET_RUN_ID, () => {
+    pythonService.sendCommand({
+      action: "reset_run_id",
+    });
+  });
+
   ipcMain.on(
     CHANNELS.DATABASE.UPDATE_RUN_NAME,
     (_, runId: UUID, name: string) => {

@@ -166,7 +166,8 @@ class Controller:
                 return
             with self.database_manager.create_session() as session:
                 self.database_manager.delete_run(command.data.run_id)
-
+        elif command.action == "reset_run_id":
+            self.app_state.reset_run_id()
         else:
             logger.error(f"Invalid action: {command.action}")
             print_message("error", Error(error=f"Invalid action: {command.action}"))

@@ -13,7 +13,7 @@ import {
   Play,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { formatTime, iterateRecord } from "../../lib/utils";
 import {
   DropdownMenu,
@@ -47,9 +47,21 @@ export default function Results() {
     setRunName(newName);
   };
 
+  const handleNewRun = useCallback(
+    (action: "new_file" | "change_settings") => {
+      if (action === "new_file") {
+        window.state.resetRunId();
+        navigate("/");
+      } else {
+        window.state.setRunId(run.id);
+        navigate("/algorithm_settings");
+      }
+    },
+    [navigate, run?.id]
+  );
+
   useEffect(() => {
     console.log("Subscribing to current run");
-    // Memory Leak
     const unsubscribe = window.database.onReceiveCurrentRun(
       ({ run, timesteps }) => {
         console.log("Received current run", run);
@@ -161,12 +173,18 @@ export default function Results() {
                     <ChevronDown />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="">
-                  <DropdownMenuItem className="text-lg">
+                <DropdownMenuContent>
+                  <DropdownMenuItem
+                    className="text-lg"
+                    onClick={() => handleNewRun("new_file")}
+                  >
                     Select New File
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-lg">
+                  <DropdownMenuItem
+                    className="text-lg"
+                    onClick={() => handleNewRun("change_settings")}
+                  >
                     Change Algorithm Settings
                   </DropdownMenuItem>
                 </DropdownMenuContent>

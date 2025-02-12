@@ -149,4 +149,7 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.STATE, {
   setRunId: (runId) => {
     ipcRenderer.send(CHANNELS.STATE.SET_RUN_ID, runId);
   },
+  resetRunId: () => {
+    ipcRenderer.send(CHANNELS.STATE.RESET_RUN_ID);
+  },
 } satisfies Window["state"]);
