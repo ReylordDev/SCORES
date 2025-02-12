@@ -111,8 +111,8 @@ export interface Message {
 
 export interface FileSettings {
   delimiter: string;
-  hasHeader: boolean;
-  selectedColumns: number[];
+  has_header: boolean;
+  selected_columns: number[];
 }
 
 export interface AutomaticClusterCount {

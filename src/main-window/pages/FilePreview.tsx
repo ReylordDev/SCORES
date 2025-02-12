@@ -6,6 +6,7 @@ import { findDelimiter, parseCSVLine } from "../../lib/utils";
 import { Button } from "../../components/ui/button";
 import { Switch } from "../../components/ui/switch";
 import { Input } from "../../components/ui/input";
+import { FileSettings } from "../../lib/models";
 
 const ColumnHeader = ({
   isOn,
@@ -38,9 +39,6 @@ const ColumnHeader = ({
 
 export default function FilePreview() {
   const [filePath, setFilePath] = useState<string | null>(null);
-  // const [filePath, setFilePath] = useState<string | null>(
-  //   "C:\\Users\\Luis\\Projects\\Word-Clustering-Tool-for-SocPsych\\example_data\\example.csv"
-  // );
   const [hasHeader, setHasHeader] = useState(true);
   const [delimiter, setDelimiter] = useState<string | null>(null);
   const [selectedColumns, setSelectedColumns] = useState<number[]>([]);
@@ -116,6 +114,29 @@ export default function FilePreview() {
 
     fetchPreviewData();
   }, [filePath, delimiter]);
+
+  useEffect(() => {
+    const unsubscribe = window.database.onReceiveCurrentRun(({ run }) => {
+      if (run) {
+        // Parse the stored file settings
+        const settings = JSON.parse(run.file_settings) as FileSettings;
+        console.log("File settings: ", settings);
+
+        // Update state based on the loaded settings
+        setHasHeader(settings.has_header);
+        setDelimiter(settings.delimiter);
+        setSelectedColumns(settings.selected_columns);
+
+        // Set file path
+        setFilePath(run.file_path);
+      }
+    });
+
+    // Request current run data
+    window.database.requestCurrentRun();
+
+    return () => unsubscribe();
+  }, []);
 
   const displayData = hasHeader
     ? previewData.slice(1)
@@ -276,8 +297,8 @@ export default function FilePreview() {
               onClick={() => {
                 window.file.setSettings({
                   delimiter: delimiter || ",",
-                  hasHeader: hasHeader,
-                  selectedColumns: selectedColumns,
+                  has_header: hasHeader,
+                  selected_columns: selectedColumns,
                 });
               }}
               disabled={selectedColumns.length <= 0}

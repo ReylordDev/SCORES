@@ -90,7 +90,7 @@ class Controller:
             with self.database_manager.create_session() as session:
                 run_id = self.app_state.get_run_id()
                 if not run_id:
-                    print_message("error", Error(error="Run ID not set"))
+                    logger.warning("Run ID not set")
                     return
                 run = self.database_manager.get_run(session, run_id)
                 if not run:

@@ -1,12 +1,15 @@
 import { useNavigate } from "react-router";
 import { TitleBar } from "../../components/TitleBar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch } from "../../components/ui/switch";
 import { Button } from "../../components/ui/button";
 import { SquarePen, ChartScatter } from "lucide-react";
 import { TooltipWrapper } from "../../components/Tooltip";
 import { Input } from "../../components/ui/input";
-import { ClusterCount } from "../../lib/models";
+import {
+  ClusterCount,
+  AlgorithmSettings as AlgorithmSettingsType,
+} from "../../lib/models";
 
 export default function AlgorithmSettings() {
   const [autoChooseClusters, setAutoChooseClusters] = useState(true);
@@ -22,6 +25,35 @@ export default function AlgorithmSettings() {
   const navigate = useNavigate();
   const anyModalOpen = isExcludedWordsEditorOpen || isAdvancedOptionsEditorOpen;
   const [unsavedChanges, setUnsavedChanges] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = window.database.onReceiveCurrentRun(({ run }) => {
+      if (run) {
+        // Parse the stored algorithm settings
+        const settings = JSON.parse(
+          run.algorithm_settings
+        ) as AlgorithmSettingsType;
+
+        // Update state based on the loaded settings
+        if (settings.method.cluster_count_method === "auto") {
+          setAutoChooseClusters(true);
+          setMaxClusters(settings.method.max_clusters);
+          setClusterCount(null);
+        } else {
+          setAutoChooseClusters(false);
+          setClusterCount(settings.method.cluster_count);
+          setMaxClusters(null);
+        }
+
+        // TODO: Set other settings if they exist
+      }
+    });
+
+    // Request current run data
+    window.database.requestCurrentRun();
+
+    return () => unsubscribe();
+  }, []);
 
   const submitAlgorithmSettings = () => {
     console.log("Submitting settings...");
