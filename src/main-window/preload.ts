@@ -52,6 +52,9 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.ELECTRON, {
   getLocale() {
     return ipcRenderer.invoke(CHANNELS.ELECTRON.GET_LOCALE);
   },
+  openUrl(url) {
+    ipcRenderer.send(CHANNELS.ELECTRON.OPEN_URL, url);
+  },
 } satisfies Window["electron"]);
 
 contextBridge.exposeInMainWorld(CHANNEL_TYPES.ALGORITHM, {

@@ -140,7 +140,6 @@ export interface Cluster {
   center: number[];
   responses: Response[];
   count: number;
-  // most_representative_responses: Response[];
 
   result_id: UUID;
   result: ClusteringResult;
@@ -257,12 +256,10 @@ declare global {
       readFile: (path: string) => Promise<string>;
       getLogsPath: () => Promise<string>;
       getLocale: () => Promise<string>;
+      openUrl: (url: string) => void;
     };
     settings: {
       getAll: () => Promise<AppSettings>;
-    };
-    url: {
-      open: (url: string) => void;
     };
     file: {
       // Consider making this a promise-returning function
@@ -306,7 +303,6 @@ declare global {
 export const CHANNEL_TYPES = {
   ELECTRON: "electron",
   SETTINGS: "settings",
-  URL: "url",
   FILE: "file",
   ALGORITHM: "algorithm",
   PROGRESS: "progress",
@@ -319,13 +315,10 @@ export const CHANNELS = {
     GET_LOGS_PATH: "electron:get-logs-path",
     SHOW_ITEM_IN_FOLDER: "electron:show-item-in-folder",
     GET_LOCALE: "electron:get-locale",
+    OPEN_URL: "electron:open-url",
   },
   SETTINGS: {
     GET: "settings:get-all",
-  },
-  // Can be moved to Electron
-  URL: {
-    OPEN: "url:open",
   },
   FILE: {
     SET_PATH: "file:set-path",

@@ -1,6 +1,5 @@
 import { SettingsService } from "../services/settings-service";
 import { PythonService } from "../services/python-service";
-import { registerURLHandlers } from "./url";
 import { registerSettingsHandlers } from "./settings";
 import { app, ipcMain, shell } from "electron";
 import { CHANNELS, FileSettings, AlgorithmSettings } from "../../lib/models";
@@ -14,7 +13,6 @@ export function registerIpcHandlers(
   config: AppConfig
 ) {
   registerSettingsHandlers(settingsService);
-  registerURLHandlers();
 
   // Register additional IPC handlers here
   ipcMain.on(CHANNELS.FILE.SET_PATH, (_, filePath: string) => {
@@ -76,6 +74,10 @@ export function registerIpcHandlers(
 
   ipcMain.handle(CHANNELS.ELECTRON.GET_LOCALE, async () => {
     return app.getLocale();
+  });
+
+  ipcMain.on(CHANNELS.ELECTRON.OPEN_URL, (_, url: string) => {
+    shell.openExternal(url);
   });
 
   ipcMain.on(CHANNELS.DATABASE.ALL_RUNS_REQUEST, () => {
