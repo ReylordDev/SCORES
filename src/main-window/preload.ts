@@ -96,10 +96,10 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
   updateRunName: (runId, name) => {
     ipcRenderer.send(CHANNELS.DATABASE.UPDATE_RUN_NAME, runId, name);
   },
-  requestCurrentClusters: () => {
+  requestCurrentClusterAssignments: () => {
     ipcRenderer.send(CHANNELS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS_REQUEST);
   },
-  onReceiveCurrentClusters: (callback) => {
+  onReceiveCurrentClusterAssignments: (callback) => {
     const listener = (
       _: IpcRendererEvent,
       clusterAssignments: ClusterAssignmentsMessage

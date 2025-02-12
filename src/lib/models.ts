@@ -288,8 +288,8 @@ declare global {
         callback: (currentRun: CurrentRunMessage) => void
       ) => () => void;
       updateRunName: (runId: UUID, name: string) => void;
-      requestCurrentClusters: () => void;
-      onReceiveCurrentClusters: (
+      requestCurrentClusterAssignments: () => void;
+      onReceiveCurrentClusterAssignments: (
         callback: (clusterAssignemnts: ClusterAssignmentsMessage) => void
       ) => () => void;
       requestCurrentClusterSimilarities: () => void;

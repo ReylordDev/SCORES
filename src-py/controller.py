@@ -1,4 +1,5 @@
 import sys
+from uuid import UUID
 from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
