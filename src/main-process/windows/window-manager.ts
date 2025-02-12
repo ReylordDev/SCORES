@@ -4,9 +4,12 @@ import path from "path";
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+declare const STARTUP_WINDOW_WEBPACK_ENTRY: string;
+declare const STARTUP_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 export class WindowManager {
   private mainWindow: BrowserWindow;
+  private startupWindow: BrowserWindow;
 
   constructor(private config: AppConfig) {}
 
@@ -33,6 +36,22 @@ export class WindowManager {
     this.mainWindow = mainWindow;
   }
 
+  createStartupWindow() {
+    const startupWindow = new BrowserWindow({
+      width: 400,
+      height: 400,
+      frame: false,
+      resizable: false,
+      icon: path.join(this.config.rootDir, "assets", "icons", "icon.png"),
+      webPreferences: {
+        preload: STARTUP_WINDOW_PRELOAD_WEBPACK_ENTRY,
+      },
+    });
+
+    startupWindow.loadURL(STARTUP_WINDOW_WEBPACK_ENTRY);
+    this.startupWindow = startupWindow;
+  }
+
   toggleMainWindow() {
     if (this.mainWindow.isVisible()) {
       this.mainWindow.hide();
@@ -47,9 +66,18 @@ export class WindowManager {
     }
   }
 
+  closeStartupWindow() {
+    if (this.startupWindow) {
+      this.startupWindow.close();
+    }
+  }
+
   cleanup() {
     if (this.mainWindow) {
       this.mainWindow.destroy();
+    }
+    if (this.startupWindow) {
+      this.startupWindow.destroy();
     }
   }
 }
