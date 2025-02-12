@@ -90,9 +90,9 @@ export function registerIpcHandlers(
     });
   });
 
-  ipcMain.on(CHANNELS.DATABASE.CURRENT_CLUSTERS_REQUEST, () => {
+  ipcMain.on(CHANNELS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS_REQUEST, () => {
     pythonService.sendCommand({
-      action: "get_clusters",
+      action: "get_cluster_assignments",
     });
   });
 

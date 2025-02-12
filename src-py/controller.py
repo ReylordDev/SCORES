@@ -2,15 +2,14 @@ import sys
 from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
-    Cluster,
     ClusterSimilaritiesMessage,
+    ClusterAssignmentsMessage,
     Command,
     Error,
     FilePathPayload,
     FileSettings,
     AlgorithmSettings,
     ManualClusterCount,
-    Response,
     Run,
     RunNamePayload,
     RunPayload,
@@ -108,16 +107,27 @@ class Controller:
             self.database_manager.update_run_name(
                 command.data.run_id, command.data.name
             )
-        elif command.action == "get_clusters":
+        elif command.action == "get_cluster_assignments":
             with self.database_manager.create_session() as session:
                 run_id = self.app_state.get_run_id()
                 if not run_id:
                     print_message("error", Error(error="Run ID not set"))
                     return
-                clusters: list[tuple[Cluster, list[Response]]] = []
-                for cluster in self.database_manager.get_clusters(session, run_id):
-                    clusters.append((cluster, cluster.responses))
-                print_message("clusters", clusters)
+                print_message(
+                    "cluster_assignments",
+                    ClusterAssignmentsMessage(
+                        clusters=[
+                            ClusterAssignmentsMessage.ClusterAssignmentDetail(
+                                id=cluster.id,
+                                name=cluster.name,
+                                responses=cluster.responses,
+                            )
+                            for cluster in self.database_manager.get_clusters(
+                                session, run_id
+                            )
+                        ]
+                    ),
+                )
         elif command.action == "get_cluster_similarities":
             with self.database_manager.create_session() as session:
                 run_id = self.app_state.get_run_id()
@@ -128,7 +138,7 @@ class Controller:
                     "cluster_similarities",
                     ClusterSimilaritiesMessage(
                         clusters=[
-                            ClusterSimilaritiesMessage.SimilarityCluster(
+                            ClusterSimilaritiesMessage.ClusterSimilarityDetail(
                                 id=cluster.id,
                                 name=cluster.name,
                                 responses=cluster.responses,

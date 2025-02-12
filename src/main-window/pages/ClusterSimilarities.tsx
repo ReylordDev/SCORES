@@ -7,7 +7,7 @@ import {
   TextCursor,
   AlertCircle,
 } from "lucide-react";
-import { _SimilarityCluster } from "../../lib/models";
+import { _ClusterSimilarityDetail } from "../../lib/models";
 import { TitleBar } from "../../components/TitleBar";
 import { UUID } from "crypto";
 import { iterateRecord } from "../../lib/utils";
@@ -27,7 +27,7 @@ const SimilarityVisualizer: React.FC<{
 );
 
 export default function ClusterSimilarities() {
-  const [clusters, setClusters] = useState<_SimilarityCluster[]>([]);
+  const [clusters, setClusters] = useState<_ClusterSimilarityDetail[]>([]);
   const [selectedClusterId, setSelectedClusterId] = useState<UUID | null>(null);
   const [comparisonClusterId, setComparisonClusterId] = useState<UUID | null>(
     null
@@ -507,9 +507,9 @@ export default function ClusterSimilarities() {
   );
 }
 
-const ClusterDetails: React.FC<{ cluster: _SimilarityCluster | null }> = ({
-  cluster,
-}) => {
+const ClusterDetails: React.FC<{
+  cluster: _ClusterSimilarityDetail | null;
+}> = ({ cluster }) => {
   console.log("Cluster Details: ", cluster);
 
   if (!cluster) return null;

@@ -8,11 +8,10 @@ import {
   PYTHON_SERVICE_EVENTS,
   Error,
   ClusteringProgressMessage,
+  ClusterAssignmentsMessage,
   ClusterSimilaritiesMessage,
   Run,
   CurrentRunMessage,
-  Cluster,
-  Response,
 } from "../../lib/models";
 import path from "path";
 import { SettingsService } from "./settings-service";
@@ -55,10 +54,7 @@ export class PythonService extends EventEmitter {
         break;
       case "error":
         consoleLog("Error:", message.data);
-        this.emit(
-          PYTHON_SERVICE_EVENTS.ERROR,
-          (message.data as unknown as Error).error
-        );
+        this.emit(PYTHON_SERVICE_EVENTS.ERROR, (message.data as Error).error);
         break;
       case "runs":
         this.emit(
@@ -72,10 +68,10 @@ export class PythonService extends EventEmitter {
           message.data as CurrentRunMessage
         );
         break;
-      case "clusters":
+      case "cluster_assignments":
         this.emit(
-          PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTERS,
-          message.data as [Cluster, Response[]][]
+          PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS,
+          message.data as ClusterAssignmentsMessage
         );
         break;
       case "cluster_similarities":
@@ -86,18 +82,22 @@ export class PythonService extends EventEmitter {
         break;
       default:
         consoleLog("Unknown message type:", message.type);
+        this.emit(PYTHON_SERVICE_EVENTS.ERROR, "Unknown message type");
     }
   }
 
   private handleProgress(progress: ProgressMessage) {
     consoleLog(`Progress: ${progress.step} - ${progress.status}`);
     switch (progress.step) {
+      // Actions
       case "set_file_path":
       case "get_file_path":
       case "set_file_settings":
       case "set_algorithm_settings":
       case "run_clustering":
         break;
+
+      // Clustering steps
       case "start":
       case "process_input_file":
       case "load_model":
@@ -112,6 +112,8 @@ export class PythonService extends EventEmitter {
           progress as ClusteringProgressMessage
         );
         break;
+
+      // Application Progress steps
       case "init":
         if (progress.status === "complete") {
           this.emit(PYTHON_SERVICE_EVENTS.READY);

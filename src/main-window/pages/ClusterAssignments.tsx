@@ -2,18 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, List, Search, Ellipsis } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { TitleBar } from "../../components/TitleBar";
-import { Cluster, Response } from "../../lib/models";
+import { _ClusterAssignmentDetail } from "../../lib/models";
 
 export default function ClusterAssignments() {
   const [expandedClusters, setExpandedClusters] = useState<number[]>([]);
-  const [clusters, setClusters] = useState<[Cluster, Response[]][]>([]);
+  const [clusters, setClusters] = useState<_ClusterAssignmentDetail[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const previewCount = 50;
   const filteredClusters = useMemo(() => {
     if (!searchTerm) return null;
     const lowerSearchTerm = searchTerm.toLowerCase();
     return clusters.filter((cluster) => {
-      return cluster[1].some((response) =>
+      return cluster.responses.some((response) =>
         response.text.toLowerCase().includes(lowerSearchTerm)
       );
     });
@@ -22,14 +22,16 @@ export default function ClusterAssignments() {
   const previewClusters = filteredClusters || clusters;
 
   useEffect(() => {
-    const unsubscribe = window.database.onReceiveCurrentClusters((clusters) => {
-      console.log("Received current clusters");
-      console.log(clusters);
-      clusters.forEach((cluster) => {
-        cluster[1].sort((a, b) => b.similarity - a.similarity);
-      });
-      setClusters(clusters);
-    });
+    const unsubscribe = window.database.onReceiveCurrentClusters(
+      (clusterAssignments) => {
+        console.log("Received current clusters");
+        console.log(clusterAssignments);
+        clusterAssignments.clusters.forEach((cluster) => {
+          cluster.responses.sort((a, b) => b.similarity - a.similarity);
+        });
+        setClusters(clusterAssignments.clusters);
+      }
+    );
 
     return () => unsubscribe();
   }, []);
@@ -83,7 +85,7 @@ export default function ClusterAssignments() {
           <div className="scrollbar flex max-h-[65vh] flex-grow flex-col gap-4 overflow-y-auto p-6">
             {previewClusters.map((cluster, index) => (
               <div
-                key={cluster[0].id}
+                key={cluster.id}
                 className="rounded-lg border bg-white shadow-md hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800"
               >
                 <button
@@ -91,7 +93,7 @@ export default function ClusterAssignments() {
                   className="flex w-full items-center justify-between p-4 px-8 focus:outline-none"
                 >
                   <h2 className="text-2xl font-semibold">
-                    {cluster[0].name} ({cluster[1].length} responses)
+                    {cluster.name} ({cluster.responses.length} responses)
                   </h2>
                   {expandedClusters.includes(index) ? (
                     <ChevronUp className="text-primary" size={32} />
@@ -102,7 +104,7 @@ export default function ClusterAssignments() {
                 {expandedClusters.includes(index) && (
                   <div className="overflow-hidden rounded-lg border border-dashed border-primary">
                     <div className="flex flex-col gap-2 p-4">
-                      {cluster[1]
+                      {cluster.responses
                         .slice(0, previewCount)
                         .map((response, index) => (
                           <div
@@ -166,7 +168,7 @@ export default function ClusterAssignments() {
                             </div>
                           </div>
                         ))}
-                      {cluster[1]
+                      {cluster.responses
                         .slice(previewCount)
                         .filter(
                           (response) =>
@@ -175,7 +177,7 @@ export default function ClusterAssignments() {
                               .includes(searchTerm.toLowerCase()) &&
                             searchTerm.length > 0
                         ).length > 0 &&
-                        cluster[1]
+                        cluster.responses
                           .slice(previewCount)
                           .filter(
                             (response) =>
@@ -238,13 +240,13 @@ export default function ClusterAssignments() {
                               </div>
                             </div>
                           ))}
-                      {cluster[1].length > previewCount && (
+                      {cluster.responses.length > previewCount && (
                         <div className="flex items-center justify-center p-4">
                           <p>
                             +{" "}
-                            {cluster[1].length -
+                            {cluster.responses.length -
                               previewCount -
-                              cluster[1].filter(
+                              cluster.responses.filter(
                                 (response) =>
                                   response.text
                                     .toLowerCase()

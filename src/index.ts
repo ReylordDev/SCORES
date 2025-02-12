@@ -6,9 +6,9 @@ import { registerIpcHandlers } from "./main-process/ipc";
 import { AppConfig, consoleLog } from "./lib/config";
 import {
   CHANNELS,
-  Cluster,
   ClusteringProgressMessage,
   ClusterSimilaritiesMessage,
+  ClusterAssignmentsMessage,
   CurrentRunMessage,
   PYTHON_SERVICE_EVENTS,
 } from "./lib/models";
@@ -70,10 +70,10 @@ app.whenReady().then(async () => {
   );
 
   pythonService.on(
-    PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTERS,
-    (data: [Cluster, Response][]) => {
+    PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS,
+    (data: ClusterAssignmentsMessage) => {
       windowManager.sendMainWindowMessage(
-        CHANNELS.DATABASE.CURRENT_CLUSTERS_RESPONSE,
+        CHANNELS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS_RESPONSE,
         data
       );
     }

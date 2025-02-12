@@ -6,9 +6,8 @@ import {
   CHANNELS,
   ClusteringProgressMessage,
   Run,
-  Response,
   CurrentRunMessage,
-  Cluster,
+  ClusterAssignmentsMessage,
   ClusterSimilaritiesMessage,
 } from "../lib/models";
 import {
@@ -98,14 +97,22 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
     ipcRenderer.send(CHANNELS.DATABASE.UPDATE_RUN_NAME, runId, name);
   },
   requestCurrentClusters: () => {
-    ipcRenderer.send(CHANNELS.DATABASE.CURRENT_CLUSTERS_REQUEST);
+    ipcRenderer.send(CHANNELS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS_REQUEST);
   },
   onReceiveCurrentClusters: (callback) => {
-    const listener = (_: IpcRendererEvent, clusters: [Cluster, Response[]][]) =>
-      callback(clusters);
-    ipcRenderer.on(CHANNELS.DATABASE.CURRENT_CLUSTERS_RESPONSE, listener);
+    const listener = (
+      _: IpcRendererEvent,
+      clusterAssignments: ClusterAssignmentsMessage
+    ) => callback(clusterAssignments);
+    ipcRenderer.on(
+      CHANNELS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS_RESPONSE,
+      listener
+    );
     return () =>
-      ipcRenderer.off(CHANNELS.DATABASE.CURRENT_CLUSTERS_RESPONSE, listener);
+      ipcRenderer.off(
+        CHANNELS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS_RESPONSE,
+        listener
+      );
   },
   requestCurrentClusterSimilarities: () => {
     ipcRenderer.send(CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_REQUEST);

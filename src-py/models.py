@@ -25,7 +25,7 @@ ActionType = Literal[
     "get_current_run",
     "set_run_id",
     "update_run_name",
-    "get_clusters",
+    "get_cluster_assignments",
     "get_cluster_similarities",
 ]
 StatusType = Literal["todo", "start", "complete", "error"]
@@ -90,14 +90,23 @@ class CurrentRunMessage(BaseModel):
     timesteps: "Timesteps"
 
 
+class ClusterAssignmentsMessage(BaseModel):
+    class ClusterAssignmentDetail(BaseModel):
+        id: uuid.UUID
+        name: str
+        responses: list["Response"]
+
+    clusters: list[ClusterAssignmentDetail]
+
+
 class ClusterSimilaritiesMessage(BaseModel):
-    class SimilarityCluster(BaseModel):
+    class ClusterSimilarityDetail(BaseModel):
         id: uuid.UUID
         name: str
         responses: list["Response"]
         similarity_pairs: dict[uuid.UUID, float]
 
-    clusters: list[SimilarityCluster]
+    clusters: list[ClusterSimilarityDetail]
 
 
 class Error(BaseModel):
@@ -105,14 +114,20 @@ class Error(BaseModel):
 
 
 MessageType = Literal[
-    "progress", "file_path", "error", "runs", "run", "clusters", "cluster_similarities"
+    "progress",
+    "file_path",
+    "error",
+    "runs",
+    "run",
+    "cluster_assignments",
+    "cluster_similarities",
 ]
 MessageDataType = Union[
     ProgressMessage,
     list["Run"],
-    list[tuple["Cluster", list["Response"]]],
     Error,
     CurrentRunMessage,
+    ClusterAssignmentsMessage,
     ClusterSimilaritiesMessage,
     str,
     None,
