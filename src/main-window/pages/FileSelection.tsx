@@ -4,6 +4,7 @@ import {
   FileSearch,
   FileText,
   Upload,
+  Trash2,
 } from "lucide-react";
 import { TitleBar } from "../../components/TitleBar";
 import { Button } from "../../components/ui/button";
@@ -28,6 +29,18 @@ import {
 } from "../../components/ui/table";
 import { Run } from "../../lib/models";
 import { formatDate } from "../../lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../../components/ui/alert-dialog";
+import { UUID } from "crypto";
 
 function FileSelector({ selectFile }: { selectFile: (path: string) => void }) {
   const checkFiles = (files: FileList | null) => {
@@ -123,6 +136,11 @@ function PreviousRunsDialog() {
     navigate("/results");
   };
 
+  const handleDeleteRun = (runId: UUID) => {
+    window.database.deleteRun(runId);
+    window.database.requestAllRuns(); // Refresh the list
+  };
+
   useEffect(() => {
     const unsubscribe = window.database.onReceiveAllRuns((runs: Run[]) => {
       setPreviousRuns(runs);
@@ -160,6 +178,7 @@ function PreviousRunsDialog() {
               <TableHead>Name</TableHead>
               <TableHead>Date</TableHead>
               <TableHead>File Path</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -180,6 +199,37 @@ function PreviousRunsDialog() {
                   </TableCell>
                   <TableCell>
                     <p className="select-text">{run.file_path}</p>
+                  </TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Run</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete this run? This
+                            action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            onClick={() => handleDeleteRun(run.id)}
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               ))}

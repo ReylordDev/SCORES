@@ -13,9 +13,9 @@ from models import (
     ManualClusterCount,
     Run,
     RunNamePayload,
-    RunPayload,
     CurrentRunMessage,
     ClusterNamePayload,
+    RunIdPayload,
 )
 from utils.ipc import print_message, print_progress
 from loguru import logger
@@ -76,7 +76,7 @@ class Controller:
                 self.database_manager.save_run(session, run, result.timesteps)
 
         elif command.action == "set_run_id":
-            if not command.data or not isinstance(command.data, RunPayload):
+            if not command.data or not isinstance(command.data, RunIdPayload):
                 print_message("error", Error(error="Run ID cannot be empty"))
                 return
             self.app_state.set_run_id(command.data.run_id)
@@ -160,6 +160,12 @@ class Controller:
                 self.database_manager.update_cluster_name(
                     session, command.data.cluster_id, command.data.name
                 )
+        elif command.action == "delete_run":
+            if not command.data or not isinstance(command.data, RunIdPayload):
+                print_message("error", Error(error="Run ID cannot be empty"))
+                return
+            with self.database_manager.create_session() as session:
+                self.database_manager.delete_run(command.data.run_id)
 
         else:
             logger.error(f"Invalid action: {command.action}")

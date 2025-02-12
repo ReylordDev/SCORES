@@ -1,6 +1,7 @@
 // See the Electron documentation for details on how to use preload scripts:
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
+import { UUID } from "crypto";
 import {
   CHANNEL_TYPES,
   CHANNELS,
@@ -138,6 +139,9 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
   },
   updateClusterName: (payload: ClusterNamePayload) => {
     ipcRenderer.send(CHANNELS.DATABASE.UPDATE_CLUSTER_NAME, payload);
+  },
+  deleteRun: (runId: UUID) => {
+    ipcRenderer.send(CHANNELS.DATABASE.DELETE_RUN, runId);
   },
 } satisfies Window["database"]);
 

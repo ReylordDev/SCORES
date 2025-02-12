@@ -140,4 +140,13 @@ export function registerIpcHandlers(
       });
     }
   );
+
+  ipcMain.on(CHANNELS.DATABASE.DELETE_RUN, (_, runId: UUID) => {
+    pythonService.sendCommand({
+      action: "delete_run",
+      data: {
+        runId,
+      },
+    });
+  });
 }

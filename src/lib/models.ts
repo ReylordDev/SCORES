@@ -15,7 +15,8 @@ type Action =
   | "update_run_name"
   | "get_cluster_assignments"
   | "get_cluster_similarities"
-  | "update_cluster_name";
+  | "update_cluster_name"
+  | "delete_run";
 
 export interface ClusterNamePayload {
   clusterId: UUID;
@@ -301,6 +302,7 @@ declare global {
         callback: (clusterSimilarities: ClusterSimilaritiesMessage) => void
       ) => () => void;
       updateClusterName: (payload: ClusterNamePayload) => void;
+      deleteRun: (runId: UUID) => void;
     };
     state: {
       setRunId: (runId: UUID) => void;
@@ -354,6 +356,7 @@ export const CHANNELS = {
     CURRENT_CLUSTER_SIMILARITIES_RESPONSE:
       "database:current-cluster-similarities-response",
     UPDATE_CLUSTER_NAME: "database:update-cluster-name",
+    DELETE_RUN: "database:delete-run",
   },
   STATE: {
     SET_RUN_ID: "state:set-run-id",

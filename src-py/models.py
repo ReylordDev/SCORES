@@ -28,6 +28,7 @@ ActionType = Literal[
     "get_cluster_assignments",
     "get_cluster_similarities",
     "update_cluster_name",
+    "delete_run",
 ]
 StatusType = Literal["todo", "start", "complete", "error"]
 ClusteringStepType = Literal[
@@ -52,10 +53,6 @@ class FilePathPayload(CamelModel):
     file_path: str
 
 
-class RunPayload(CamelModel):
-    run_id: uuid.UUID
-
-
 class RunNamePayload(CamelModel):
     run_id: uuid.UUID
     name: str
@@ -66,6 +63,10 @@ class ClusterNamePayload(CamelModel):
     name: str
 
 
+class RunIdPayload(CamelModel):
+    run_id: uuid.UUID
+
+
 class Command(CamelModel):
     action: ActionType
     data: Optional[
@@ -73,9 +74,9 @@ class Command(CamelModel):
             FilePathPayload,
             "FileSettings",
             "AlgorithmSettings",
-            RunPayload,
             RunNamePayload,
             ClusterNamePayload,
+            RunIdPayload,
         ]
     ] = None
 
