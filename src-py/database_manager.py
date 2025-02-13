@@ -7,6 +7,9 @@ from models import (
     Cluster,
     ClusteringResult,
     FileSettings,
+    OutlierStatistic,
+    OutlierStatistics,
+    Response,
     Run,
     Timesteps,
     SimilarityPair,
@@ -88,6 +91,13 @@ class DatabaseManager:
             .unique()
             .all()
         )
+
+    def get_outlier_statistics(self, session: Session, run_id: uuid.UUID):
+        return session.exec(
+            select(OutlierStatistics)
+            .join(ClusteringResult)
+            .where(ClusteringResult.run_id == run_id)
+        ).one()
 
     def update_cluster_name(
         self, session: Session, cluster_id: uuid.UUID, new_name: str

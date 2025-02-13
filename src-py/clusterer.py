@@ -39,6 +39,7 @@ class Clusterer:
         self.algorithm_settings = algorithm_settings
         self.output_dir = "output"
         self.timesteps = Timesteps(steps={})
+        self.random_state = 42
         print_progress("process_input_file", "todo")
         print_progress("load_model", "todo")
         print_progress("embed_responses", "todo")
@@ -213,9 +214,9 @@ class Clusterer:
             # TODO: improve with early stopping
             if K >= len(embeddings) - 1:
                 continue
-            clustering = KMeans(n_clusters=K, n_init="auto", random_state=42).fit(
-                embeddings, sample_weight=response_weights
-            )
+            clustering = KMeans(
+                n_clusters=K, n_init="auto", random_state=self.random_state
+            ).fit(embeddings, sample_weight=response_weights)
             labels = clustering.labels_
 
             # Silhouette Score
@@ -278,9 +279,9 @@ class Clusterer:
     ):
         print_progress("cluster", "start")
         # Side Effect: Assigns cluster IDs to responses
-        clustering = KMeans(n_clusters=K, n_init="auto", random_state=42).fit(
-            embeddings, sample_weight=response_weights
-        )
+        clustering = KMeans(
+            n_clusters=K, n_init="auto", random_state=self.random_state
+        ).fit(embeddings, sample_weight=response_weights)
         cluster_indices = np.copy(clustering.labels_)
         valid_clusters = [i for i in range(K) if np.sum(cluster_indices == i) > 0]
         K = len(valid_clusters)

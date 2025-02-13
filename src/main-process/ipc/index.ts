@@ -155,4 +155,10 @@ export function registerIpcHandlers(
       },
     });
   });
+
+  ipcMain.on(CHANNELS.DATABASE.CURRENT_OUTLIERS_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "get_outliers",
+    });
+  });
 }

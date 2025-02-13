@@ -17,7 +17,8 @@ type Action =
   | "get_cluster_assignments"
   | "get_cluster_similarities"
   | "update_cluster_name"
-  | "delete_run";
+  | "delete_run"
+  | "get_outliers";
 
 export interface ClusterNamePayload {
   clusterId: UUID;
@@ -85,6 +86,17 @@ export interface ClusterSimilaritiesMessage {
   clusters: _ClusterSimilarityDetail[];
 }
 
+export interface _OutlierDetail {
+  id: UUID;
+  response: Response;
+  similarity: number;
+}
+
+export interface OutliersMessage {
+  outliers: _OutlierDetail[];
+  threshold: number;
+}
+
 export interface Error {
   error: string;
 }
@@ -97,7 +109,8 @@ export interface Message {
     | "runs"
     | "run"
     | "cluster_assignments"
-    | "cluster_similarities";
+    | "cluster_similarities"
+    | "outliers";
   data:
     | ProgressMessage
     | Error
@@ -106,7 +119,8 @@ export interface Message {
     | Run[]
     | ClusterAssignmentsMessage
     | ClusterSimilaritiesMessage
-    | CurrentRunMessage;
+    | CurrentRunMessage
+    | OutliersMessage;
 }
 
 export interface FileSettings {
@@ -304,6 +318,10 @@ declare global {
       ) => () => void;
       updateClusterName: (payload: ClusterNamePayload) => void;
       deleteRun: (runId: UUID) => void;
+      requestCurrentOutliers: () => void;
+      onReceiveCurrentOutliers: (
+        callback: (outliers: OutliersMessage) => void
+      ) => () => void;
     };
     state: {
       setRunId: (runId: UUID) => void;
@@ -359,6 +377,8 @@ export const CHANNELS = {
       "database:current-cluster-similarities-response",
     UPDATE_CLUSTER_NAME: "database:update-cluster-name",
     DELETE_RUN: "database:delete-run",
+    CURRENT_OUTLIERS_REQUEST: "database:current-outliers-request",
+    CURRENT_OUTLIERS_RESPONSE: "database:current-outliers-response",
   },
   STATE: {
     SET_RUN_ID: "state:set-run-id",
@@ -375,6 +395,7 @@ export const PYTHON_SERVICE_EVENTS = {
     CURRENT_RUN: "database-current-run",
     CURRENT_CLUSTER_ASSIGNMENTS: "database-current-clusters",
     CURRENT_CLUSTER_SIMILARITIES: "database-current-cluster-similarities",
+    CURRENT_OUTLIERS: "database-current-outliers",
   },
   READY: "ready",
 };

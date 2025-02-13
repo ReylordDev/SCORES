@@ -227,7 +227,7 @@ export default function Results() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button onClick={() => console.log("Open Outliers")}>
+                  <Button onClick={() => navigate("/outliers")}>
                     <AlertTriangle />
                     Open Outliers
                   </Button>

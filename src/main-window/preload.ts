@@ -11,6 +11,7 @@ import {
   ClusterAssignmentsMessage,
   ClusterSimilaritiesMessage,
   ClusterNamePayload,
+  OutliersMessage,
 } from "../lib/models";
 import {
   contextBridge,
@@ -142,6 +143,16 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
   },
   deleteRun: (runId: UUID) => {
     ipcRenderer.send(CHANNELS.DATABASE.DELETE_RUN, runId);
+  },
+  requestCurrentOutliers: () => {
+    ipcRenderer.send(CHANNELS.DATABASE.CURRENT_OUTLIERS_REQUEST);
+  },
+  onReceiveCurrentOutliers: (callback) => {
+    const listener = (_: IpcRendererEvent, outliers: OutliersMessage) =>
+      callback(outliers);
+    ipcRenderer.on(CHANNELS.DATABASE.CURRENT_OUTLIERS_RESPONSE, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.DATABASE.CURRENT_OUTLIERS_RESPONSE, listener);
   },
 } satisfies Window["database"]);
 

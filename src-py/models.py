@@ -28,6 +28,7 @@ ActionType = Literal[
     "update_run_name",
     "get_cluster_assignments",
     "get_cluster_similarities",
+    "get_outliers",
     "update_cluster_name",
     "delete_run",
 ]
@@ -118,6 +119,16 @@ class ClusterSimilaritiesMessage(BaseModel):
     clusters: list[ClusterSimilarityDetail]
 
 
+class OutliersMessage(BaseModel):
+    class OutlierDetail(BaseModel):
+        id: uuid.UUID
+        response: "Response"
+        similarity: float
+
+    outliers: list[OutlierDetail]
+    threshold: float
+
+
 class Error(BaseModel):
     error: str
 
@@ -130,6 +141,7 @@ MessageType = Literal[
     "run",
     "cluster_assignments",
     "cluster_similarities",
+    "outliers",
 ]
 MessageDataType = Union[
     ProgressMessage,
@@ -138,6 +150,7 @@ MessageDataType = Union[
     CurrentRunMessage,
     ClusterAssignmentsMessage,
     ClusterSimilaritiesMessage,
+    OutliersMessage,
     str,
     None,
 ]

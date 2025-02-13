@@ -12,6 +12,7 @@ import {
   ClusterSimilaritiesMessage,
   Run,
   CurrentRunMessage,
+  OutliersMessage,
 } from "../../lib/models";
 import path from "path";
 import { SettingsService } from "./settings-service";
@@ -78,6 +79,12 @@ export class PythonService extends EventEmitter {
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTER_SIMILARITIES,
           message.data as ClusterSimilaritiesMessage
+        );
+        break;
+      case "outliers":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_OUTLIERS,
+          message.data as OutliersMessage
         );
         break;
       default:

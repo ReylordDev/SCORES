@@ -11,6 +11,7 @@ import {
   ClusterAssignmentsMessage,
   CurrentRunMessage,
   PYTHON_SERVICE_EVENTS,
+  OutliersMessage,
 } from "./lib/models";
 
 // Handle setup events
@@ -87,6 +88,16 @@ app.whenReady().then(async () => {
     (data: ClusterSimilaritiesMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_RESPONSE,
+        data
+      );
+    }
+  );
+
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_OUTLIERS,
+    (data: OutliersMessage) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.DATABASE.CURRENT_OUTLIERS_RESPONSE,
         data
       );
     }

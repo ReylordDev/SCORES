@@ -11,6 +11,7 @@ from models import (
     FileSettings,
     AlgorithmSettings,
     ManualClusterCount,
+    OutliersMessage,
     Run,
     RunNamePayload,
     CurrentRunMessage,
@@ -152,6 +153,29 @@ class Controller:
                         ]
                     ),
                 )
+        elif command.action == "get_outliers":
+            with self.database_manager.create_session() as session:
+                run_id = self.app_state.get_run_id()
+                if not run_id:
+                    print_message("error", Error(error="Run ID not set"))
+                    return
+                outlier_stats = self.database_manager.get_outlier_statistics(
+                    session, run_id
+                )
+                print_message(
+                    "outliers",
+                    OutliersMessage(
+                        outliers=[
+                            OutliersMessage.OutlierDetail(
+                                id=outlier.id,
+                                response=outlier.response,
+                                similarity=outlier.similarity,
+                            )
+                            for outlier in outlier_stats.outliers
+                        ],
+                        threshold=outlier_stats.threshold,
+                    ),
+                )
         elif command.action == "update_cluster_name":
             if not command.data or not isinstance(command.data, ClusterNamePayload):
                 print_message("error", Error(error="Cluster name cannot be empty"))
@@ -217,7 +241,6 @@ if __name__ == "__main__":
                 data=AlgorithmSettings(method=ManualClusterCount(cluster_count=25)),
             )
         )
-        # controller.handle_command(Command(action="run_clustering"))
-        controller.handle_command(Command(action="get_cluster_similarities"))
+        controller.handle_command(Command(action="run_clustering"))
     else:
         main()

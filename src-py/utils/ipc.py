@@ -9,11 +9,15 @@ from models import (
 )
 import sys
 import time
+from pprint import pprint
 
 
-def print_message(type: MessageType, data: MessageDataType):
+def print_message(type: MessageType, data: MessageDataType, pretty: bool = False):
     logger.info(f"Printing message: {type} - {data}")
-    print(Message(type=type, data=data).model_dump_json(), flush=True)
+    if pretty:
+        pprint(Message(type=type, data=data).model_dump())
+    else:
+        print(Message(type=type, data=data).model_dump_json(), flush=True)
 
 
 def print_progress(

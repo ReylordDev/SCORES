@@ -7,7 +7,7 @@ import Progress from "./pages/Progress";
 import Results from "./pages/Results";
 import ClusterAssignments from "./pages/ClusterAssignments";
 import ClusterSimilarities from "./pages/ClusterSimilarities";
-
+import Outliers from "./pages/Outliers";
 const App = () => {
   return (
     <Router>
@@ -19,6 +19,7 @@ const App = () => {
         <Route path="/results" element={<Results />} />
         <Route path="/cluster_assignments" element={<ClusterAssignments />} />
         <Route path="/cluster_similarities" element={<ClusterSimilarities />} />
+        <Route path="/outliers" element={<Outliers />} />
       </Routes>
     </Router>
   );
