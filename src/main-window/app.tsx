@@ -8,6 +8,7 @@ import Results from "./pages/Results";
 import ClusterAssignments from "./pages/ClusterAssignments";
 import ClusterSimilarities from "./pages/ClusterSimilarities";
 import Outliers from "./pages/Outliers";
+import Mergers from "./pages/Mergers";
 const App = () => {
   return (
     <Router>
@@ -20,6 +21,7 @@ const App = () => {
         <Route path="/cluster_assignments" element={<ClusterAssignments />} />
         <Route path="/cluster_similarities" element={<ClusterSimilarities />} />
         <Route path="/outliers" element={<Outliers />} />
+        <Route path="/mergers" element={<Mergers />} />
       </Routes>
     </Router>
   );

@@ -2,17 +2,14 @@ import csv
 import time
 import uuid
 from sqlmodel import create_engine, SQLModel, Session, select
-from sqlalchemy.orm import selectinload, joinedload
 from models import (
     Cluster,
     ClusteringResult,
     FileSettings,
-    OutlierStatistic,
     OutlierStatistics,
-    Response,
+    MergingStatistics,
     Run,
     Timesteps,
-    SimilarityPair,
 )
 import os
 from utils.utils import get_user_data_path
@@ -97,6 +94,17 @@ class DatabaseManager:
             select(OutlierStatistics)
             .join(ClusteringResult)
             .where(ClusteringResult.run_id == run_id)
+        ).one()
+
+    def get_merger_statistics(
+        self, session: Session, run_id: uuid.UUID
+    ) -> MergingStatistics:
+        return (
+            session.exec(
+                select(MergingStatistics)
+                .join(ClusteringResult)
+                .where(ClusteringResult.run_id == run_id)
+            )
         ).one()
 
     def update_cluster_name(

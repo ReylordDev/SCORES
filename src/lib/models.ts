@@ -18,7 +18,8 @@ type Action =
   | "get_cluster_similarities"
   | "update_cluster_name"
   | "delete_run"
-  | "get_outliers";
+  | "get_outliers"
+  | "get_mergers";
 
 export interface ClusterNamePayload {
   clusterId: UUID;
@@ -97,6 +98,25 @@ export interface OutliersMessage {
   threshold: number;
 }
 
+export interface _ClusterMergerDetail {
+  // Technically this is the same model as ClusterAssignmentDetail
+  id: UUID;
+  name: string;
+  responses: Response[];
+}
+
+export interface _MergerDetail {
+  id: UUID;
+  name: string;
+  clusters: _ClusterMergerDetail[];
+  similarity_pairs: SimilarityPair[];
+}
+
+export interface MergersMessage {
+  mergers: _MergerDetail[];
+  threshold: number;
+}
+
 export interface Error {
   error: string;
 }
@@ -110,7 +130,8 @@ export interface Message {
     | "run"
     | "cluster_assignments"
     | "cluster_similarities"
-    | "outliers";
+    | "outliers"
+    | "mergers";
   data:
     | ProgressMessage
     | Error
@@ -120,7 +141,8 @@ export interface Message {
     | ClusterAssignmentsMessage
     | ClusterSimilaritiesMessage
     | CurrentRunMessage
-    | OutliersMessage;
+    | OutliersMessage
+    | MergersMessage;
 }
 
 export interface FileSettings {
@@ -171,7 +193,7 @@ export interface Cluster {
   merger: Merger;
 
   similarity_pair_id: UUID;
-  similarity_pair: ClusterSimilarityPair;
+  similarity_pair: SimilarityPair;
 }
 
 interface OutlierStatistic {
@@ -194,10 +216,15 @@ interface OutlierStatistics {
   clustering_result: ClusteringResult;
 }
 
-export interface ClusterSimilarityPair {
+export interface SimilarityPair {
   id: UUID;
   similarity: number;
-  clusters: Cluster[];
+
+  cluster_1_id: UUID;
+  cluster_2_id: UUID;
+
+  cluster_1: Cluster;
+  cluster_2: Cluster;
 
   merger_id: UUID;
   merger: Merger;
@@ -210,7 +237,7 @@ interface Merger {
   id: UUID;
   name: string;
   clusters: Cluster[];
-  similarity_pairs: ClusterSimilarityPair[];
+  similarity_pairs: SimilarityPair[];
 
   merging_statistics_id: UUID;
   merging_statistics: MergingStatistics;
@@ -236,7 +263,7 @@ export interface ClusteringResult {
   clusters: Cluster[];
   outlier_statistics: OutlierStatistics;
   merger_statistics: MergingStatistics;
-  inter_cluster_similarities: ClusterSimilarityPair[];
+  inter_cluster_similarities: SimilarityPair[];
   timesteps: Timesteps;
   run_id: UUID;
   run: Run;
@@ -322,6 +349,10 @@ declare global {
       onReceiveCurrentOutliers: (
         callback: (outliers: OutliersMessage) => void
       ) => () => void;
+      requestCurrentMergers: () => void;
+      onReceiveCurrentMergers: (
+        callback: (mergers: MergersMessage) => void
+      ) => () => void;
     };
     state: {
       setRunId: (runId: UUID) => void;
@@ -379,6 +410,8 @@ export const CHANNELS = {
     DELETE_RUN: "database:delete-run",
     CURRENT_OUTLIERS_REQUEST: "database:current-outliers-request",
     CURRENT_OUTLIERS_RESPONSE: "database:current-outliers-response",
+    CURRENT_MERGERS_REQUEST: "database:current-mergers-request",
+    CURRENT_MERGERS_RESPONSE: "database:current-mergers-response",
   },
   STATE: {
     SET_RUN_ID: "state:set-run-id",
@@ -396,6 +429,7 @@ export const PYTHON_SERVICE_EVENTS = {
     CURRENT_CLUSTER_ASSIGNMENTS: "database-current-clusters",
     CURRENT_CLUSTER_SIMILARITIES: "database-current-cluster-similarities",
     CURRENT_OUTLIERS: "database-current-outliers",
+    CURRENT_MERGERS: "database-current-mergers",
   },
   READY: "ready",
 };

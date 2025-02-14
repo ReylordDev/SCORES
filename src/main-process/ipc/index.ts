@@ -161,4 +161,10 @@ export function registerIpcHandlers(
       action: "get_outliers",
     });
   });
+
+  ipcMain.on(CHANNELS.DATABASE.CURRENT_MERGERS_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "get_mergers",
+    });
+  });
 }

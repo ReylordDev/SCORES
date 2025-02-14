@@ -12,6 +12,7 @@ import {
   ClusterSimilaritiesMessage,
   ClusterNamePayload,
   OutliersMessage,
+  MergersMessage,
 } from "../lib/models";
 import {
   contextBridge,
@@ -153,6 +154,16 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
     ipcRenderer.on(CHANNELS.DATABASE.CURRENT_OUTLIERS_RESPONSE, listener);
     return () =>
       ipcRenderer.off(CHANNELS.DATABASE.CURRENT_OUTLIERS_RESPONSE, listener);
+  },
+  requestCurrentMergers: () => {
+    ipcRenderer.send(CHANNELS.DATABASE.CURRENT_MERGERS_REQUEST);
+  },
+  onReceiveCurrentMergers: (callback) => {
+    const listener = (_: IpcRendererEvent, mergers: MergersMessage) =>
+      callback(mergers);
+    ipcRenderer.on(CHANNELS.DATABASE.CURRENT_MERGERS_RESPONSE, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.DATABASE.CURRENT_MERGERS_RESPONSE, listener);
   },
 } satisfies Window["database"]);
 

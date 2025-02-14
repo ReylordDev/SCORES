@@ -13,6 +13,7 @@ import {
   Run,
   CurrentRunMessage,
   OutliersMessage,
+  MergersMessage,
 } from "../../lib/models";
 import path from "path";
 import { SettingsService } from "./settings-service";
@@ -85,6 +86,12 @@ export class PythonService extends EventEmitter {
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_OUTLIERS,
           message.data as OutliersMessage
+        );
+        break;
+      case "mergers":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_MERGERS,
+          message.data as MergersMessage
         );
         break;
       default:

@@ -4,13 +4,19 @@ from uuid import UUID
 from loguru import logger
 from models import FileSettings, AlgorithmSettings
 
+DEBUG_RUN_ID = ""
+
 
 class ApplicationState:
     def __init__(self):
         self.file_path = None
         self.file_settings = None
         self.algorithm_settings = None
-        self._current_run_id: Optional[UUID] = None
+
+        if DEBUG_RUN_ID:
+            self._current_run_id = UUID(DEBUG_RUN_ID)
+        else:
+            self._current_run_id: Optional[UUID] = None
 
     def set_file_path(self, file_path: str):
         self.file_path = file_path

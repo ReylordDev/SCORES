@@ -12,6 +12,7 @@ import {
   CurrentRunMessage,
   PYTHON_SERVICE_EVENTS,
   OutliersMessage,
+  MergersMessage,
 } from "./lib/models";
 
 // Handle setup events
@@ -98,6 +99,16 @@ app.whenReady().then(async () => {
     (data: OutliersMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.DATABASE.CURRENT_OUTLIERS_RESPONSE,
+        data
+      );
+    }
+  );
+
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_MERGERS,
+    (data: MergersMessage) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.DATABASE.CURRENT_MERGERS_RESPONSE,
         data
       );
     }

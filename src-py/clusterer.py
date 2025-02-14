@@ -54,19 +54,14 @@ class Clusterer:
 
     def process_input_file(self, excluded_words: list[str]):
         print_progress("process_input_file", "start")
-        rows: list[list[str]] = []
         response_counter: Counter[str] = Counter()
         try:
             with open(self.file_path, encoding="utf-8") as f:
                 reader = csv.reader(f, delimiter=self.file_settings.delimiter)
                 if self.file_settings.has_header:
                     headers = reader.__next__()
-                else:
-                    headers = []
 
                 for row in reader:
-                    rows.append(row)
-
                     for column_index in self.file_settings.selected_columns:
                         if column_index >= len(row):
                             logger.warning(
@@ -93,14 +88,13 @@ class Clusterer:
                 Response(text=response, count=count)
                 for response, count in response_counter.items()
             ]
-            full_file_content = [headers] + rows
             print_progress("process_input_file", "complete")
             self.timesteps.steps["process_input_file"] = time.time()
-            return responses, full_file_content
+            return responses
         except Exception as e:
             print_progress("process_input_file", "error")
             logger.error(f"Error reading file: {e}")
-            return [], []
+            return []
 
     def load_embedding_model(self, language_model: str):
         print_progress("load_model", "start")
@@ -274,6 +268,7 @@ class Clusterer:
         self,
         responses: list[Response],
         embeddings: np.ndarray,
+        embeddings_map: dict[uuid.UUID, np.ndarray],
         K: int,
         response_weights: np.ndarray,
     ):
@@ -288,7 +283,9 @@ class Clusterer:
         cluster_indices = np.array(
             [valid_clusters.index(idx) for idx in cluster_indices]
         )
-        cluster_centers = clustering.cluster_centers_
+        cluster_centers = clustering.cluster_centers_ / np.linalg.norm(
+            clustering.cluster_centers_, axis=1, keepdims=True, ord=2
+        )
 
         clusters = []
         for i in range(K):
@@ -298,6 +295,9 @@ class Clusterer:
         for i, response in enumerate(responses):
             cluster_index = cluster_indices[i]
             response.cluster_id = clusters[cluster_index].id
+            response.similarity = clusters[cluster_index].similarity_to_response(
+                response, embeddings_map
+            )
             clusters[cluster_index].responses.append(response)
 
         print_progress("cluster", "complete")
@@ -308,27 +308,29 @@ class Clusterer:
         self,
         clusters: list[Cluster],
         similarity_threshold: float,
+        embeddings_map: dict[uuid.UUID, np.ndarray],
     ):
         print_progress("merge", "start")
+        cluster_centers = np.asarray(
+            [np.asarray(cluster.center) for cluster in clusters]
+        )
+
         # merge the closest clusters using Agglomorative Clustering
         # until everything is closer than the threshold
         meta_clustering = AgglomerativeClustering(
             n_clusters=None,
-            distance_threshold=1.0 - similarity_threshold,
+            distance_threshold=1 - similarity_threshold,
             linkage="complete",
             metric="cosine",
-        ).fit(np.asarray([cluster.center for cluster in clusters]))
+        ).fit(cluster_centers)
 
-        cluster_centers = np.asarray(
-            [np.asarray(cluster.center) for cluster in clusters]
-        )
         meta_clustering_indices = meta_clustering.labels_
 
         mergers: list[Merger] = []
         post_merge_cluster_ids = [cluster.id for cluster in clusters]
-        for merged_cluster_group_index in np.unique(meta_clustering_indices):
+        for meta_clustering_index in np.unique(meta_clustering_indices):
             merged_cluster_indices = np.where(
-                meta_clustering_indices == merged_cluster_group_index
+                meta_clustering_indices == meta_clustering_index
             )[0].tolist()
             assert isinstance(merged_cluster_indices, list)
             if len(merged_cluster_indices) > 1:
@@ -356,43 +358,58 @@ class Clusterer:
                     similarity_pairs=similarity_pairs,
                 )
                 mergers.append(merger)
-                # merge the clusters
-                merged_clusters[0].responses.extend(
-                    [
-                        response
-                        for cluster in merged_clusters[1:]
-                        for response in cluster.responses
-                    ]
-                )
+
                 # re-set the cluster centers to the weighted mean of all their
                 # points and normalize them to unit length
+                # new_center = np.average(
+                #     [cluster.center for cluster in merged_clusters],
+                #     axis=0,
+                #     weights=[cluster.count for cluster in merged_clusters],
+                # ) / np.linalg.norm(
+                #     np.average(
+                #         [cluster.center for cluster in merged_clusters],
+                #         axis=0,
+                #         weights=[cluster.count for cluster in merged_clusters],
+                #     ),
+                #     ord=2,
+                # )
                 new_center = np.average(
                     [cluster.center for cluster in merged_clusters],
                     axis=0,
                     weights=[cluster.count for cluster in merged_clusters],
-                ) / np.linalg.norm(
-                    np.average(
-                        [cluster.center for cluster in merged_clusters],
-                        axis=0,
-                        weights=[cluster.count for cluster in merged_clusters],
-                    ),
-                    ord=2,
-                )
-                merged_clusters[0].center = new_center.tolist()
+                ) / np.sum([cluster.count for cluster in merged_clusters])
 
-                for cluster in merged_clusters[1:]:
+                merged_cluster = Cluster(
+                    center=new_center.tolist(),
+                )
+
+                merged_cluster.responses = [
+                    Response(
+                        text=response.text,
+                        cluster_id=merged_cluster.id,
+                        count=response.count,
+                        similarity=merged_cluster.similarity_to_response(
+                            response, embeddings_map
+                        ),
+                    )
+                    for cluster in merged_clusters
+                    for response in cluster.responses
+                ]
+
+                post_merge_cluster_ids.append(merged_cluster.id)
+
+                for cluster in merged_clusters:
                     post_merge_cluster_ids.remove(cluster.id)
 
         clusters = [
             cluster for cluster in clusters if cluster.id in post_merge_cluster_ids
         ]
-        merging_statistics = (
-            MergingStatistics(mergers=mergers, threshold=similarity_threshold),
-            clusters,
+        merging_statistics = MergingStatistics(
+            mergers=mergers, threshold=similarity_threshold
         )
         print_progress("merge", "complete")
         self.timesteps.steps["merge"] = time.time()
-        return merging_statistics
+        return merging_statistics, clusters
 
     def calculate_inter_cluster_similarities(self, clusters: list[Cluster]):
         # Calculate the similarity between all pairs of clusters
@@ -415,7 +432,7 @@ class Clusterer:
     def run(self) -> ClusteringResult:
         print_progress("start", "start")
         self.timesteps.steps["start"] = time.time()
-        responses, full_file_content = self.process_input_file([])
+        responses = self.process_input_file([])
 
         embedding_model = self.load_embedding_model("BAAI/bge-large-en-v1.5")
 
@@ -443,17 +460,23 @@ class Clusterer:
         else:
             K = self.algorithm_settings.method.cluster_count
 
-        clusters = self.start_clustering(responses, embeddings, K, response_weights)
+        clusters = self.start_clustering(
+            responses, embeddings, embeddings_map, K, response_weights
+        )
 
         merger_stats, clusters = self.merge_clusters(
-            clusters, similarity_threshold=0.85
+            clusters, similarity_threshold=0.85, embeddings_map=embeddings_map
         )
 
         for cluster in clusters:
-            for response in cluster.responses:
-                response.similarity = cluster.similarity_to_response(
-                    response, embeddings_map
+            cluster.center = (
+                np.asarray(cluster.center)
+                / np.linalg.norm(
+                    np.asarray(cluster.center),
+                    ord=2,
+                    axis=0,
                 )
+            ).tolist()
 
         return ClusteringResult(
             clusters=clusters,

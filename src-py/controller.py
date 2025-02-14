@@ -1,5 +1,5 @@
 import sys
-from uuid import UUID
+from uuid import UUID  # noqa: F401
 from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
@@ -17,6 +17,7 @@ from models import (
     CurrentRunMessage,
     ClusterNamePayload,
     RunIdPayload,
+    MergersMessage,
 )
 from utils.ipc import print_message, print_progress
 from loguru import logger
@@ -192,6 +193,37 @@ class Controller:
                 self.database_manager.delete_run(command.data.run_id)
         elif command.action == "reset_run_id":
             self.app_state.reset_run_id()
+        elif command.action == "get_mergers":
+            with self.database_manager.create_session() as session:
+                run_id = self.app_state.get_run_id()
+                if not run_id:
+                    print_message("error", Error(error="Run ID not set"))
+                    return
+                merger_stats = self.database_manager.get_merger_statistics(
+                    session, run_id
+                )
+                print_message(
+                    "mergers",
+                    MergersMessage(
+                        threshold=merger_stats.threshold,
+                        mergers=[
+                            MergersMessage.MergerDetail(
+                                id=merger.id,
+                                name=merger.name,
+                                clusters=[
+                                    MergersMessage.MergerDetail.ClusterMergerDetail(
+                                        id=cluster.id,
+                                        name=cluster.name,
+                                        responses=cluster.responses,
+                                    )
+                                    for cluster in merger.clusters
+                                ],
+                                similarity_pairs=merger.similarity_pairs,
+                            )
+                            for merger in merger_stats.mergers
+                        ],
+                    ),
+                )
         else:
             logger.error(f"Invalid action: {command.action}")
             print_message("error", Error(error=f"Invalid action: {command.action}"))
@@ -242,5 +274,6 @@ if __name__ == "__main__":
             )
         )
         controller.handle_command(Command(action="run_clustering"))
+        controller.handle_command(Command(action="get_mergers"))
     else:
         main()

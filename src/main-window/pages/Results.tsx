@@ -241,7 +241,7 @@ export default function Results() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Button onClick={() => console.log("Open Mergers")}>
+                  <Button onClick={() => navigate("/mergers")}>
                     <GitMerge />
                     Open Cluster Mergers
                   </Button>

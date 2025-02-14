@@ -29,6 +29,7 @@ ActionType = Literal[
     "get_cluster_assignments",
     "get_cluster_similarities",
     "get_outliers",
+    "get_mergers",
     "update_cluster_name",
     "delete_run",
 ]
@@ -129,6 +130,22 @@ class OutliersMessage(BaseModel):
     threshold: float
 
 
+class MergersMessage(BaseModel):
+    class MergerDetail(BaseModel):
+        class ClusterMergerDetail(BaseModel):
+            id: uuid.UUID
+            name: str
+            responses: list["Response"]
+
+        id: uuid.UUID
+        name: str
+        clusters: list[ClusterMergerDetail]
+        similarity_pairs: list["SimilarityPair"]
+
+    mergers: list[MergerDetail]
+    threshold: float
+
+
 class Error(BaseModel):
     error: str
 
@@ -142,6 +159,7 @@ MessageType = Literal[
     "cluster_assignments",
     "cluster_similarities",
     "outliers",
+    "mergers",
 ]
 MessageDataType = Union[
     ProgressMessage,
@@ -151,6 +169,7 @@ MessageDataType = Union[
     ClusterAssignmentsMessage,
     ClusterSimilaritiesMessage,
     OutliersMessage,
+    MergersMessage,
     str,
     None,
 ]
@@ -269,10 +288,6 @@ class Cluster(SQLModel, table=True):
     @property
     def count(self) -> int:
         return len(self.responses)
-
-    # def get_most_representative_responses(self) -> list[Response]:
-    #     """Responses sorted by similarity descending"""
-    #     return sorted(self.responses, key=lambda r: r.similarity or -1, reverse=True)
 
     def similarity_to_response(
         self, response: Response, embeddings_map: dict[uuid.UUID, np.ndarray]
