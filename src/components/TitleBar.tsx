@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { Settings, Undo } from "lucide-react";
+import { GraduationCap, Moon, Settings, Undo } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import {
   Dialog,
@@ -167,12 +167,28 @@ export function TitleBar({ index }: { index: number }) {
               </DialogHeader>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-text">Dark Mode</p>
+                  <p className="text-text flex items-center gap-2 text-lg">
+                    <Moon size={24} />
+                    Dark Mode
+                  </p>
                   <Switch
                     checked={settings?.darkMode}
                     onCheckedChange={(checked) => {
                       window.settings.setDarkMode(checked);
                       setSettings({ ...settings, darkMode: checked });
+                    }}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-text flex items-center gap-2 text-lg">
+                    <GraduationCap size={24} />
+                    Tutorial Mode
+                  </p>
+                  <Switch
+                    checked={settings?.tutorialMode}
+                    onCheckedChange={(checked) => {
+                      window.settings.setTutorialMode(checked);
+                      setSettings({ ...settings, tutorialMode: checked });
                     }}
                   />
                 </div>

@@ -193,4 +193,7 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.SETTINGS, {
     ipcRenderer.on(CHANNELS.SETTINGS.SETTINGS_CHANGED, listener);
     return () => ipcRenderer.off(CHANNELS.SETTINGS.SETTINGS_CHANGED, listener);
   },
+  setTutorialMode: (tutorialMode: boolean) => {
+    ipcRenderer.send(CHANNELS.SETTINGS.SET_TUTORIAL_MODE, tutorialMode);
+  },
 } satisfies Window["settings"]);

@@ -166,8 +166,21 @@ interface ManualClusterCount {
 
 export type ClusterCount = AutomaticClusterCount | ManualClusterCount;
 
+export interface OutlierDetectionSettings {
+  nearest_neighbors: number;
+  z_score_threshold: number;
+}
+
+export interface AgglomerativeClusteringSettings {
+  similarity_threshold: number;
+}
+
 export interface AlgorithmSettings {
   method: ClusterCount;
+  excluded_words: string[];
+  seed?: number;
+  outlier_detection?: OutlierDetectionSettings;
+  agglomerative_clustering?: AgglomerativeClusteringSettings;
 }
 
 export interface Response {
@@ -300,6 +313,7 @@ export const progressionMessages: Record<ClusteringStep, string> = {
 
 export interface AppSettings {
   darkMode: boolean;
+  tutorialMode: boolean;
 }
 
 declare global {
@@ -316,6 +330,7 @@ declare global {
     settings: {
       getAll: () => Promise<AppSettings>;
       setDarkMode: (darkMode: boolean) => void;
+      setTutorialMode: (tutorialMode: boolean) => void;
       onSettingsChanged: (
         callback: (settings: AppSettings) => void
       ) => () => void;
@@ -391,6 +406,7 @@ export const CHANNELS = {
   SETTINGS: {
     GET_ALL: "settings:get-all",
     SET_DARK_MODE: "settings:set-dark-mode",
+    SET_TUTORIAL_MODE: "settings:set-tutorial-mode",
     SETTINGS_CHANGED: "settings:settings-changed",
   },
   FILE: {

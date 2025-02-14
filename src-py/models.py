@@ -1,4 +1,5 @@
 import os
+import random
 from typing import Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, computed_field
 from pydantic.alias_generators import to_camel
@@ -196,12 +197,24 @@ class ManualClusterCount(CamelModel):
     cluster_count: int
 
 
+class OutlierDetectionSettings(CamelModel):
+    nearest_neighbors: int
+    z_score_threshold: float
+
+
+class AgglomerativeClusteringSettings(CamelModel):
+    similarity_threshold: float
+
+
 class AlgorithmSettings(CamelModel):
-    # can be improved
     method: Union[AutomaticClusterCount, ManualClusterCount] = Field(
         default=AutomaticClusterCount(max_clusters=10),
         discriminator="cluster_count_method",
     )
+    excluded_words: list[str] = Field(default=[])
+    seed: int = Field(default_factory=lambda: random.randint(0, 1000))
+    outlier_detection: Optional[OutlierDetectionSettings] = None
+    agglomerative_clustering: Optional[AgglomerativeClusteringSettings] = None
 
 
 class Response(SQLModel, table=True):

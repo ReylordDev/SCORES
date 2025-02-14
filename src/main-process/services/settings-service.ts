@@ -7,6 +7,7 @@ import { AppSettings, SETTINGS_SERVICE_EVENTS } from "../../lib/models";
 import { WindowManager } from "../windows/window-manager";
 export const DEFAULT_SETTINGS: AppSettings = {
   darkMode: false,
+  tutorialMode: true,
 };
 
 export class SettingsService extends EventEmitter {
@@ -50,6 +51,11 @@ export class SettingsService extends EventEmitter {
     this.settings.darkMode = darkMode;
     nativeTheme.themeSource = darkMode ? "dark" : "light";
     this.windowManager.setMainWindowTitleBarTheme(darkMode);
+    this.persistSettings();
+  }
+
+  setTutorialMode(tutorialMode: boolean) {
+    this.settings.tutorialMode = tutorialMode;
     this.persistSettings();
   }
 }

@@ -20,6 +20,7 @@ import {
   forwardRef,
   isValidElement,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -213,11 +214,25 @@ export function TooltipWrapper({
   small?: boolean;
   placement?: Placement;
 }) {
+  const [tutorialMode, setTutorialMode] = useState(true);
+
+  useEffect(() => {
+    window.settings.getAll().then((settings) => {
+      setTutorialMode(settings.tutorialMode);
+    });
+  }, []);
+
+  useEffect(() => {
+    window.settings.onSettingsChanged((settings) => {
+      setTutorialMode(settings.tutorialMode);
+    });
+  }, []);
+
   return (
     <Tooltip placement={placement}>
       <TooltipTrigger asChild>{wrappedContent}</TooltipTrigger>
       <TooltipContent className="text-text">
-        <TooltipContentContainer tutorialMode={true} small={small}>
+        <TooltipContentContainer tutorialMode={tutorialMode} small={small}>
           {tooltipContent}
         </TooltipContentContainer>
       </TooltipContent>

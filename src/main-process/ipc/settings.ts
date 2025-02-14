@@ -10,4 +10,11 @@ export function registerSettingsHandlers(settingsService: SettingsService) {
   ipcMain.on(CHANNELS.SETTINGS.SET_DARK_MODE, (_, darkMode: boolean) => {
     settingsService.setDarkMode(darkMode);
   });
+
+  ipcMain.on(
+    CHANNELS.SETTINGS.SET_TUTORIAL_MODE,
+    (_, tutorialMode: boolean) => {
+      settingsService.setTutorialMode(tutorialMode);
+    }
+  );
 }
