@@ -116,9 +116,9 @@ class Clusterer:
         norm_embeddings = embedding_model.encode(
             [response.text for response in responses], normalize_embeddings=True
         )
-        embeddings_map: dict[uuid.UUID, np.ndarray] = {}
+        embeddings_map: dict[str, np.ndarray] = {}
         for i, response in enumerate(responses):
-            embeddings_map[response.id] = norm_embeddings[i]
+            embeddings_map[response.text] = norm_embeddings[i]
         print_progress("embed_responses", "complete")
         self.timesteps.steps["embed_responses"] = time.time()
         return embeddings_map
@@ -268,7 +268,7 @@ class Clusterer:
         self,
         responses: list[Response],
         embeddings: np.ndarray,
-        embeddings_map: dict[uuid.UUID, np.ndarray],
+        embeddings_map: dict[str, np.ndarray],
         K: int,
         response_weights: np.ndarray,
     ):
@@ -289,7 +289,11 @@ class Clusterer:
 
         clusters = []
         for i in range(K):
-            cluster = Cluster(center=cluster_centers[i].tolist(), responses=[])
+            cluster = Cluster(
+                center=cluster_centers[i].tolist(),
+                responses=[],
+                index=i,
+            )
             clusters.append(cluster)
 
         for i, response in enumerate(responses):
@@ -308,7 +312,7 @@ class Clusterer:
         self,
         clusters: list[Cluster],
         similarity_threshold: float,
-        embeddings_map: dict[uuid.UUID, np.ndarray],
+        embeddings_map: dict[str, np.ndarray],
     ):
         print_progress("merge", "start")
         cluster_centers = np.asarray(
@@ -377,10 +381,15 @@ class Clusterer:
                     [cluster.center for cluster in merged_clusters],
                     axis=0,
                     weights=[cluster.count for cluster in merged_clusters],
-                ) / np.sum([cluster.count for cluster in merged_clusters])
+                )
 
                 merged_cluster = Cluster(
                     center=new_center.tolist(),
+                    index=merged_clusters[0].index,
+                )
+
+                logger.debug(
+                    f"Merged cluster center: {merged_cluster.center[:5]}, index: {merged_cluster.index}"
                 )
 
                 merged_cluster.responses = [
@@ -397,6 +406,7 @@ class Clusterer:
                 ]
 
                 post_merge_cluster_ids.append(merged_cluster.id)
+                clusters.append(merged_cluster)
 
                 for cluster in merged_clusters:
                     post_merge_cluster_ids.remove(cluster.id)
@@ -449,7 +459,7 @@ class Clusterer:
         # Update responses to exclude outliers
         responses = [response for response in responses if not response.is_outlier]
         embeddings_map = {
-            response.id: embeddings_map[response.id] for response in responses
+            response.text: embeddings_map[response.text] for response in responses
         }
         embeddings = np.asarray(list(embeddings_map.values()))
 
@@ -477,6 +487,12 @@ class Clusterer:
                     axis=0,
                 )
             ).tolist()
+            for response in cluster.responses:
+                logger.debug(f"Response: {response.text}, cluster_id: {cluster.id}")
+                response.cluster_id = cluster.id
+                response.similarity = cluster.similarity_to_response(
+                    response, embeddings_map
+                )
 
         return ClusteringResult(
             clusters=clusters,

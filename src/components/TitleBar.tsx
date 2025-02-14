@@ -1,6 +1,6 @@
 import { Button } from "./ui/button";
 import { Settings, Undo } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,7 @@ const routes = [
 
 export function TitleBar({ index }: { index: number }) {
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     window.settings.getAll().then((settings) => {
@@ -40,7 +41,14 @@ export function TitleBar({ index }: { index: number }) {
         id="titleBar"
         className="draggable absolute top-0 flex h-full select-none items-center justify-between border-accent pl-8"
       >
-        <Link to={"/"} className="no-drag flex">
+        <Button
+          variant="ghost"
+          onClick={() => {
+            window.state.resetRunId();
+            navigate("/");
+          }}
+          className="no-drag flex"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="size-10"
@@ -88,7 +96,7 @@ export function TitleBar({ index }: { index: number }) {
               }
             />
           </svg>
-        </Link>
+        </Button>
         {index > 0 && index !== 4 ? (
           <Link
             to={`/${routes[index - 1] === "progress" ? routes[index - 2] : routes[index - 1]}`}

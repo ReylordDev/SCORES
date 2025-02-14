@@ -68,6 +68,7 @@ export interface CurrentRunMessage {
 
 export interface _ClusterAssignmentDetail {
   id: UUID;
+  index: number;
   name: string;
   responses: Response[];
 }
@@ -78,6 +79,7 @@ export interface ClusterAssignmentsMessage {
 
 export interface _ClusterSimilarityDetail {
   id: UUID;
+  index: number;
   name: string;
   responses: Response[];
   similarity_pairs: Record<UUID, number>;
@@ -101,6 +103,7 @@ export interface OutliersMessage {
 export interface _ClusterMergerDetail {
   // Technically this is the same model as ClusterAssignmentDetail
   id: UUID;
+  index: number;
   name: string;
   responses: Response[];
 }
@@ -181,6 +184,7 @@ export interface Response {
 
 export interface Cluster {
   id: UUID;
+  index: number;
   name: string;
   center: number[];
   responses: Response[];

@@ -274,6 +274,6 @@ if __name__ == "__main__":
             )
         )
         controller.handle_command(Command(action="run_clustering"))
-        controller.handle_command(Command(action="get_mergers"))
+        # controller.handle_command(Command(action="get_mergers"))
     else:
         main()

@@ -203,18 +203,25 @@ export default function Mergers() {
                         {merger.similarity_pairs.map((pair) => (
                           <div key={pair.id}>
                             <div className="flex items-center justify-start gap-4">
-                              <p className="w-1/2">
-                                Cluster{" "}
+                              <p className="w-1/4">
                                 <span className="font-semibold">
-                                  {pair.cluster_1_id}
+                                  {
+                                    merger.clusters.find(
+                                      (c) => c.id === pair.cluster_1_id
+                                    )?.name
+                                  }
                                 </span>{" "}
-                                and Cluster{" "}
+                                and{" "}
                                 <span className="font-semibold">
-                                  {pair.cluster_2_id}
+                                  {
+                                    merger.clusters.find(
+                                      (c) => c.id === pair.cluster_2_id
+                                    )?.name
+                                  }
                                 </span>
                                 :
                               </p>
-                              <div className="h-2.5 w-1/2 rounded-full bg-primary-100">
+                              <div className="h-2.5 w-3/4 rounded-full bg-primary-100">
                                 <div
                                   className="h-2.5 rounded-full bg-primary"
                                   style={{

@@ -275,6 +275,7 @@ class SimilarityPair(SQLModel, table=True):
 
 class Cluster(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    index: int
     name: str = ""
     center: list[float] = Field(sa_column=Column(JSON))
     responses: list[Response] = Relationship(back_populates="cluster")
@@ -282,7 +283,9 @@ class Cluster(SQLModel, table=True):
     def __init__(self, **data):
         super().__init__(**data)
         # self.name = f"Cluster {self.id}"
-        self.__dict__["name"] = f"Cluster {self.id}"  # Bypass frozen for initialization
+        self.__dict__["name"] = (
+            f"Cluster {self.index}"  # Bypass frozen for initialization
+        )
 
     @computed_field
     @property
@@ -290,9 +293,9 @@ class Cluster(SQLModel, table=True):
         return len(self.responses)
 
     def similarity_to_response(
-        self, response: Response, embeddings_map: dict[uuid.UUID, np.ndarray]
+        self, response: Response, embeddings_map: dict[str, np.ndarray]
     ) -> float:
-        return np.dot(self.center, embeddings_map[response.id])
+        return np.dot(self.center, embeddings_map[response.text])
 
     def similarity_to_cluster(self, cluster: "Cluster") -> float:
         return np.dot(self.center, cluster.center)
