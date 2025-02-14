@@ -307,9 +307,14 @@ declare global {
       getLogsPath: () => Promise<string>;
       getLocale: () => Promise<string>;
       openUrl: (url: string) => void;
+      setTitleBarMask: (mask: boolean) => void;
     };
     settings: {
       getAll: () => Promise<AppSettings>;
+      setDarkMode: (darkMode: boolean) => void;
+      onSettingsChanged: (
+        callback: (settings: AppSettings) => void
+      ) => () => void;
     };
     file: {
       // Consider making this a promise-returning function
@@ -377,9 +382,12 @@ export const CHANNELS = {
     SHOW_ITEM_IN_FOLDER: "electron:show-item-in-folder",
     GET_LOCALE: "electron:get-locale",
     OPEN_URL: "electron:open-url",
+    SET_TITLE_BAR_MASK: "electron:set-title-bar-mask",
   },
   SETTINGS: {
-    GET: "settings:get-all",
+    GET_ALL: "settings:get-all",
+    SET_DARK_MODE: "settings:set-dark-mode",
+    SETTINGS_CHANGED: "settings:settings-changed",
   },
   FILE: {
     SET_PATH: "file:set-path",

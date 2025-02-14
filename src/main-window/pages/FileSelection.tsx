@@ -273,7 +273,7 @@ export default function FileSelection() {
   };
 
   return (
-    <>
+    <div className="h-screen w-screen">
       <TitleBar index={0} />
       <div
         id="mainContent"
@@ -350,6 +350,6 @@ export default function FileSelection() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
 
 function ClusterAssignment({
   cluster,
@@ -56,7 +57,7 @@ function ClusterAssignment({
                 onClick={(e) => e.stopPropagation()}
                 className="flex gap-4 items-center"
               >
-                <input
+                <Input
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
                   className="rounded-md border border-secondary p-2 text-xl focus:outline-none focus:ring focus:ring-secondary focus:ring-opacity-50"

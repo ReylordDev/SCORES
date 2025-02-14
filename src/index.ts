@@ -13,6 +13,8 @@ import {
   PYTHON_SERVICE_EVENTS,
   OutliersMessage,
   MergersMessage,
+  SETTINGS_SERVICE_EVENTS,
+  AppSettings,
 } from "./lib/models";
 
 // Handle setup events
@@ -20,9 +22,9 @@ if (require("electron-squirrel-startup")) app.quit();
 
 // Initialize core services
 const config = new AppConfig();
-const settingsService = new SettingsService(config);
-const pythonService = new PythonService(config, settingsService);
 const windowManager = new WindowManager(config);
+const settingsService = new SettingsService(config, windowManager);
+const pythonService = new PythonService(config, settingsService);
 
 app.whenReady().then(async () => {
   windowManager.createStartupWindow();
@@ -114,7 +116,17 @@ app.whenReady().then(async () => {
     }
   );
 
-  registerIpcHandlers(settingsService, pythonService, config);
+  settingsService.on(
+    SETTINGS_SERVICE_EVENTS.SETTINGS_CHANGED,
+    (settings: AppSettings) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.SETTINGS.SETTINGS_CHANGED,
+        settings
+      );
+    }
+  );
+
+  registerIpcHandlers(settingsService, pythonService, windowManager, config);
 });
 
 // Quit app

@@ -13,6 +13,7 @@ import {
   ClusterNamePayload,
   OutliersMessage,
   MergersMessage,
+  AppSettings,
 } from "../lib/models";
 import {
   contextBridge,
@@ -58,6 +59,9 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.ELECTRON, {
   },
   openUrl(url) {
     ipcRenderer.send(CHANNELS.ELECTRON.OPEN_URL, url);
+  },
+  setTitleBarMask(mask) {
+    ipcRenderer.send(CHANNELS.ELECTRON.SET_TITLE_BAR_MASK, mask);
   },
 } satisfies Window["electron"]);
 
@@ -175,3 +179,18 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.STATE, {
     ipcRenderer.send(CHANNELS.STATE.RESET_RUN_ID);
   },
 } satisfies Window["state"]);
+
+contextBridge.exposeInMainWorld(CHANNEL_TYPES.SETTINGS, {
+  getAll: () => {
+    return ipcRenderer.invoke(CHANNELS.SETTINGS.GET_ALL);
+  },
+  setDarkMode: (darkMode: boolean) => {
+    ipcRenderer.send(CHANNELS.SETTINGS.SET_DARK_MODE, darkMode);
+  },
+  onSettingsChanged: (callback) => {
+    const listener = (_: IpcRendererEvent, settings: AppSettings) =>
+      callback(settings);
+    ipcRenderer.on(CHANNELS.SETTINGS.SETTINGS_CHANGED, listener);
+    return () => ipcRenderer.off(CHANNELS.SETTINGS.SETTINGS_CHANGED, listener);
+  },
+} satisfies Window["settings"]);

@@ -9,7 +9,38 @@ import ClusterAssignments from "./pages/ClusterAssignments";
 import ClusterSimilarities from "./pages/ClusterSimilarities";
 import Outliers from "./pages/Outliers";
 import Mergers from "./pages/Mergers";
+import { useEffect, useState } from "react";
+import { AppSettings } from "../lib/models";
+
 const App = () => {
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+
+  useEffect(() => {
+    window.settings.getAll().then((settings) => {
+      setSettings(settings);
+      console.log("settings", settings);
+    });
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = window.settings.onSettingsChanged((settings) => {
+      setSettings(settings);
+      console.log("settings changed", settings);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  if (!settings) {
+    return <div>Loading...</div>;
+  }
+
+  if (settings.darkMode) {
+    document.documentElement.classList.add("dark");
+  } else {
+    document.documentElement.classList.remove("dark");
+  }
+
   return (
     <Router>
       <Routes>

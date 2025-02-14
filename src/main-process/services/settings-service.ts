@@ -2,8 +2,9 @@ import fs from "fs";
 import path from "path";
 import { EventEmitter } from "events";
 import { AppConfig } from "../../lib/config";
+import { nativeTheme } from "electron";
 import { AppSettings, SETTINGS_SERVICE_EVENTS } from "../../lib/models";
-
+import { WindowManager } from "../windows/window-manager";
 export const DEFAULT_SETTINGS: AppSettings = {
   darkMode: false,
 };
@@ -12,7 +13,10 @@ export class SettingsService extends EventEmitter {
   private settings: AppSettings;
   private settingsPath: string;
 
-  constructor(private config: AppConfig) {
+  constructor(
+    private config: AppConfig,
+    private windowManager: WindowManager
+  ) {
     super();
     this.settingsPath = path.join(config.dataDir, "settings.json");
     this.settings = this.loadSettings();
@@ -24,7 +28,9 @@ export class SettingsService extends EventEmitter {
         fs.writeFileSync(this.settingsPath, JSON.stringify(DEFAULT_SETTINGS));
         return DEFAULT_SETTINGS;
       }
-      return JSON.parse(fs.readFileSync(this.settingsPath, "utf-8"));
+      const settings = JSON.parse(fs.readFileSync(this.settingsPath, "utf-8"));
+      nativeTheme.themeSource = settings.darkMode ? "dark" : "light";
+      return settings;
     } catch (error) {
       console.error("Error loading settings:", error);
       return DEFAULT_SETTINGS;
@@ -38,5 +44,12 @@ export class SettingsService extends EventEmitter {
 
   get currentSettings(): AppSettings {
     return { ...this.settings };
+  }
+
+  setDarkMode(darkMode: boolean) {
+    this.settings.darkMode = darkMode;
+    nativeTheme.themeSource = darkMode ? "dark" : "light";
+    this.windowManager.setMainWindowTitleBarTheme(darkMode);
+    this.persistSettings();
   }
 }

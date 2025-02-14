@@ -11,6 +11,7 @@ import { _ClusterSimilarityDetail } from "../../lib/models";
 import { TitleBar } from "../../components/TitleBar";
 import { UUID } from "crypto";
 import { iterateRecord } from "../../lib/utils";
+import { Input } from "../../components/ui/input";
 
 const SimilarityVisualizer: React.FC<{
   similarity: number;
@@ -110,9 +111,9 @@ export default function ClusterSimilarities() {
 
     return (
       <div className="flex w-full items-center justify-center gap-4">
-        <div className="flex h-12 w-1/3 items-center gap-2 rounded-md border-2 border-primary bg-white p-2 dark:bg-zinc-900">
+        <div className="flex h-12 w-1/3 items-center gap-2 rounded-md border-2 border-primary bg-white p-2 dark:bg-background-100">
           <TextCursor size={20} className="text-gray-400" />
-          <input
+          <Input
             type="number"
             placeholder="Fix me..."
             className="w-full text-center focus:outline-none"
@@ -120,9 +121,9 @@ export default function ClusterSimilarities() {
         </div>
         <p>or</p>
         <div className="relative flex w-full flex-col gap-1">
-          <div className="flex h-12 items-center gap-2 rounded-md border-2 border-primary bg-white p-2 dark:bg-zinc-900">
+          <div className="flex h-12 items-center gap-2 rounded-md border-2 border-primary bg-white p-2 dark:bg-background-100">
             <Search size={20} className="text-gray-400" />
-            <input
+            <Input
               type="text"
               className="w-full focus:outline-none"
               placeholder="Search by response content..."

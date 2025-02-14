@@ -157,7 +157,7 @@ export default function FilePreview() {
 
   if (!filePath) {
     return (
-      <>
+      <div className="h-screen w-screen">
         <TitleBar index={1} />
         <div
           id="mainContent"
@@ -169,12 +169,12 @@ export default function FilePreview() {
             </h1>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="h-screen w-screen">
       <TitleBar index={1} />
       <div
         id="mainContent"
@@ -310,6 +310,6 @@ export default function FilePreview() {
           </Link>
         </div>
       </div>
-    </>
+    </div>
   );
 }

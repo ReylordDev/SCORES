@@ -11,10 +11,11 @@ import {
 import fs from "fs";
 import { AppConfig } from "../../lib/config";
 import { UUID } from "crypto";
-
+import { WindowManager } from "../windows/window-manager";
 export function registerIpcHandlers(
   settingsService: SettingsService,
   pythonService: PythonService,
+  windowManager: WindowManager,
   config: AppConfig
 ) {
   registerSettingsHandlers(settingsService);
@@ -83,6 +84,10 @@ export function registerIpcHandlers(
 
   ipcMain.on(CHANNELS.ELECTRON.OPEN_URL, (_, url: string) => {
     shell.openExternal(url);
+  });
+
+  ipcMain.on(CHANNELS.ELECTRON.SET_TITLE_BAR_MASK, (_, mask: boolean) => {
+    windowManager.setMainWindowTitleBarMask(mask);
   });
 
   ipcMain.on(CHANNELS.DATABASE.ALL_RUNS_REQUEST, () => {

@@ -1,6 +1,17 @@
+import { Button } from "./ui/button";
 import { Settings, Undo } from "lucide-react";
-import { useState } from "react";
 import { Link } from "react-router";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
+import { Switch } from "./ui/switch";
+import { AppSettings } from "../lib/models";
+import { useEffect, useState } from "react";
 
 const routes = [
   "",
@@ -12,12 +23,18 @@ const routes = [
 ];
 
 export function TitleBar({ index }: { index: number }) {
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settings, setSettings] = useState<AppSettings | null>(null);
+
+  useEffect(() => {
+    window.settings.getAll().then((settings) => {
+      setSettings(settings);
+    });
+  }, []);
 
   return (
     <div
       id="titleBarContainer"
-      className="dark:dark absolute z-30 w-full bg-background text-text"
+      className="absolute z-30 w-full bg-background text-text"
     >
       <div
         id="titleBar"
@@ -127,22 +144,35 @@ export function TitleBar({ index }: { index: number }) {
           </div>
         </div>
         <div id="settings" className="flex items-center">
-          <button onClick={() => setIsSettingsOpen(true)}>
-            <Settings size={28} />
-          </button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost">
+                <Settings size={28} className="text-text" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="text-text text-3xl">
+                  Settings
+                </DialogTitle>
+                <DialogDescription></DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-text">Dark Mode</p>
+                  <Switch
+                    checked={settings?.darkMode}
+                    onCheckedChange={(checked) => {
+                      window.settings.setDarkMode(checked);
+                      setSettings({ ...settings, darkMode: checked });
+                    }}
+                  />
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
         <div></div>
-        {/* <div className="flex items-center gap-4">
-          <button onClick={window.control.minimize}>
-            <Minus size={28} />
-          </button>
-          <button onClick={window.control.maximize}>
-            <Square size={28} />
-          </button>
-          <button onClick={window.control.close}>
-            <X size={28} />
-          </button>
-        </div> */}
       </div>
     </div>
   );

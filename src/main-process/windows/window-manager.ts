@@ -10,9 +10,16 @@ declare const STARTUP_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 export class WindowManager {
   private mainWindow: BrowserWindow;
   private startupWindow: BrowserWindow;
+  private darkMode = false;
+  private titleBarMask = false;
 
   constructor(private config: AppConfig) {}
 
+  private readonly lightModeHex = "#f8f4fd";
+  private readonly darkModeHex = "#07020d";
+  private readonly maskedLightModeHex = "#323133";
+  private readonly maskedDarkModeHex = "#010003";
+  private readonly titleBarHeight = 60;
   createMainWindow() {
     const mainWindow = new BrowserWindow({
       width: 1440,
@@ -20,10 +27,12 @@ export class WindowManager {
       titleBarStyle: "hidden",
       titleBarOverlay: {
         color: nativeTheme.shouldUseDarkColors
-          ? "rgba(0,0,0,0)"
-          : "rgba(255,255,255,0)",
-        symbolColor: nativeTheme.shouldUseDarkColors ? "#eddcf9" : "#160622",
-        height: 60,
+          ? this.darkModeHex
+          : this.lightModeHex,
+        symbolColor: nativeTheme.shouldUseDarkColors
+          ? this.lightModeHex
+          : this.darkModeHex,
+        height: this.titleBarHeight,
       },
       icon: path.join(this.config.rootDir, "assets", "icons", "icon.png"),
       useContentSize: true,
@@ -34,6 +43,32 @@ export class WindowManager {
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
     this.mainWindow = mainWindow;
+  }
+
+  private styleMainWindowTitleBar() {
+    if (this.titleBarMask) {
+      this.mainWindow.setTitleBarOverlay({
+        color: this.darkMode ? this.maskedDarkModeHex : this.maskedLightModeHex,
+        symbolColor: this.darkMode
+          ? this.maskedLightModeHex
+          : this.maskedDarkModeHex,
+      });
+    } else {
+      this.mainWindow.setTitleBarOverlay({
+        color: this.darkMode ? this.darkModeHex : this.lightModeHex,
+        symbolColor: this.darkMode ? this.lightModeHex : this.darkModeHex,
+      });
+    }
+  }
+
+  setMainWindowTitleBarTheme(darkMode: boolean) {
+    this.darkMode = darkMode;
+    this.styleMainWindowTitleBar();
+  }
+
+  setMainWindowTitleBarMask(mask: boolean) {
+    this.titleBarMask = mask;
+    this.styleMainWindowTitleBar();
   }
 
   createStartupWindow() {

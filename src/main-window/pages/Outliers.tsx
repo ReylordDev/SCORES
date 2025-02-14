@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
-import { AlertCircle, ChevronUp, ChevronDown } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { _OutlierDetail } from "../../lib/models";
 import { TitleBar } from "../../components/TitleBar";
-import { cn } from "../../lib/utils";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
 
 const OutlierCard = ({
   outlier,
@@ -11,76 +16,50 @@ const OutlierCard = ({
   outlier: _OutlierDetail;
   threshold: number;
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const precision = 2;
 
-  // This is awkward because sometimes we show the option to expand the text even if there is nothing to expand
-  // TODO: Refactor this to be more elegant
-  const shouldTruncate = outlier.response.text.length > 200;
-
   return (
-    <div className="rounded-lg border bg-white p-4 shadow-md dark:bg-zinc-900">
-      <div className="flex items-start space-x-3">
-        <AlertCircle className="mt-0.5 flex-shrink-0 text-accent" size={20} />
-        <div className="flex-grow">
-          <p
-            className={cn(
-              "px-2",
-              shouldTruncate && !isExpanded && "line-clamp-2"
-            )}
-          >
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-4">
+          <AlertCircle className="text-accent" size={24} />
+          <CardTitle className="text-lg text-text font-semibold">
             "{outlier.response.text}"
+          </CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="flex justify-between px-2">
+          <p>
+            Similarity:{" "}
+            <span className="font-semibold">
+              {(outlier.similarity * 100).toFixed(precision)}%
+            </span>
           </p>
-          {shouldTruncate && (
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="mt-1 flex items-center text-sm text-blue-500"
-            >
-              {isExpanded ? (
-                <>
-                  <ChevronUp size={16} />
-                  <span>Show less</span>
-                </>
-              ) : (
-                <>
-                  <ChevronDown size={16} />
-                  <span>Read more</span>
-                </>
-              )}
-            </button>
-          )}
-          <div className="mt-2 flex justify-between px-2 text-sm">
-            <p>
-              Similarity:{" "}
-              <span className="font-semibold">
-                {(outlier.similarity * 100).toFixed(precision)}%
-              </span>
-            </p>
-            <p style={{ width: `${100 - threshold * 100}%` }}>
-              Threshold:{" "}
-              <span className="font-semibold">
-                {(threshold * 100).toFixed(precision)}%
-              </span>
-            </p>
-          </div>
-          <div className="mt-2 h-2.5 w-full rounded-full bg-gray-200">
+          <p style={{ width: `${100 - threshold * 100}%` }}>
+            Threshold:{" "}
+            <span className="font-semibold">
+              {(threshold * 100).toFixed(precision)}%
+            </span>
+          </p>
+        </div>
+        <div className="mt-2 h-2.5 w-full rounded-full bg-gray-200 dark:bg-background-100">
+          <div
+            className="h-2.5 rounded-full bg-yellow-400"
+            style={{
+              width: `${threshold * 100}%`,
+            }}
+          >
             <div
-              className="h-2.5 rounded-full bg-yellow-400"
+              className="h-2.5 rounded-full bg-accent"
               style={{
-                width: `${threshold * 100}%`,
+                width: `${(outlier.similarity / threshold) * 100}%`,
               }}
-            >
-              <div
-                className="h-2.5 rounded-full bg-accent"
-                style={{
-                  width: `${(outlier.similarity / threshold) * 100}%`,
-                }}
-              ></div>
-            </div>
+            ></div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
