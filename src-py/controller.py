@@ -125,6 +125,7 @@ class Controller:
                                 id=cluster.id,
                                 name=cluster.name,
                                 responses=cluster.responses,
+                                count=cluster.count,
                             )
                             for cluster in self.database_manager.get_clusters(
                                 session, run_id
@@ -147,6 +148,7 @@ class Controller:
                                 name=cluster.name,
                                 responses=cluster.responses,
                                 similarity_pairs=cluster.similarity_pairs,
+                                count=cluster.count,
                             )
                             for cluster in self.database_manager.get_cluster_similarities(
                                 session, run_id
@@ -215,6 +217,7 @@ class Controller:
                                         id=cluster.id,
                                         name=cluster.name,
                                         responses=cluster.responses,
+                                        count=cluster.count,
                                     )
                                     for cluster in merger.clusters
                                 ],

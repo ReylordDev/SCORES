@@ -107,6 +107,7 @@ class ClusterAssignmentsMessage(BaseModel):
         id: uuid.UUID
         name: str
         responses: list["Response"]
+        count: int
 
     clusters: list[ClusterAssignmentDetail]
 
@@ -117,6 +118,7 @@ class ClusterSimilaritiesMessage(BaseModel):
         name: str
         responses: list["Response"]
         similarity_pairs: dict[uuid.UUID, float]
+        count: int
 
     clusters: list[ClusterSimilarityDetail]
 
@@ -137,6 +139,7 @@ class MergersMessage(BaseModel):
             id: uuid.UUID
             name: str
             responses: list["Response"]
+            count: int
 
         id: uuid.UUID
         name: str
@@ -303,7 +306,7 @@ class Cluster(SQLModel, table=True):
     @computed_field
     @property
     def count(self) -> int:
-        return len(self.responses)
+        return sum(response.count for response in self.responses)
 
     def similarity_to_response(
         self, response: Response, embeddings_map: dict[str, np.ndarray]

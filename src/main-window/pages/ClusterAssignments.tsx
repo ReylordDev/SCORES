@@ -42,8 +42,6 @@ function ClusterAssignment({
     setIsEditing(false);
   };
 
-  console.log(`ClusterAssignment: ${cluster.id}`);
-
   return (
     <Card
       onClick={() => handleClusterClick(cluster.id)}
@@ -87,9 +85,7 @@ function ClusterAssignment({
                 </button>
               </div>
             )}
-            <CardDescription>
-              {cluster.responses.length} responses
-            </CardDescription>
+            <CardDescription>{cluster.count} responses</CardDescription>
           </div>
           {isExpanded ? (
             <ChevronUp className="text-primary" size={32} />
@@ -147,6 +143,11 @@ function ClusterAssignment({
                   )}
                   "
                 </p>
+                {response.count > 1 && (
+                  <p className="text-sm text-muted-foreground">
+                    {response.count} occurences
+                  </p>
+                )}
               </div>
               <div className="flex justify-between items-end gap-4 w-full">
                 <div className="flex flex-col gap-1 w-full">
@@ -164,14 +165,14 @@ function ClusterAssignment({
               </div>
             </div>
           ))}
-          {cluster.responses.length > previewCount && (
+          {cluster.count > previewCount && (
             <div
               className="flex items-center justify-center p-4 cursor-default"
               onClick={(e) => e.stopPropagation()}
             >
               <Button onClick={() => setPreviewCount(previewCount + 25)}>
-                + {cluster.responses.length - previewCount} more responses in
-                the assignments file
+                + {cluster.count - previewCount} more responses in the
+                assignments file
               </Button>
             </div>
           )}
@@ -227,18 +228,6 @@ export default function ClusterAssignments() {
     );
   };
 
-  const matchingResponsesCount = useMemo(
-    () => calculateMatchingResponsesCount(),
-    [clusters]
-  );
-  function calculateMatchingResponsesCount() {
-    let count = 0;
-    clusters.forEach((cluster) => {
-      count += cluster.responses.length;
-    });
-    return count;
-  }
-
   return (
     <div className="w-screen h-screen">
       <TitleBar index={5} />
@@ -265,7 +254,11 @@ export default function ClusterAssignments() {
             <p className="px-4 text-xl">{previewClusters.length} Clusters</p>
             {searchTerm && (
               <p className="px-4 text-xl">
-                {matchingResponsesCount} matching responses
+                {previewClusters.reduce(
+                  (acc, cluster) => acc + cluster.count,
+                  0
+                )}
+                matching responses
               </p>
             )}
           </div>

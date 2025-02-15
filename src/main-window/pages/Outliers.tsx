@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
-import { _OutlierDetail } from "../../lib/models";
+import { _OutlierDetail, AlgorithmSettings } from "../../lib/models";
 import { TitleBar } from "../../components/TitleBar";
 import {
   Card,
@@ -67,8 +67,8 @@ export default function Outliers() {
   const [outliers, setOutliers] = useState<_OutlierDetail[]>([]);
   const [outlierThreshold, setOutlierThreshold] = useState<number | null>(null);
 
-  const nearestNeighbors = 5;
-  const zScoreThreshold = 1.5;
+  const [nearestNeighbors, setNearestNeighbors] = useState<number | null>(null);
+  const [zScoreThreshold, setZScoreThreshold] = useState<number | null>(null);
 
   useEffect(() => {
     const unsubscribe = window.database.onReceiveCurrentOutliers(
@@ -86,6 +86,25 @@ export default function Outliers() {
     window.database.requestCurrentOutliers();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = window.database.onReceiveCurrentRun(({ run }) => {
+      if (run) {
+        const settings = JSON.parse(
+          run.algorithm_settings
+        ) as AlgorithmSettings;
+
+        setNearestNeighbors(settings.outlier_detection?.nearest_neighbors);
+        setZScoreThreshold(settings.outlier_detection?.z_score_threshold);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    window.database.requestCurrentRun();
+  }, []);
+
   return (
     <div className="w-screen h-screen">
       <TitleBar index={5} />
@@ -97,7 +116,7 @@ export default function Outliers() {
           <h1 className="text-4xl">Response Outliers</h1>
         </div>
         <div>
-          <p text-lg>
+          <p className="text-lg">
             Displaying <span className="font-semibold">{outliers.length}</span>{" "}
             outlier responses.
           </p>

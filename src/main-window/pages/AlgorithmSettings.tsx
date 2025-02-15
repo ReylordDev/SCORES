@@ -332,7 +332,9 @@ export default function AlgorithmSettings() {
                   type="number"
                   min={0}
                   step={0.01}
-                  value={similarityThreshold || ""}
+                  value={
+                    similarityThreshold === 0 ? 0 : similarityThreshold || ""
+                  }
                   onChange={(e) =>
                     setSimilarityThreshold(e.target.valueAsNumber)
                   }

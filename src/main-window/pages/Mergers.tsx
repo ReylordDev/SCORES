@@ -61,10 +61,11 @@ function MergedCluster({
                   <p className="line-clamp-2 bg-background px-2">
                     "{response.text}"
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    {response.count}{" "}
-                    {response.count === 1 ? "response" : "responses"}
-                  </p>
+                  {response.count > 1 && (
+                    <p className="text-sm text-muted-foreground">
+                      {response.count} occurences
+                    </p>
+                  )}
                 </div>
                 <div className="flex justify-between items-end gap-4 w-full">
                   <div className="flex flex-col gap-1 w-full">

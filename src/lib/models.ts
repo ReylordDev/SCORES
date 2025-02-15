@@ -71,6 +71,7 @@ export interface _ClusterAssignmentDetail {
   index: number;
   name: string;
   responses: Response[];
+  count: number;
 }
 
 export interface ClusterAssignmentsMessage {
@@ -83,6 +84,7 @@ export interface _ClusterSimilarityDetail {
   name: string;
   responses: Response[];
   similarity_pairs: Record<UUID, number>;
+  count: number;
 }
 
 export interface ClusterSimilaritiesMessage {
@@ -106,6 +108,7 @@ export interface _ClusterMergerDetail {
   index: number;
   name: string;
   responses: Response[];
+  count: number;
 }
 
 export interface _MergerDetail {
