@@ -35,6 +35,10 @@ export function registerIpcHandlers(
     });
   });
 
+  ipcMain.handle(CHANNELS.FILE.EXAMPLE_FILE_PATH, async () => {
+    return config.dataDir + "/example_data/example.csv";
+  });
+
   ipcMain.on(CHANNELS.FILE.SET_SETTINGS, (_, settings: FileSettings) => {
     pythonService.sendCommand({
       action: "set_file_settings",

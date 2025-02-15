@@ -44,14 +44,18 @@ import {
 import { UUID } from "crypto";
 import { Input } from "../../components/ui/input";
 
-function FileSelector({ selectFile }: { selectFile: (path: string) => void }) {
+function FileSelector({
+  handleFileSelection,
+}: {
+  handleFileSelection: (path: string) => void;
+}) {
   const checkFiles = (files: FileList | null) => {
     if (files) {
       const file = files[0];
       if (file && file.size > 0 && file.type === "text/csv") {
         console.log("File selected: ", file);
         const path = window.electron.showFilePath(file);
-        selectFile(path);
+        handleFileSelection(path);
       }
     }
   };
@@ -272,6 +276,11 @@ export default function FileSelection() {
     navigate("/file_preview");
   };
 
+  const handleExampleFileSelection = async () => {
+    const path = await window.file.getExampleFilePath();
+    handleFileSelection(path);
+  };
+
   return (
     <div className="h-screen w-screen">
       <TitleBar index={0} />
@@ -293,7 +302,7 @@ export default function FileSelection() {
           <p>Analyze your open-ended survey responses with ease.</p>
         </div>
         <div className="mb-8 flex h-full items-center justify-between">
-          <FileSelector selectFile={handleFileSelection} />
+          <FileSelector handleFileSelection={handleFileSelection} />
           <div className="flex h-full flex-col items-center justify-start gap-8 p-4 text-center xl:p-12 w-1/2">
             <div className="flex flex-col items-center justify-center gap-2">
               <h5>Start by selecting an input file.</h5>
@@ -307,7 +316,11 @@ export default function FileSelection() {
                 </p>
                 <TooltipWrapper
                   wrappedContent={
-                    <Button variant="secondary" size="lg">
+                    <Button
+                      variant="secondary"
+                      size="lg"
+                      onClick={handleExampleFileSelection}
+                    >
                       <FileText /> Select Example File
                     </Button>
                   }

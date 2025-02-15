@@ -39,6 +39,9 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.FILE, {
   setSettings: (settings) => {
     ipcRenderer.send(CHANNELS.FILE.SET_SETTINGS, settings);
   },
+  getExampleFilePath: () => {
+    return ipcRenderer.invoke(CHANNELS.FILE.EXAMPLE_FILE_PATH);
+  },
 } satisfies Window["file"]);
 
 contextBridge.exposeInMainWorld(CHANNEL_TYPES.ELECTRON, {

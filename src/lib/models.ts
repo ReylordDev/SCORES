@@ -344,6 +344,7 @@ declare global {
       requestPath: () => void;
       onReceivePath: (callback: (path: string) => void) => () => void;
       setSettings: (settings: FileSettings) => void;
+      getExampleFilePath: () => Promise<string>;
     };
     algorithm: {
       setSettings: (settings: AlgorithmSettings) => void;
@@ -417,6 +418,7 @@ export const CHANNELS = {
     PATH_REQUEST: "file:get-path",
     PATH_RESPONSE: "file:path",
     SET_SETTINGS: "file:set-settings",
+    EXAMPLE_FILE_PATH: "file:example-file-path",
   },
   ALGORITHM: {
     SET_SETTINGS: "algorithm:set-settings",
