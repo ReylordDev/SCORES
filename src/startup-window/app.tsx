@@ -4,10 +4,9 @@ const App = () => {
   return (
     <div className="h-screen w-screen flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
-        <div className="animate-pulse">
+        <div className="animate-spin-slow size-44">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="size-10"
             viewBox="0 0 24 24"
             fill="none"
             stroke="#f9f4fd"

@@ -407,3 +407,7 @@ body {
     "rlig" 1,
     "calt" 1;
 }
+
+.animate-spin-slow {
+  animation: spin 2s linear infinite;
+}

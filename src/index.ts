@@ -30,7 +30,7 @@ app.whenReady().then(async () => {
   consoleLog("App ready");
   windowManager.createStartupWindow();
 
-  await pythonService.initialize();
+  // await pythonService.initialize();
 
   pythonService.on(PYTHON_SERVICE_EVENTS.READY, () => {
     windowManager.closeStartupWindow();
