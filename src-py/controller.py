@@ -75,6 +75,7 @@ class Controller:
                 )
                 self.app_state.set_run_id(run.id)
                 self.database_manager.create_output_file(run)
+                self.database_manager.create_assignments_file(run)
                 self.database_manager.save_run(session, run, result.timesteps)
 
         elif command.action == "set_run_id":

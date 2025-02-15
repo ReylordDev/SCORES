@@ -158,6 +158,43 @@ class DatabaseManager:
             else:
                 writer.writerows(rows)
 
+    def create_assignments_file(self, run: Run):
+        if not run.result:
+            raise ValueError("Run result is empty")
+
+        file_settings = FileSettings.model_validate_json(run.file_settings)
+        clusters = run.result.clusters
+
+        with open(run.assignments_file_path, "w", encoding="utf-8") as f:
+            writer = csv.writer(
+                f, delimiter=file_settings.delimiter, lineterminator="\n"
+            )
+            writer.writerow(
+                [
+                    "response_id",
+                    "response_text",
+                    "cluster_id",
+                    "cluster_name",
+                    "response_similarity",
+                ]
+            )
+            for cluster in clusters:
+                sorted_responses = sorted(
+                    cluster.responses,
+                    key=lambda x: x.similarity if x.similarity is not None else 0,
+                    reverse=True,
+                )
+                for response in sorted_responses:
+                    writer.writerow(
+                        [
+                            response.id.hex,
+                            response.text,
+                            cluster.id.hex,
+                            cluster.name,
+                            response.similarity,
+                        ]
+                    )
+
 
 if __name__ == "__main__":
     db_manager = DatabaseManager()

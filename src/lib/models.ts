@@ -295,6 +295,7 @@ export interface Run {
   name: string;
   file_path: string;
   output_file_path: string;
+  assignments_file_path: string;
   created_at: number;
   file_settings: string; // FileSettings;
   algorithm_settings: string; //AlgorithmSettings;

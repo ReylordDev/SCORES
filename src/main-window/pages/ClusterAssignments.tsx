@@ -186,6 +186,7 @@ export default function ClusterAssignments() {
   const [expandedClusters, setExpandedClusters] = useState<UUID[]>([]);
   const [clusters, setClusters] = useState<_ClusterAssignmentDetail[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [assignmentsFilePath, setAssignmentsFilePath] = useState("");
   const filteredClusters = useMemo(() => {
     if (!searchTerm) return null;
     const lowerSearchTerm = searchTerm.toLowerCase();
@@ -220,6 +221,18 @@ export default function ClusterAssignments() {
     window.database.requestCurrentClusterAssignments();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = window.database.onReceiveCurrentRun((currentRun) => {
+      setAssignmentsFilePath(currentRun.run.assignments_file_path);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    window.database.requestCurrentRun();
+  }, []);
+
   const toggleCluster = (clusterId: UUID) => {
     setExpandedClusters((prev) =>
       prev.includes(clusterId)
@@ -238,7 +251,11 @@ export default function ClusterAssignments() {
         <div className="flex items-center justify-between">
           <h1 className="text-4xl">Cluster Assignments</h1>
           <div className="flex flex-col items-center justify-center gap-2">
-            <Button onClick={() => console.log("Viewing assignments file")}>
+            <Button
+              onClick={() => {
+                window.electron.showItemInFolder(assignmentsFilePath);
+              }}
+            >
               <List />
               View Assignments File
             </Button>

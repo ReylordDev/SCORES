@@ -448,3 +448,11 @@ class Run(SQLModel, table=True):
         os.makedirs(results_dir, exist_ok=True)
         output_file_path = f"{results_dir}/output.csv"
         return output_file_path
+
+    @computed_field
+    @property
+    def assignments_file_path(self) -> str:
+        results_dir = f"{get_user_data_path()}/results/{self.id}"
+        os.makedirs(results_dir, exist_ok=True)
+        assignments_file_path = f"{results_dir}/assignments.csv"
+        return assignments_file_path
