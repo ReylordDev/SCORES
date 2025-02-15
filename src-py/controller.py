@@ -124,6 +124,7 @@ class Controller:
                         clusters=[
                             ClusterAssignmentsMessage.ClusterAssignmentDetail(
                                 id=cluster.id,
+                                index=cluster.index,
                                 name=cluster.name,
                                 responses=cluster.responses,
                                 count=cluster.count,
@@ -147,7 +148,9 @@ class Controller:
                         clusters=[
                             ClusterSimilaritiesMessage.ClusterSimilarityDetail(
                                 id=cluster.id,
+                                index=cluster.index,
                                 name=cluster.name,
+                                is_merger_result=cluster.is_merger_result,
                                 responses=cluster.responses,
                                 similarity_pairs=cluster.similarity_pairs,
                                 count=cluster.count,

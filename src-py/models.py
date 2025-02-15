@@ -105,6 +105,7 @@ class CurrentRunMessage(BaseModel):
 class ClusterAssignmentsMessage(BaseModel):
     class ClusterAssignmentDetail(BaseModel):
         id: uuid.UUID
+        index: int
         name: str
         responses: list["Response"]
         count: int
@@ -116,10 +117,12 @@ class ClusterAssignmentsMessage(BaseModel):
 class ClusterSimilaritiesMessage(BaseModel):
     class ClusterSimilarityDetail(BaseModel):
         id: uuid.UUID
+        index: int
         name: str
         responses: list["Response"]
         similarity_pairs: dict[uuid.UUID, float]
         count: int
+        is_merger_result: bool
 
     clusters: list[ClusterSimilarityDetail]
 

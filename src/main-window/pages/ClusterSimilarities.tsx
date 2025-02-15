@@ -1,17 +1,38 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   ChevronDown,
   ChevronUp,
   Info,
-  Search,
-  TextCursor,
   AlertCircle,
+  GitMerge,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { _ClusterSimilarityDetail } from "../../lib/models";
 import { TitleBar } from "../../components/TitleBar";
 import { UUID } from "crypto";
-import { iterateRecord } from "../../lib/utils";
+import { iterateRecord, cn } from "../../lib/utils";
 import { Input } from "../../components/ui/input";
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  CardTitle,
+  CardDescription,
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "../../components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../components/ui/popover";
 
 const SimilarityVisualizer: React.FC<{
   similarity: number;
@@ -29,19 +50,16 @@ const SimilarityVisualizer: React.FC<{
 
 export default function ClusterSimilarities() {
   const [clusters, setClusters] = useState<_ClusterSimilarityDetail[]>([]);
-  const [selectedClusterId, setSelectedClusterId] = useState<UUID | null>(null);
-  const [comparisonClusterId, setComparisonClusterId] = useState<UUID | null>(
-    null
-  );
+  const [selectedCluster, setSelectedCluster] =
+    useState<_ClusterSimilarityDetail | null>(null);
+  const [comparisonCluster, setComparisonCluster] =
+    useState<_ClusterSimilarityDetail | null>(null);
   const [selectedClusterExpanded, setSelectedClusterExpanded] = useState(false);
   const [comparisonClusterExpanded, setComparisonClusterExpanded] =
     useState(false);
   const [expandedSimilarClusters, setExpandedSimilarClusters] = useState<
     UUID[]
   >([]);
-
-  const selectedCluster = clusters.find((c) => c.id === selectedClusterId);
-  const comparisonCluster = clusters.find((c) => c.id === comparisonClusterId);
 
   console.log(clusters);
 
@@ -95,297 +113,6 @@ export default function ClusterSimilarities() {
     return cluster1.similarity_pairs[clusterId2] || 0;
   }
 
-  const MainClusterSelector = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [showDropdown, setShowDropdown] = useState(false);
-
-    const filteredClusters = useMemo(() => {
-      if (!searchTerm) return [];
-      const lowerSearchTerm = searchTerm.toLowerCase();
-      return clusters.filter((cluster) =>
-        cluster.responses.some((response) =>
-          response.text.toLowerCase().includes(lowerSearchTerm)
-        )
-      );
-    }, [searchTerm]);
-
-    return (
-      <div className="flex w-full items-center justify-center gap-4">
-        <div className="flex h-12 w-1/3 items-center gap-2 rounded-md border-2 border-primary bg-white p-2 dark:bg-background-100">
-          <TextCursor size={20} className="text-gray-400" />
-          <Input
-            type="number"
-            placeholder="Fix me..."
-            className="w-full text-center focus:outline-none"
-          />
-        </div>
-        <p>or</p>
-        <div className="relative flex w-full flex-col gap-1">
-          <div className="flex h-12 items-center gap-2 rounded-md border-2 border-primary bg-white p-2 dark:bg-background-100">
-            <Search size={20} className="text-gray-400" />
-            <Input
-              type="text"
-              className="w-full focus:outline-none"
-              placeholder="Search by response content..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onFocus={() => setShowDropdown(true)}
-            />
-          </div>
-          {showDropdown &&
-            filteredClusters.length > 0 &&
-            searchTerm.length > 1 && (
-              <ul className="scrollbar absolute z-30 mt-12 max-h-96 w-96 overflow-auto rounded-md border border-primary bg-white shadow-lg dark:bg-zinc-900">
-                {filteredClusters.map((cluster) => (
-                  <li
-                    key={cluster.id}
-                    className="cursor-pointer p-2 hover:bg-gray-100"
-                    onClick={() => setSelectedClusterId(cluster.id)}
-                  >
-                    <span className="font-medium">{cluster.name}</span>
-                    <ul className="mt-1 space-y-1">
-                      {cluster.responses.map((response, index) => (
-                        <li
-                          key={index}
-                          className="text-ellipsis text-sm text-gray-600"
-                        >
-                          {response.text
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase()) ? (
-                            <>
-                              <div
-                                style={{
-                                  display:
-                                    index > 4 && cluster.responses.length > 5
-                                      ? "block"
-                                      : "none",
-                                }}
-                              >
-                                <span>
-                                  ... <br></br>
-                                </span>
-                              </div>
-                              <span>
-                                "
-                                {response.text.slice(
-                                  0,
-                                  response.text
-                                    .toLowerCase()
-                                    .indexOf(searchTerm.toLowerCase())
-                                )}
-                              </span>
-                              <span className="font-bold text-primary">
-                                {response.text.slice(
-                                  response.text
-                                    .toLowerCase()
-                                    .indexOf(searchTerm.toLowerCase()),
-                                  response.text
-                                    .toLowerCase()
-                                    .indexOf(searchTerm.toLowerCase()) +
-                                    searchTerm.length
-                                )}
-                              </span>
-                              <span>
-                                {response.text.slice(
-                                  response.text
-                                    .toLowerCase()
-                                    .indexOf(searchTerm.toLowerCase()) +
-                                    searchTerm.length
-                                )}
-                                "
-                              </span>
-                            </>
-                          ) : index > 4 ? (
-                            <></>
-                          ) : (
-                            <span>"{response.text}"</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-            )}
-        </div>
-      </div>
-    );
-  };
-
-  const ComparisonClusterSelector = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [showDropdown, setShowDropdown] = useState(false);
-
-    const filteredClusters = useMemo(() => {
-      if (!searchTerm) return [];
-      const lowerSearchTerm = searchTerm.toLowerCase();
-      return clusters.filter((cluster) => {
-        if (cluster.id === selectedClusterId) return false;
-        return cluster.responses.some((response) =>
-          response.text.toLowerCase().includes(lowerSearchTerm)
-        );
-      });
-    }, [searchTerm]);
-
-    if (selectedClusterId === null) return null;
-
-    return (
-      <div className="flex w-full items-center justify-center gap-4">
-        <div className="flex h-12 w-1/3 items-center gap-2 rounded-md border-2 border-primary bg-white p-2 dark:bg-zinc-900">
-          <TextCursor size={20} className="text-gray-400" />
-          <input
-            type="number"
-            placeholder="Fix Me..."
-            className="w-full text-center focus:outline-none"
-          />
-        </div>
-        <p>or</p>
-        <div className="relative flex w-full flex-col gap-1">
-          <div className="flex h-12 items-center gap-2 rounded-md border-2 border-primary bg-white p-2 dark:bg-zinc-900">
-            <Search size={20} className="text-gray-400" />
-            <input
-              type="text"
-              className="w-full focus:outline-none"
-              placeholder="Search by response content..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onFocus={() => setShowDropdown(true)}
-            />
-          </div>
-          {showDropdown &&
-            filteredClusters.length > 0 &&
-            searchTerm.length > 1 && (
-              <ul className="scrollbar absolute z-20 mt-12 max-h-96 w-96 overflow-auto rounded-md border border-primary bg-white shadow-lg dark:bg-zinc-900">
-                {filteredClusters.map((cluster) => (
-                  <li
-                    key={cluster.id}
-                    className="cursor-pointer p-2 hover:bg-gray-100"
-                    onClick={() => {
-                      if (cluster.id === selectedClusterId) return;
-                      setComparisonClusterId(cluster.id);
-                    }}
-                  >
-                    <span className="font-medium">{cluster.name}</span>
-                    <ul className="mt-1 space-y-1">
-                      {cluster.responses.map((response, index) => (
-                        <li
-                          key={index}
-                          className="text-ellipsis text-sm text-gray-600"
-                        >
-                          {response.text
-                            .toLowerCase()
-                            .includes(searchTerm.toLowerCase()) ? (
-                            <>
-                              <div
-                                style={{
-                                  display:
-                                    index > 4 && cluster.responses.length > 5
-                                      ? "block"
-                                      : "none",
-                                }}
-                              >
-                                <span>
-                                  ... <br></br>
-                                </span>
-                              </div>
-                              <span>
-                                "
-                                {response.text.slice(
-                                  0,
-                                  response.text
-                                    .toLowerCase()
-                                    .indexOf(searchTerm.toLowerCase())
-                                )}
-                              </span>
-                              <span className="font-bold text-primary">
-                                {response.text.slice(
-                                  response.text
-                                    .toLowerCase()
-                                    .indexOf(searchTerm.toLowerCase()),
-                                  response.text
-                                    .toLowerCase()
-                                    .indexOf(searchTerm.toLowerCase()) +
-                                    searchTerm.length
-                                )}
-                              </span>
-                              <span>
-                                {response.text.slice(
-                                  response.text
-                                    .toLowerCase()
-                                    .indexOf(searchTerm.toLowerCase()) +
-                                    searchTerm.length
-                                )}
-                                "
-                              </span>
-                            </>
-                          ) : index > 4 ? (
-                            <></>
-                          ) : (
-                            <span>"{response.text}"</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))}
-              </ul>
-            )}
-        </div>
-      </div>
-    );
-  };
-
-  const SimilarClustersList = ({ clusterId }: { clusterId: UUID }) => {
-    const similarClusters = getMostSimilarClusters(clusterId);
-    console.log("Similar Clusters: ", similarClusters);
-
-    return (
-      <div className="mt-4 flex flex-col gap-2">
-        <h5 className="mb-2 font-medium">
-          {similarClusters.length} Most Similar Clusters:
-        </h5>
-        {similarClusters.map((otherCluster) => (
-          <div
-            key={otherCluster.id}
-            className="rounded bg-white shadow-sm hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800"
-          >
-            <div
-              className="flex cursor-pointer items-center justify-between p-4"
-              onClick={() =>
-                setExpandedSimilarClusters((prev) =>
-                  prev.includes(otherCluster.id)
-                    ? prev.filter((id) => id !== otherCluster.id)
-                    : [...prev, otherCluster.id]
-                )
-              }
-            >
-              <span className="w-28">{otherCluster.name}</span>
-              <div className="flex flex-grow items-center">
-                <SimilarityVisualizer
-                  primary={true}
-                  similarity={otherCluster.similarity}
-                />
-                <div className="flex w-28 items-center justify-end gap-2">
-                  <span>{(otherCluster.similarity * 100).toFixed(2)}%</span>
-                  <button className="focus:outline-none">
-                    {expandedSimilarClusters.includes(otherCluster.id) ? (
-                      <ChevronUp size={20} className="text-secondary" />
-                    ) : (
-                      <ChevronDown size={20} className="text-secondary" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-            {expandedSimilarClusters.includes(otherCluster.id) && (
-              <ClusterDetails cluster={otherCluster} />
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="w-screen h-screen">
       <TitleBar index={5} />
@@ -393,115 +120,120 @@ export default function ClusterSimilarities() {
         id="mainContent"
         className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"
       >
-        <div>
-          <div className="border-b p-6 pb-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-3xl font-semibold">Cluster Similarities</h2>
-            </div>
-            <div className="mt-1 flex items-center px-1">
-              <Info size={16} className="mr-2" />
-              <p>Select a cluster to view details and compare similarities.</p>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-4xl">Cluster Similarities</h1>
+          <div className="flex items-center px-1">
+            <Info size={16} className="mr-2" />
+            <p>Select a cluster to view details and compare similarities.</p>
+          </div>
+        </div>
+        <div className="scrollbar pr-4 flex flex-grow flex-col gap-4 overflow-y-auto pt-0">
+          <div className="flex flex-col justify-start gap-1 px-4 pb-2">
+            <h5 className="font-medium">Select a cluster:</h5>
+            <div className="flex items-center justify-between gap-4">
+              <ClusterSelector
+                clusters={clusters}
+                setSelectedCluster={setSelectedCluster}
+              />
             </div>
           </div>
-          <div className="scrollbar h-[70vh] flex-grow overflow-y-auto p-6">
-            <div className="flex flex-col justify-start gap-1 px-4 pb-2">
-              <h5 className="font-medium">Select a cluster:</h5>
-              <MainClusterSelector />
-            </div>
-            {selectedClusterId !== null && (
+          {selectedCluster && (
+            <div className="flex flex-col gap-4 px-4">
+              <ClusterDetails
+                cluster={selectedCluster}
+                handleClusterClick={() =>
+                  setSelectedClusterExpanded(!selectedClusterExpanded)
+                }
+                isExpanded={selectedClusterExpanded}
+              />
+              <div>
+                <div className="p-4">
+                  <h5 className="mb-2 font-medium">
+                    Compare with another cluster:
+                  </h5>
+                  <ClusterSelector
+                    clusters={clusters}
+                    setSelectedCluster={setComparisonCluster}
+                  />
+                </div>
+                {comparisonCluster &&
+                  comparisonCluster.id === selectedCluster.id && (
+                    <div className="flex w-full items-center gap-2 px-8">
+                      <AlertCircle size={20} className="text-red-500" />
+                      <p className="text-red-500">
+                        Cannot compare a cluster with itself.
+                      </p>
+                    </div>
+                  )}
+                {comparisonCluster &&
+                  comparisonCluster.id !== selectedCluster.id && (
+                    <div className="px-4 flex flex-col gap-4">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex justify-between">
+                          <h5 className="font-medium">
+                            Similarity between {selectedCluster.name} and{" "}
+                            {comparisonCluster.name}:
+                          </h5>
+                          <p className="text-xl">
+                            {(
+                              getClusterSimilarity(
+                                selectedCluster.id,
+                                comparisonCluster.id
+                              ) * 100
+                            ).toFixed(2)}
+                            %
+                          </p>
+                        </div>
+                        <div className="flex items-center">
+                          <SimilarityVisualizer
+                            similarity={getClusterSimilarity(
+                              selectedCluster.id,
+                              comparisonCluster.id
+                            )}
+                            primary={true}
+                          />
+                        </div>
+                      </div>
+                      <ClusterDetails
+                        cluster={comparisonCluster}
+                        handleClusterClick={() =>
+                          setComparisonClusterExpanded(
+                            !comparisonClusterExpanded
+                          )
+                        }
+                        isExpanded={comparisonClusterExpanded}
+                      />
+                    </div>
+                  )}
+              </div>
               <div className="flex flex-col gap-4 px-4">
-                <div className="rounded-lg border bg-white shadow-md hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800">
-                  <button
-                    onClick={() => setSelectedClusterExpanded((prev) => !prev)}
-                    className="flex w-full items-center justify-between p-4 focus:outline-none"
-                  >
-                    <h2 className="text-2xl font-semibold">
-                      Cluster {selectedClusterId}
-                    </h2>
-                    {selectedClusterExpanded ? (
-                      <ChevronUp size={28} className="text-secondary" />
-                    ) : (
-                      <ChevronDown size={28} className="text-secondary" />
-                    )}
-                  </button>
-                  {selectedClusterExpanded && (
-                    <ClusterDetails cluster={selectedCluster} />
+                <h5 className="font-medium">
+                  5 most similar clusters to {selectedCluster.name}:
+                </h5>
+                <div className="flex flex-col gap-4">
+                  {getMostSimilarClusters(selectedCluster.id, 5).map(
+                    (cluster) => (
+                      <ClusterDetails
+                        key={cluster.id}
+                        cluster={cluster}
+                        similarity={cluster.similarity}
+                        handleClusterClick={() =>
+                          setExpandedSimilarClusters((prev) =>
+                            prev.includes(cluster.id)
+                              ? prev.filter((id) => id !== cluster.id)
+                              : [...prev, cluster.id]
+                          )
+                        }
+                        isExpanded={expandedSimilarClusters.includes(
+                          cluster.id
+                        )}
+                      />
+                    )
                   )}
                 </div>
-                <div>
-                  <div className="p-4">
-                    <h5 className="mb-2 font-medium">
-                      Compare with another cluster:
-                    </h5>
-                    <div className="p-4">
-                      <ComparisonClusterSelector />
-                    </div>
-                  </div>
-                  {comparisonClusterId !== null &&
-                    comparisonClusterId === selectedClusterId && (
-                      <div className="flex w-full items-center gap-2 px-8">
-                        <AlertCircle size={20} className="text-red-500" />
-                        <p className="text-red-500">
-                          Cannot compare a cluster with itself.
-                        </p>
-                      </div>
-                    )}
-                  {comparisonClusterId !== null &&
-                    comparisonClusterId !== selectedClusterId && (
-                      <div className="px-8">
-                        <div className="rounded bg-white shadow-sm hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800">
-                          <button
-                            onClick={() =>
-                              setComparisonClusterExpanded((prev) => !prev)
-                            }
-                            className="flex w-full items-center justify-between p-4 focus:outline-none"
-                          >
-                            <h2 className="text-2xl font-semibold">
-                              Cluster {comparisonClusterId}
-                            </h2>
-                            {comparisonClusterExpanded ? (
-                              <ChevronUp size={28} className="text-secondary" />
-                            ) : (
-                              <ChevronDown
-                                size={28}
-                                className="text-secondary"
-                              />
-                            )}
-                          </button>
-                          {comparisonClusterExpanded && (
-                            <ClusterDetails cluster={comparisonCluster} />
-                          )}
-                        </div>
-                        <div className="mt-2 rounded bg-white p-4 shadow-md dark:bg-zinc-900">
-                          <div className="flex justify-between">
-                            <p>Similarity:</p>
-                            <p>
-                              {(
-                                getClusterSimilarity(
-                                  selectedClusterId,
-                                  comparisonClusterId
-                                ) * 100
-                              ).toFixed(2)}
-                              %
-                            </p>
-                          </div>
-                          <div className="flex items-center">
-                            <SimilarityVisualizer
-                              similarity={getClusterSimilarity(
-                                selectedClusterId,
-                                comparisonClusterId
-                              )}
-                              primary={true}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                </div>
-                <SimilarClustersList clusterId={selectedClusterId} />
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -509,42 +241,187 @@ export default function ClusterSimilarities() {
 }
 
 const ClusterDetails: React.FC<{
-  cluster: _ClusterSimilarityDetail | null;
-}> = ({ cluster }) => {
+  cluster: _ClusterSimilarityDetail;
+  similarity?: number;
+  handleClusterClick: (clusterId: UUID) => void;
+  isExpanded: boolean;
+}> = ({ cluster, similarity, handleClusterClick, isExpanded }) => {
   console.log("Cluster Details: ", cluster);
+
+  const [previewCount, setPreviewCount] = useState(5);
 
   if (!cluster) return null;
   return (
-    <div className="overflow-hidden rounded-lg border border-dashed border-accent">
-      <div className="p-4">
-        <div>
-          <h3 className="gap-1 p-1 text-xl font-medium">
-            Representative Responses:
-          </h3>
-          {cluster.responses.slice(0, 5).map((response, index) => (
-            <div key={index} className="rounded p-3">
-              {/* TODO: Better Line Clamping */}
-              <p className="line-clamp-2">"{response.text}"</p>
-              <div className="mt-2 flex items-center justify-between px-2 text-sm">
-                <p>
-                  Similarity to cluster center:{" "}
-                  <span className="font-semibold">
-                    {(response.similarity * 100).toFixed(1)}%
-                  </span>
-                </p>
-                <div className="h-2.5 w-1/2 rounded-full bg-accent-100">
-                  <div
-                    className="h-2.5 rounded-full bg-accent"
-                    style={{
-                      width: `${response.similarity * 100}%`,
-                    }}
-                  ></div>
+    <Card
+      onClick={() => handleClusterClick(cluster.id)}
+      className={cn(
+        "cursor-pointer",
+        isExpanded && "border-accent border-2 border-dashed",
+        !isExpanded && "hover:bg-background-50 dark:hover:bg-background-100"
+      )}
+    >
+      <CardHeader>
+        <div className="flex justify-between items-center w-full gap-4">
+          <div className="flex flex-col gap-1 w-1/3">
+            <div className="flex items-center gap-2">
+              <CardTitle>{cluster.name}</CardTitle>
+            </div>
+            <CardDescription className="flex gap-2">
+              <p>{cluster.count} responses</p>
+              {cluster.is_merger_result && (
+                <div className="flex items-center gap-2">
+                  <GitMerge size={16} />
+                  <p className="text-muted-foreground">merger result</p>
                 </div>
+              )}
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2 w-3/5">
+            {similarity && (
+              <SimilarityVisualizer similarity={similarity} primary={true} />
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {similarity && (
+              <p className="text-xl">{(similarity * 100).toFixed(2)}%</p>
+            )}
+            {isExpanded ? (
+              <ChevronUp className="text-accent" size={32} />
+            ) : (
+              <ChevronDown className="text-accent" size={32} />
+            )}
+          </div>
+        </div>
+      </CardHeader>
+      {isExpanded && (
+        <CardContent>
+          {cluster.responses.slice(0, previewCount).map((response, index) => (
+            <div
+              key={index}
+              className="flex flex-col gap-3 justify-start items-center p-4 cursor-default"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between w-full">
+                <p className="line-clamp-2 bg-background px-2">
+                  "{response.text}"
+                </p>
+                {response.count > 1 && (
+                  <p className="text-sm text-muted-foreground">
+                    {response.count} occurences
+                  </p>
+                )}
+              </div>
+              <div className="flex justify-between items-end gap-4 w-full">
+                <div className="flex flex-col gap-1 w-full">
+                  <p>Similarity to cluster center:</p>
+                  <div className="h-2.5 bg-accent-100 rounded-full">
+                    <div
+                      className="h-2.5 bg-accent rounded-full"
+                      style={{ width: `${response.similarity * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <span className="text-xl">
+                  {(response.similarity * 100).toFixed(2)}%
+                </span>
               </div>
             </div>
           ))}
-        </div>
-      </div>
-    </div>
+          {cluster.count > previewCount && (
+            <div
+              className="flex items-center justify-center p-4 cursor-default"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Button
+                variant="accent"
+                onClick={() => setPreviewCount(previewCount + 25)}
+              >
+                + {cluster.count - previewCount} more responses in the
+                assignments file
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      )}
+    </Card>
+  );
+};
+
+const ClusterSelector = ({
+  clusters,
+  setSelectedCluster,
+}: {
+  clusters: _ClusterSimilarityDetail[];
+  setSelectedCluster: (cluster: _ClusterSimilarityDetail) => void;
+}) => {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+
+  useEffect(() => {
+    if (value) {
+      setSelectedCluster(clusters.find((cluster) => cluster.name === value));
+    } else {
+      setSelectedCluster(null);
+    }
+  }, [value]);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-[500px] justify-between"
+        >
+          {value
+            ? clusters.find((cluster) => cluster.name === value)?.name
+            : "Select cluster..."}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[500px] p-0">
+        <Command shouldFilter={false}>
+          <Input
+            placeholder="Search cluster by name or response content..."
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="focus-visible:ring-0 text-sm"
+          />
+          <CommandList>
+            <CommandEmpty>No cluster found.</CommandEmpty>
+            <CommandGroup>
+              {clusters
+                .filter(
+                  (cluster) =>
+                    cluster.responses.some((response) =>
+                      response.text.toLowerCase().includes(value.toLowerCase())
+                    ) ||
+                    cluster.name.toLowerCase().includes(value.toLowerCase())
+                )
+                .sort((a, b) => a.index - b.index)
+                .map((cluster) => (
+                  <CommandItem
+                    key={cluster.id}
+                    value={cluster.name}
+                    onSelect={(currentValue) => {
+                      setValue(currentValue === value ? "" : currentValue);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        value === cluster.name ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    {cluster.name}
+                  </CommandItem>
+                ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 };

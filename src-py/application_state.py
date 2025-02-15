@@ -4,7 +4,7 @@ from uuid import UUID
 from loguru import logger
 from models import FileSettings, AlgorithmSettings
 
-DEBUG_RUN_ID = ""
+DEBUG_RUN_ID = "ce08b1ce48df4452861a65ab3936ed36"
 
 
 class ApplicationState:

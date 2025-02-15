@@ -83,6 +83,7 @@ export interface _ClusterSimilarityDetail {
   id: UUID;
   index: number;
   name: string;
+  is_merger_result: boolean;
   responses: Response[];
   similarity_pairs: Record<UUID, number>;
   count: number;
