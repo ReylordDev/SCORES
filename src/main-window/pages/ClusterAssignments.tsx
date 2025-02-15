@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, ChevronUp, List, Pencil, Save } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  GitMerge,
+  List,
+  Pencil,
+  Save,
+} from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { TitleBar } from "../../components/TitleBar";
 import { _ClusterAssignmentDetail } from "../../lib/models";
@@ -75,17 +82,27 @@ function ClusterAssignment({
             ) : (
               <div className="flex items-center gap-2">
                 <CardTitle>{cluster.name}</CardTitle>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsEditing(true);
                   }}
                 >
                   <Pencil className="text-secondary" size={16} />
-                </button>
+                </Button>
               </div>
             )}
-            <CardDescription>{cluster.count} responses</CardDescription>
+            <CardDescription className="flex gap-2">
+              <p>{cluster.count} responses</p>
+              {cluster.is_merger_result && (
+                <div className="flex items-center gap-2">
+                  <GitMerge size={16} />
+                  <p className="text-muted-foreground">merger result</p>
+                </div>
+              )}
+            </CardDescription>
           </div>
           {isExpanded ? (
             <ChevronUp className="text-primary" size={32} />

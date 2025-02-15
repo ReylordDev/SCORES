@@ -70,6 +70,7 @@ export interface _ClusterAssignmentDetail {
   id: UUID;
   index: number;
   name: string;
+  is_merger_result: boolean;
   responses: Response[];
   count: number;
 }
@@ -103,7 +104,6 @@ export interface OutliersMessage {
 }
 
 export interface _ClusterMergerDetail {
-  // Technically this is the same model as ClusterAssignmentDetail
   id: UUID;
   index: number;
   name: string;
@@ -205,6 +205,7 @@ export interface Cluster {
   center: number[];
   responses: Response[];
   count: number;
+  is_merger_result: boolean;
 
   result_id: UUID;
   result: ClusteringResult;

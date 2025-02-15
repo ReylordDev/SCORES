@@ -108,6 +108,7 @@ class ClusterAssignmentsMessage(BaseModel):
         name: str
         responses: list["Response"]
         count: int
+        is_merger_result: bool
 
     clusters: list[ClusterAssignmentDetail]
 
@@ -295,6 +296,7 @@ class Cluster(SQLModel, table=True):
     name: str = ""
     center: list[float] = Field(sa_column=Column(JSON))
     responses: list[Response] = Relationship(back_populates="cluster")
+    is_merger_result: bool = False
 
     def __init__(self, **data):
         super().__init__(**data)

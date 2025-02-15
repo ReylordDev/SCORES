@@ -127,6 +127,7 @@ class Controller:
                                 name=cluster.name,
                                 responses=cluster.responses,
                                 count=cluster.count,
+                                is_merger_result=cluster.is_merger_result,
                             )
                             for cluster in self.database_manager.get_clusters(
                                 session, run_id

@@ -363,20 +363,6 @@ class Clusterer:
                 )
                 mergers.append(merger)
 
-                # re-set the cluster centers to the weighted mean of all their
-                # points and normalize them to unit length
-                # new_center = np.average(
-                #     [cluster.center for cluster in merged_clusters],
-                #     axis=0,
-                #     weights=[cluster.count for cluster in merged_clusters],
-                # ) / np.linalg.norm(
-                #     np.average(
-                #         [cluster.center for cluster in merged_clusters],
-                #         axis=0,
-                #         weights=[cluster.count for cluster in merged_clusters],
-                #     ),
-                #     ord=2,
-                # )
                 new_center = np.average(
                     [cluster.center for cluster in merged_clusters],
                     axis=0,
@@ -386,10 +372,7 @@ class Clusterer:
                 merged_cluster = Cluster(
                     center=new_center.tolist(),
                     index=merged_clusters[0].index,
-                )
-
-                logger.debug(
-                    f"Merged cluster center: {merged_cluster.center[:5]}, index: {merged_cluster.index}"
+                    is_merger_result=True,
                 )
 
                 merged_cluster.responses = [
@@ -488,7 +471,6 @@ class Clusterer:
                 )
             ).tolist()
             for response in cluster.responses:
-                logger.debug(f"Response: {response.text}, cluster_id: {cluster.id}")
                 response.cluster_id = cluster.id
                 response.similarity = cluster.similarity_to_response(
                     response, embeddings_map
