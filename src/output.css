@@ -1095,6 +1095,10 @@ video {
   max-width: 24rem;
 }
 
+.max-w-56 {
+  max-width: 14rem;
+}
+
 .flex-1 {
   flex: 1 1 0%;
 }
@@ -1138,6 +1142,16 @@ video {
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
 .cursor-default {

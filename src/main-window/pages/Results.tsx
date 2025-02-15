@@ -11,6 +11,7 @@ import {
   CheckCheck,
   FolderOpen,
   Play,
+  Loader,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { useState, useEffect, useCallback } from "react";
@@ -92,7 +93,14 @@ export default function Results() {
   }, []);
 
   if (!run) {
-    return <div>Loading</div>;
+    return (
+      <div className="w-screen h-screen bg-background text-text">
+        <TitleBar index={4} />
+        <div className="flex flex-col items-center justify-center h-full">
+          <Loader className="animate-spin" size={64} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -103,7 +111,7 @@ export default function Results() {
         className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"
       >
         <div className="flex flex-col gap-8">
-          <div className="flex w-full justify-between">
+          <div className="flex w-full justify-between gap-2">
             <div className="flex flex-col gap-2">
               <div className="flex w-full items-center gap-4">
                 {isEditing ? (
