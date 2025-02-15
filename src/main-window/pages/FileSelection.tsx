@@ -212,7 +212,7 @@ function PreviousRunsDialog() {
               .map((run, index) => (
                 <TableRow
                   key={index}
-                  className="cursor-pointer hover:bg-gradient-to-l from-primary-50 to-primary"
+                  className="cursor-pointer"
                   // Or use an alert dialog to confirm the selection
                   onClick={() => handleRunSelection(run)}
                 >
