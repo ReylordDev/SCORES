@@ -251,7 +251,7 @@ export default function Results() {
                 <CardHeader>
                   <CardTitle>Run Duration</CardTitle>
                   <CardDescription>
-                    Total Duration: {formatTime(timesteps.total_duration)}
+                    Total Duration: {formatTime(timesteps.total_duration, true)}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -265,7 +265,10 @@ export default function Results() {
                               <p>
                                 {formatTime(
                                   timestamp -
-                                    iterateRecord(timesteps.steps)[index - 1][1]
+                                    iterateRecord(timesteps.steps)[
+                                      index - 1
+                                    ][1],
+                                  true
                                 )}
                               </p>
                             </div>

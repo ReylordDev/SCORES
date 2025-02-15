@@ -5,15 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatTime(timeInSeconds: number): string {
-  if (timeInSeconds == 0) {
+export function formatTime(timeInSeconds: number, precise = false): string {
+  if (timeInSeconds < 1 && !precise) {
     return "<1 sec";
   }
   const hours = Math.floor(timeInSeconds / 3600);
   const minutes = Math.floor((timeInSeconds % 3600) / 60);
   const seconds = timeInSeconds % 60;
 
-  const precision = timeInSeconds < 10 ? (timeInSeconds < 1 ? 1 : 2) : 3;
+  const precision = 2;
 
   let formattedTime = "";
 
@@ -22,7 +22,11 @@ export function formatTime(timeInSeconds: number): string {
   } else if (minutes > 0) {
     formattedTime += `${minutes}:${seconds.toString().padStart(2, "0")} min`;
   } else {
-    formattedTime += `${seconds.toPrecision(precision)} sec`;
+    if (precise) {
+      formattedTime += `${seconds.toFixed(precision)} sec`;
+    } else {
+      formattedTime += `${seconds.toFixed(0)} sec`;
+    }
   }
 
   return formattedTime;
