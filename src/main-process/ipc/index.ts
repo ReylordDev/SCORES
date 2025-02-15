@@ -12,6 +12,7 @@ import fs from "fs";
 import { AppConfig } from "../../lib/config";
 import { UUID } from "crypto";
 import { WindowManager } from "../windows/window-manager";
+import path from "path";
 export function registerIpcHandlers(
   settingsService: SettingsService,
   pythonService: PythonService,
@@ -22,7 +23,6 @@ export function registerIpcHandlers(
 
   // Register additional IPC handlers here
   ipcMain.on(CHANNELS.FILE.SET_PATH, (_, filePath: string) => {
-    console.log(`Received file path: ${filePath}`);
     pythonService.sendCommand({
       action: "set_file_path",
       data: { filePath },
@@ -36,7 +36,7 @@ export function registerIpcHandlers(
   });
 
   ipcMain.handle(CHANNELS.FILE.EXAMPLE_FILE_PATH, async () => {
-    return config.dataDir + "/example_data/example.csv";
+    return path.join(config.rootDir, "example_data", "example.csv");
   });
 
   ipcMain.on(CHANNELS.FILE.SET_SETTINGS, (_, settings: FileSettings) => {

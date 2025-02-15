@@ -139,7 +139,7 @@ export default function Mergers() {
           <h1 className="text-4xl">Merged Clusters</h1>
           <p className="text-lg">
             Displaying <span className="font-semibold">{mergers.length}</span>{" "}
-            merged clusters.
+            {mergers.length === 1 ? "merged cluster" : "merged clusters"}.
           </p>
           <p>
             Clusters that were more than{" "}

@@ -1,6 +1,7 @@
 import { PythonShell } from "python-shell";
 import { EventEmitter } from "events";
-import { AppConfig, consoleLog } from "../../lib/config";
+import { EOL as endOfLine } from "os";
+import { AppConfig, consoleError, consoleLog } from "../../lib/config";
 import {
   Command,
   Message,
@@ -15,11 +16,12 @@ import {
   OutliersMessage,
   MergersMessage,
 } from "../../lib/models";
-import path from "path";
 import { SettingsService } from "./settings-service";
+import { spawn, ChildProcess } from "child_process";
 
 export class PythonService extends EventEmitter {
   private shell: PythonShell;
+  private childProcess: ChildProcess;
 
   constructor(
     private config: AppConfig,
@@ -29,24 +31,67 @@ export class PythonService extends EventEmitter {
   }
 
   async initialize() {
-    this.shell = new PythonShell(this.config.scriptPath, {
-      pythonPath: this.config.pythonPath,
-      cwd: this.config.isPackaged
-        ? path.join(process.resourcesPath, "src-py")
-        : this.config.rootDir,
-      mode: "json",
-      env: {
-        ...process.env,
-        PRODUCTION: String(!this.config.isDev),
-        USER_DATA_PATH: this.config.dataDir,
-        LOG_LEVEL: this.config.isDev ? "DEBUG" : "INFO",
-      },
-    });
+    if (this.config.isPackaged) {
+      // TODO: Implement bundled mode
+      this.childProcess = spawn(this.config.scriptPath, [], {
+        cwd: this.config.dataDir,
+        serialization: "json",
+        env: {
+          ...process.env,
+          PRODUCTION: String(!this.config.isDev),
+          USER_DATA_PATH: this.config.dataDir,
+          LOG_LEVEL: "INFO",
+        },
+      });
 
-    this.shell.on("message", this.handleMessage.bind(this));
+      this.childProcess.stdout.on("data", (data: Buffer) => {
+        consoleLog("Child process stdout:", data.toString());
+        try {
+          if (data.toString()) {
+            const message = JSON.parse(data.toString());
+            this.handleMessage(message);
+          }
+        } catch (error) {
+          consoleError("Error parsing stdout message:", error);
+        }
+      });
+      this.childProcess.stderr.on("data", (data: Buffer) => {
+        consoleError("Child process stderr:", data.toString());
+        try {
+          const message = JSON.parse(data.toString());
+          this.handleMessage(message);
+        } catch (error) {
+          consoleError("Error parsing stderr message:", error);
+        }
+      });
+      this.childProcess.on("error", (error) => {
+        consoleError("Child process error:", error);
+        this.emit(PYTHON_SERVICE_EVENTS.ERROR, "Child process error");
+      });
+      this.childProcess.on("close", () => {
+        consoleLog("Child process closed");
+        this.emit(PYTHON_SERVICE_EVENTS.ERROR, "Child process closed");
+      });
+    } else {
+      this.shell = new PythonShell(this.config.scriptPath, {
+        pythonPath: this.config.pythonPath,
+        cwd: this.config.dataDir,
+        mode: "json",
+        env: {
+          ...process.env,
+          PRODUCTION: String(!this.config.isDev),
+          USER_DATA_PATH: this.config.dataDir,
+          LOG_LEVEL: "DEBUG",
+        },
+      });
+      this.shell.on("message", this.handleMessage.bind(this));
+    }
+
+    consoleLog("Python service initialized");
   }
 
   private handleMessage(message: Message) {
+    consoleLog("Received message:", message);
     switch (message.type) {
       case "progress":
         this.handleProgress(message.data as ProgressMessage);
@@ -139,10 +184,19 @@ export class PythonService extends EventEmitter {
   }
 
   sendCommand(command: Command) {
-    this.shell.send(command);
+    consoleLog("Sending command:", command);
+    if (this.config.isPackaged) {
+      this.childProcess.stdin.write(JSON.stringify(command) + endOfLine);
+    } else {
+      this.shell.send(command);
+    }
   }
 
   shutdown() {
-    this.shell.kill();
+    if (this.config.isPackaged) {
+      this.childProcess.kill();
+    } else {
+      this.shell.kill();
+    }
   }
 }

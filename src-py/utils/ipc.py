@@ -29,6 +29,6 @@ def print_progress(
         data=ProgressMessage(step=step, status=status, timestamp=time.time()),
     )
     print(progress_message.model_dump_json())
-    logger.info(f"Progress: {step} - {status}")
+    logger.info(progress_message.model_dump_json())
     sys.stdout.flush()
     time.sleep(0.01)

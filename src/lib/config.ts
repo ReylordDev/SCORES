@@ -1,6 +1,6 @@
 import path from "path";
 import { app } from "electron";
-import log from "electron-log";
+import log from "electron-log/main";
 
 export const consoleLog = app.isPackaged ? log.log : console.log;
 export const consoleError = app.isPackaged ? log.error : console.error;
@@ -19,7 +19,10 @@ export class AppConfig {
       ? process.resourcesPath
       : path.join(__dirname, "..", "..");
     this.dataDir = this.isPackaged ? app.getPath("userData") : this.rootDir;
+    log.initialize();
     app.setAppLogsPath(path.join(this.dataDir, "logs"));
+
+    consoleLog("App config initialized");
   }
 
   get pythonPath() {
@@ -41,7 +44,7 @@ export class AppConfig {
 
   get scriptPath() {
     return this.isPackaged
-      ? path.join(process.resourcesPath, "src-py", "controller.py")
+      ? path.join(this.rootDir, "dist", "controller", "controller.exe")
       : path.join(this.rootDir, "src-py", "controller.py");
   }
 

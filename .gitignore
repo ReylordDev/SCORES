@@ -107,3 +107,6 @@ example_data
 
 temp
 results
+build
+dist
+*.spec
