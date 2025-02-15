@@ -33,18 +33,28 @@ import {
 import { TooltipWrapper } from "../../components/Tooltip";
 import { progressionMessages, Run, Timesteps } from "../../lib/models";
 import { Progress } from "../../components/ui/progress";
+import { Input } from "../../components/ui/input";
 
 export default function Results() {
   const [run, setRun] = useState<Run | null>(null);
   const [timesteps, setTimesteps] = useState<Timesteps | null>(null);
   const [runName, setRunName] = useState<string | null>(null);
   const [runNameInput, setRunNameInput] = useState<string | null>(null);
-  const [editingRunName, setEditingRunName] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isValidRunName, setIsValidRunName] = useState(false);
   const navigate = useNavigate();
 
+  function validateRunName(newName: string) {
+    if (!newName) return false;
+    if (newName.length > 255) return false;
+    return true;
+  }
+
   const updateRunName = (newName: string) => {
+    if (!isValidRunName) return;
     window.database.updateRunName(run.id, newName);
     setRunName(newName);
+    setIsEditing(false);
   };
 
   const handleNewRun = useCallback(
@@ -68,6 +78,7 @@ export default function Results() {
         setRun(run);
         setRunName(run.name);
         setTimesteps(timesteps);
+        setRunNameInput(run.name);
       }
     );
     return () => {
@@ -91,63 +102,61 @@ export default function Results() {
         id="mainContent"
         className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"
       >
-        <div className="flex flex-col">
-          <div className="flex w-full flex-col justify-start gap-2">
-            <div className="flex w-full items-center gap-4">
-              {editingRunName ? (
-                <input
-                  value={runNameInput}
-                  onChange={(e) => setRunNameInput(e.target.value)}
-                  className="rounded-md border border-secondary p-2 pl-5 text-4xl font-bold focus:outline-none focus:ring focus:ring-secondary focus:ring-opacity-50 disabled:border-gray-300"
-                />
-              ) : (
-                <h1 className="text-ellipsis p-2 pl-5 text-4xl">{runName}</h1>
-              )}
-              {editingRunName ? (
-                <Button
-                  onClick={() => {
-                    if (!runNameInput) return;
-                    if (runNameInput === runName) {
-                      setEditingRunName(false);
-                      return;
-                    }
-                    updateRunName(runNameInput);
-                    setEditingRunName(false);
-                  }}
-                >
-                  <Save className="text-secondary" size={32} />
-                </Button>
-              ) : (
-                <TooltipWrapper
-                  placement="bottom"
-                  small
-                  wrappedContent={
-                    <button
-                      onClick={() => {
-                        setEditingRunName(true);
-                        setRunNameInput(runName);
+        <div className="flex flex-col gap-8">
+          <div className="flex w-full justify-between">
+            <div className="flex flex-col gap-2">
+              <div className="flex w-full items-center gap-4">
+                {isEditing ? (
+                  <div
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex gap-4 items-center"
+                  >
+                    <Input
+                      value={runNameInput}
+                      onChange={(e) => {
+                        setRunNameInput(e.target.value);
+                        setIsValidRunName(validateRunName(e.target.value));
+                      }}
+                      className="text-3xl min-w-[500px]"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") updateRunName(runNameInput);
+                        if (e.key === "Escape") {
+                          setRunNameInput(run.name);
+                          setIsEditing(false);
+                        }
+                      }}
+                    />
+                    <Button
+                      onClick={() => updateRunName(runNameInput)}
+                      disabled={!isValidRunName}
+                    >
+                      <Save className="text-white" size={24} />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-4">
+                    <h1 className="text-4xl">{runName}</h1>
+                    <Button
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsEditing(true);
                       }}
                     >
-                      <Pencil className="text-secondary" size={32} />
-                    </button>
-                  }
-                  tooltipContent={
-                    <p className="text-left">
-                      Click to edit the name of the run.
-                    </p>
-                  }
-                />
-              )}
+                      <Pencil className="text-secondary" size={28} />
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2 pb-4 pl-5 text-accent">
+                <CheckCheck className="rounded bg-background" size={24} />
+                <p className="text-xl font-semibold">
+                  Your results have been saved.
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-2 pb-4 pl-5 text-accent">
-              <CheckCheck className="rounded bg-background" size={24} />
-              <p className="text-xl font-semibold">
-                Your results have been saved.
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-col items-center justify-start gap-8 xl:gap-12">
-            <div className="flex gap-8 w-full justify-start">
+            <div className="flex flex-col gap-2">
               <TooltipWrapper
                 wrappedContent={
                   <Button
@@ -190,109 +199,102 @@ export default function Results() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <div className="grid gap-8 grid-cols-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Cluster Assignments</CardTitle>
-                  <CardDescription>
-                    See which responses were grouped together
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button onClick={() => navigate("/cluster_assignments")}>
-                    <List />
-                    Open Cluster Assignments
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Cluster Similarities</CardTitle>
-                  <CardDescription>
-                    Compare the similarities between clusters
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button onClick={() => navigate("/cluster_similarities")}>
-                    <GitCompare />
-                    Open Cluster Similarities
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Outliers</CardTitle>
-                  <CardDescription>
-                    Identify responses that don't fit into any cluster
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button onClick={() => navigate("/outliers")}>
-                    <AlertTriangle />
-                    Open Outliers
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Cluster Mergers</CardTitle>
-                  <CardDescription>
-                    See which clusters were merged together
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button onClick={() => navigate("/mergers")}>
-                    <GitMerge />
-                    Open Cluster Mergers
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Run Duration</CardTitle>
-                  <CardDescription>
-                    Total Duration: {formatTime(timesteps.total_duration, true)}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {iterateRecord(timesteps.steps).map(
-                    ([step, timestamp], index) => {
-                      if (step !== "start")
-                        return (
-                          <div key={step} className="flex flex-col">
-                            <div className="flex justify-between">
-                              <p>{progressionMessages[step]}</p>
-                              <p>
-                                {formatTime(
-                                  timestamp -
-                                    iterateRecord(timesteps.steps)[
-                                      index - 1
-                                    ][1],
-                                  true
-                                )}
-                              </p>
-                            </div>
-                            <Progress
-                              value={
-                                ((timestamp -
-                                  iterateRecord(timesteps.steps)[
-                                    index - 1
-                                  ][1]) *
-                                  100) /
-                                timesteps.total_duration
-                              }
-                              max={timesteps.total_duration}
-                            />
-                          </div>
-                        );
-                    }
-                  )}
-                </CardContent>
-              </Card>
+          </div>
+          <div className="flex justify-between gap-8 h-full w-full">
+            <div className="grid gap-8 grid-cols-2">
+              <ResultsCard
+                title="Cluster Assignments"
+                description="See which responses were grouped together"
+                onClick={() => navigate("/cluster_assignments")}
+                icon={<List />}
+              />
+              <ResultsCard
+                title="Cluster Similarities"
+                description="Compare the similarities between clusters"
+                onClick={() => navigate("/cluster_similarities")}
+                icon={<GitCompare />}
+              />
+              <ResultsCard
+                title="Outliers"
+                description="Identify responses that don't fit into any cluster"
+                onClick={() => navigate("/outliers")}
+                icon={<AlertTriangle />}
+              />
+              <ResultsCard
+                title="Cluster Mergers"
+                description="See which clusters were merged together"
+                onClick={() => navigate("/mergers")}
+                icon={<GitMerge />}
+              />
             </div>
+            <Card className="h-full w-1/3">
+              <CardHeader>
+                <CardTitle>Run Duration</CardTitle>
+                <CardDescription>
+                  Total Duration: {formatTime(timesteps.total_duration, true)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                {iterateRecord(timesteps.steps).map(
+                  ([step, timestamp], index) => {
+                    if (step !== "start")
+                      return (
+                        <div key={step} className="flex flex-col gap-2">
+                          <div className="flex justify-between">
+                            <p>{progressionMessages[step]}</p>
+                            <p>
+                              {formatTime(
+                                timestamp -
+                                  iterateRecord(timesteps.steps)[index - 1][1],
+                                true
+                              )}
+                            </p>
+                          </div>
+                          <Progress
+                            value={
+                              ((timestamp -
+                                iterateRecord(timesteps.steps)[index - 1][1]) *
+                                100) /
+                              timesteps.total_duration
+                            }
+                            max={timesteps.total_duration}
+                          />
+                        </div>
+                      );
+                  }
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function ResultsCard({
+  title,
+  description,
+  onClick,
+  icon,
+}: {
+  title: string;
+  description: string;
+  onClick: () => void;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Card className="flex flex-col">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription className="h-8">{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col justify-end items-center h-full">
+        <Button onClick={onClick}>
+          {icon}
+          {title}
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

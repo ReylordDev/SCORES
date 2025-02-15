@@ -308,7 +308,7 @@ export const progressionMessages: Record<ClusteringStep, string> = {
   load_model: "Loading language model",
   embed_responses: "Embedding responses",
   detect_outliers: "Detecting outliers",
-  auto_cluster_count: "Automatically determining cluster count",
+  auto_cluster_count: "Determining cluster count",
   cluster: "Clustering",
   merge: "Merging clusters",
   save: "Saving results",
