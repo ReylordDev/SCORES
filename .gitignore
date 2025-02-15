@@ -110,3 +110,4 @@ results
 build
 dist
 *.spec
+.venv*

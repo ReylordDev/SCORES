@@ -1,5 +1,4 @@
 import csv
-import uuid
 import time
 from utils.ipc import print_progress
 from matplotlib import pyplot as plt
@@ -59,7 +58,7 @@ class Clusterer:
             with open(self.file_path, encoding="utf-8") as f:
                 reader = csv.reader(f, delimiter=self.file_settings.delimiter)
                 if self.file_settings.has_header:
-                    headers = reader.__next__()
+                    reader.__next__()
 
                 for row in reader:
                     for column_index in self.file_settings.selected_columns:
