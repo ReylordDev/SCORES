@@ -48,14 +48,18 @@ export class PythonService extends EventEmitter {
         consoleLog("Child process stdout:", JSON.stringify(chunk.toString()));
         this.buffer += chunk.toString();
         consoleLog("Buffer (raw):", JSON.stringify(this.buffer));
-        consoleLog("Buffer length:", this.buffer.length);
-        consoleLog(
-          "Buffer index of \\r\\n\\r\\n:",
-          this.buffer.indexOf("\r\n\r\n")
-        );
+
+        const windowsSeparationString = "\r\n\r\n";
+        const unixSeparationString = "\n\n";
 
         let boundaryIndex;
-        while ((boundaryIndex = this.buffer.indexOf("\r\n\r\n")) !== -1) {
+        let separationString;
+        if (process.platform === "win32") {
+          separationString = windowsSeparationString;
+        } else {
+          separationString = unixSeparationString;
+        }
+        while ((boundaryIndex = this.buffer.indexOf(separationString)) !== -1) {
           const completeMessage = this.buffer.slice(0, boundaryIndex);
           this.buffer = this.buffer.slice(boundaryIndex + 4);
           try {
