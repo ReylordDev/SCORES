@@ -7,7 +7,6 @@ from models import (
     MessageType,
     MessageDataType,
 )
-import sys
 import time
 from pprint import pprint
 
@@ -17,7 +16,8 @@ def print_message(type: MessageType, data: MessageDataType, pretty: bool = False
     if pretty:
         pprint(Message(type=type, data=data).model_dump())
     else:
-        print(Message(type=type, data=data).model_dump_json(), flush=True)
+        print(Message(type=type, data=data).model_dump_json(), flush=True, end="\n\n\n")
+    time.sleep(0.01)
 
 
 def print_progress(
@@ -28,7 +28,6 @@ def print_progress(
         type="progress",
         data=ProgressMessage(step=step, status=status, timestamp=time.time()),
     )
-    print(progress_message.model_dump_json())
+    print(progress_message.model_dump_json(), flush=True, end="\n\n\n")
     logger.info(progress_message.model_dump_json())
-    sys.stdout.flush()
     time.sleep(0.01)

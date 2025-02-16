@@ -242,7 +242,7 @@ def main():
     initialize_logger()
     controller = Controller()
     while True:
-        message = input()
+        message = sys.stdin.readline()
         try:
             data = Command.model_validate_json(message)
             controller.handle_command(data)

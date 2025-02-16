@@ -22,20 +22,20 @@ import { spawn, ChildProcess } from "child_process";
 export class PythonService extends EventEmitter {
   private shell: PythonShell;
   private childProcess: ChildProcess;
+  private buffer: string;
 
   constructor(
     private config: AppConfig,
     private settingsService: SettingsService
   ) {
     super();
+    this.buffer = "";
   }
 
   async initialize() {
     if (this.config.isPackaged) {
-      // TODO: Implement bundled mode
       this.childProcess = spawn(this.config.scriptPath, [], {
         cwd: this.config.dataDir,
-        serialization: "json",
         env: {
           ...process.env,
           PRODUCTION: String(!this.config.isDev),
@@ -44,17 +44,30 @@ export class PythonService extends EventEmitter {
         },
       });
 
-      this.childProcess.stdout.on("data", (data: Buffer) => {
-        consoleLog("Child process stdout:", data.toString());
-        try {
-          if (data.toString()) {
-            const message = JSON.parse(data.toString());
+      this.childProcess.stdout.on("data", (chunk: Buffer) => {
+        consoleLog("Child process stdout:", JSON.stringify(chunk.toString()));
+        this.buffer += chunk.toString();
+        consoleLog("Buffer (raw):", JSON.stringify(this.buffer));
+        consoleLog("Buffer length:", this.buffer.length);
+        consoleLog(
+          "Buffer index of \\r\\n\\r\\n:",
+          this.buffer.indexOf("\r\n\r\n")
+        );
+
+        let boundaryIndex;
+        while ((boundaryIndex = this.buffer.indexOf("\r\n\r\n")) !== -1) {
+          const completeMessage = this.buffer.slice(0, boundaryIndex);
+          this.buffer = this.buffer.slice(boundaryIndex + 4);
+          try {
+            const message = JSON.parse(completeMessage);
+            consoleLog("Parsed message:", message);
             this.handleMessage(message);
+          } catch (error) {
+            consoleError("Error parsing message:", error);
           }
-        } catch (error) {
-          consoleError("Error parsing stdout message:", error);
         }
       });
+
       this.childProcess.stderr.on("data", (data: Buffer) => {
         consoleError("Child process stderr:", data.toString());
         try {
@@ -64,6 +77,7 @@ export class PythonService extends EventEmitter {
           consoleError("Error parsing stderr message:", error);
         }
       });
+
       this.childProcess.on("error", (error) => {
         consoleError("Child process error:", error);
         this.emit(PYTHON_SERVICE_EVENTS.ERROR, "Child process error");
