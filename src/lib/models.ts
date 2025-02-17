@@ -19,7 +19,8 @@ type Action =
   | "update_cluster_name"
   | "delete_run"
   | "get_outliers"
-  | "get_mergers";
+  | "get_mergers"
+  | "get_cluster_positions";
 
 export interface ClusterNamePayload {
   clusterId: UUID;
@@ -124,6 +125,29 @@ export interface MergersMessage {
   threshold: number;
 }
 
+export interface _ResponsePositionDetail {
+  id: UUID;
+  text: string;
+  is_outlier: boolean;
+  count: number;
+  x: number;
+  y: number;
+}
+
+export interface _ClusterPositionDetail {
+  id: UUID;
+  name: string;
+  index: number;
+  count: number;
+  x: number;
+  y: number;
+  responses: _ResponsePositionDetail[];
+}
+
+export interface ClusterPositionsMessage {
+  clusters: _ClusterPositionDetail[];
+}
+
 export interface Error {
   error: string;
 }
@@ -138,7 +162,8 @@ export interface Message {
     | "cluster_assignments"
     | "cluster_similarities"
     | "outliers"
-    | "mergers";
+    | "mergers"
+    | "cluster_positions";
   data:
     | ProgressMessage
     | Error
@@ -149,7 +174,8 @@ export interface Message {
     | ClusterSimilaritiesMessage
     | CurrentRunMessage
     | OutliersMessage
-    | MergersMessage;
+    | MergersMessage
+    | ClusterPositionsMessage;
 }
 
 export interface FileSettings {
@@ -189,7 +215,7 @@ export interface AlgorithmSettings {
   agglomerative_clustering?: AgglomerativeClusteringSettings;
 }
 
-interface ManifoldPosition {
+export interface ManifoldPosition {
   id: UUID;
   x: number;
   y: number;
@@ -401,6 +427,12 @@ declare global {
       setRunId: (runId: UUID) => void;
       resetRunId: () => void;
     };
+    plots: {
+      getClusterPositions: () => void;
+      onReceiveClusterPositions: (
+        callback: (clusterPositions: ClusterPositionsMessage) => void
+      ) => () => void;
+    };
   }
 }
 
@@ -412,6 +444,7 @@ export const CHANNEL_TYPES = {
   PROGRESS: "progress",
   DATABASE: "database",
   STATE: "state",
+  PLOTS: "plots",
 };
 export const CHANNELS = {
   ELECTRON: {
@@ -465,6 +498,10 @@ export const CHANNELS = {
     SET_RUN_ID: "state:set-run-id",
     RESET_RUN_ID: "state:reset-run-id",
   },
+  PLOTS: {
+    CLUSTER_POSITIONS_REQUEST: "plots:get-cluster-positions",
+    CLUSTER_POSITIONS_RESPONSE: "plots:receive-cluster-positions",
+  },
 };
 
 export const PYTHON_SERVICE_EVENTS = {
@@ -480,6 +517,9 @@ export const PYTHON_SERVICE_EVENTS = {
     CURRENT_MERGERS: "database-current-mergers",
   },
   READY: "ready",
+  PLOTS: {
+    CLUSTER_POSITIONS: "plots-cluster-positions",
+  },
 };
 
 export const SETTINGS_SERVICE_EVENTS = {

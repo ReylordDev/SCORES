@@ -14,6 +14,7 @@ import {
   OutliersMessage,
   MergersMessage,
   AppSettings,
+  ClusterPositionsMessage,
 } from "../lib/models";
 import {
   contextBridge,
@@ -200,3 +201,18 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.SETTINGS, {
     ipcRenderer.send(CHANNELS.SETTINGS.SET_TUTORIAL_MODE, tutorialMode);
   },
 } satisfies Window["settings"]);
+
+contextBridge.exposeInMainWorld(CHANNEL_TYPES.PLOTS, {
+  getClusterPositions: () => {
+    ipcRenderer.send(CHANNELS.PLOTS.CLUSTER_POSITIONS_REQUEST);
+  },
+  onReceiveClusterPositions: (callback) => {
+    const listener = (
+      _: IpcRendererEvent,
+      clusterPositions: ClusterPositionsMessage
+    ) => callback(clusterPositions);
+    ipcRenderer.on(CHANNELS.PLOTS.CLUSTER_POSITIONS_RESPONSE, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.PLOTS.CLUSTER_POSITIONS_RESPONSE, listener);
+  },
+} satisfies Window["plots"]);

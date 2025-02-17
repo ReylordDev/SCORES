@@ -31,6 +31,7 @@ ActionType = Literal[
     "get_cluster_similarities",
     "get_outliers",
     "get_mergers",
+    "get_cluster_positions",
     "update_cluster_name",
     "delete_run",
 ]
@@ -154,6 +155,27 @@ class MergersMessage(BaseModel):
     threshold: float
 
 
+class ClusterPositionsMessage(BaseModel):
+    class ClusterPositionDetail(BaseModel):
+        class ResponsePositionDetail(BaseModel):
+            id: uuid.UUID
+            text: str
+            is_outlier: bool
+            count: int
+            x: float
+            y: float
+
+        id: uuid.UUID
+        name: str
+        index: int
+        count: int
+        x: float
+        y: float
+        responses: list[ResponsePositionDetail]
+
+    clusters: list[ClusterPositionDetail]
+
+
 class Error(BaseModel):
     error: str
 
@@ -168,6 +190,7 @@ MessageType = Literal[
     "cluster_similarities",
     "outliers",
     "mergers",
+    "cluster_positions",
 ]
 MessageDataType = Union[
     ProgressMessage,
@@ -178,6 +201,7 @@ MessageDataType = Union[
     ClusterSimilaritiesMessage,
     OutliersMessage,
     MergersMessage,
+    ClusterPositionsMessage,
     str,
     None,
 ]

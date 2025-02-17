@@ -12,6 +12,7 @@ import {
   FolderOpen,
   Play,
   Loader,
+  Eye,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { useState, useEffect, useCallback } from "react";
@@ -233,6 +234,12 @@ export default function Results() {
                 description="See which clusters were merged together"
                 onClick={() => navigate("/mergers")}
                 icon={<GitMerge />}
+              />
+              <ResultsCard
+                title="Cluster Visualization"
+                description="Visualize the clusters"
+                onClick={() => navigate("/cluster_visualization")}
+                icon={<Eye />}
               />
             </div>
             <Card className="h-full w-1/3">

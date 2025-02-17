@@ -15,6 +15,7 @@ import {
   MergersMessage,
   SETTINGS_SERVICE_EVENTS,
   AppSettings,
+  ClusterPositionsMessage,
 } from "./lib/models";
 
 // Handle setup events
@@ -117,6 +118,15 @@ app.whenReady().then(async () => {
     }
   );
 
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.PLOTS.CLUSTER_POSITIONS,
+    (data: ClusterPositionsMessage) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.PLOTS.CLUSTER_POSITIONS_RESPONSE,
+        data
+      );
+    }
+  );
   settingsService.on(
     SETTINGS_SERVICE_EVENTS.SETTINGS_CHANGED,
     (settings: AppSettings) => {

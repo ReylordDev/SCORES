@@ -5,6 +5,7 @@ from utils.logging import initialize_logger
 from models import (
     AgglomerativeClusteringSettings,
     AutomaticClusterCount,
+    ClusterPositionsMessage,
     ClusterSimilaritiesMessage,
     ClusterAssignmentsMessage,
     Command,
@@ -251,6 +252,44 @@ class Controller:
                         ],
                     ),
                 )
+        elif command.action == "get_cluster_positions":
+            with self.database_manager.create_session() as session:
+                run_id = self.app_state.get_run_id()
+                if not run_id:
+                    print_message("error", Error(error="Run ID not set"))
+                    return
+                print_message(
+                    "cluster_positions",
+                    ClusterPositionsMessage(
+                        clusters=[
+                            ClusterPositionsMessage.ClusterPositionDetail(
+                                id=cluster.id,
+                                name=cluster.name,
+                                index=cluster.index,
+                                count=cluster.count,
+                                x=cluster.manifold_position.x,
+                                y=cluster.manifold_position.y,
+                                responses=[
+                                    ClusterPositionsMessage.ClusterPositionDetail.ResponsePositionDetail(
+                                        id=response.id,
+                                        text=response.text,
+                                        is_outlier=response.is_outlier,
+                                        count=response.count,
+                                        x=response.manifold_position.x,
+                                        y=response.manifold_position.y,
+                                    )
+                                    for response in cluster.responses
+                                    if response.manifold_position is not None
+                                ],
+                            )
+                            for cluster in self.database_manager.get_clusters(
+                                session, run_id
+                            )
+                            if cluster.manifold_position is not None
+                        ]
+                    ),
+                )
+
         else:
             logger.error(f"Invalid action: {command.action}")
             print_message("error", Error(error=f"Invalid action: {command.action}"))

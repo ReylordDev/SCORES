@@ -15,6 +15,7 @@ import {
   CurrentRunMessage,
   OutliersMessage,
   MergersMessage,
+  ClusterPositionsMessage,
 } from "../../lib/models";
 import { SettingsService } from "./settings-service";
 import { spawn, ChildProcess } from "child_process";
@@ -155,6 +156,12 @@ export class PythonService extends EventEmitter {
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_MERGERS,
           message.data as MergersMessage
+        );
+        break;
+      case "cluster_positions":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.PLOTS.CLUSTER_POSITIONS,
+          message.data as ClusterPositionsMessage
         );
         break;
       default:

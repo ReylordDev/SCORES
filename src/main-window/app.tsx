@@ -12,6 +12,7 @@ import Outliers from "./pages/Outliers";
 import Mergers from "./pages/Mergers";
 import { useEffect, useState } from "react";
 import { AppSettings } from "../lib/models";
+import ClusterVisualization from "./pages/ClusterVisualization";
 
 scan({
   enabled: true,
@@ -58,6 +59,10 @@ const App = () => {
         <Route path="/cluster_similarities" element={<ClusterSimilarities />} />
         <Route path="/outliers" element={<Outliers />} />
         <Route path="/mergers" element={<Mergers />} />
+        <Route
+          path="/cluster_visualization"
+          element={<ClusterVisualization />}
+        />
       </Routes>
     </Router>
   );

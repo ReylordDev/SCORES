@@ -176,4 +176,10 @@ export function registerIpcHandlers(
       action: "get_mergers",
     });
   });
+
+  ipcMain.on(CHANNELS.PLOTS.CLUSTER_POSITIONS_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "get_cluster_positions",
+    });
+  });
 }
