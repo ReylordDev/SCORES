@@ -1,19 +1,23 @@
 import csv
+import os
+import random
 import time
+
+from sklearn.metrics import (
+    silhouette_score,
+    calinski_harabasz_score,
+    davies_bouldin_score,
+)
 from utils.ipc import print_progress
 from matplotlib import pyplot as plt
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from sklearn.cluster import AgglomerativeClustering, KMeans
-from sklearn.metrics import silhouette_score
 from application_state import ApplicationState
 from loguru import logger
 from collections import Counter
 from models import (
-    AlgorithmSettings,
     Cluster,
-    FileSettings,
-    ManualClusterCount,
     Merger,
     MergingStatistics,
     OutlierStatistic,
@@ -22,7 +26,6 @@ from models import (
     SimilarityPair,
     Timesteps,
     ClusteringResult,
-    Run,
 )
 
 
@@ -36,20 +39,23 @@ class Clusterer:
         self.file_path = file_path
         self.file_settings = file_settings
         self.algorithm_settings = algorithm_settings
-        self.output_dir = "output"
         self.timesteps = Timesteps(steps={})
-        self.random_state = 42
+        self._random_state = random.randint(0, 1000)
+        self.result_dir = app_state.get_results_dir()
         print_progress("process_input_file", "todo")
         print_progress("load_model", "todo")
         print_progress("embed_responses", "todo")
-        # TODO: Optional outlier detection
-        print_progress("detect_outliers", "todo")
+        if self.algorithm_settings.outlier_detection:
+            print_progress("detect_outliers", "todo")
         if self.algorithm_settings.method.cluster_count_method == "auto":
-            print_progress("auto_cluster_count", "todo")
+            print_progress("find_optimal_k", "todo")
         print_progress("cluster", "todo")
-        # TODO: Optional merging
-        print_progress("merge", "todo")
+        if self.algorithm_settings.agglomerative_clustering:
+            print_progress("merge", "todo")
         print_progress("save", "todo")
+
+    def get_random_state(self):
+        return self._random_state
 
     def process_input_file(self, excluded_words: list[str]):
         print_progress("process_input_file", "start")
@@ -181,87 +187,108 @@ class Clusterer:
         self.timesteps.steps["detect_outliers"] = time.time()
         return outlier_statistics_summary
 
-    def auto_cluster_count(self, embeddings, response_weights):
-        print_progress("auto_cluster_count", "start")
+    def find_optimal_k(
+        self,
+        embeddings: np.ndarray,
+        weights: np.ndarray,
+    ):
+        """
+        Finds the optimal number of clusters (K) using a combination of the Elbow method
+        and the silhouette score for weighted K-means.
+
+        Parameters:
+        - embeddings (np.ndarray): Input embeddings of shape (n_samples, n_features).
+        - weights (np.ndarray): Sample weights of shape (n_samples,).
+        - max_clusters (int): Maximum number of clusters to consider.
+
+        Returns:
+        - int: Optimal number of clusters.
+        """
+        print_progress("find_optimal_k", "start")
         assert self.algorithm_settings.method.cluster_count_method == "auto"
         max_clusters = self.algorithm_settings.method.max_clusters
-
-        # TODO: Implement more sophisticated method
-        if max_clusters < 50:
-            # for max_num_clusters < 50, we try every possible value
-            K_values = list(range(2, max_clusters + 1))
-        elif max_clusters < 100:
-            # for max_num_clusters >= 50, we try every fifth value
-            K_values = list(range(2, 51)) + list(range(55, max_clusters + 1, 5))
-        else:
-            # for max_num_clusters >= 100, we try every tenth value
-            K_values = (
-                list(range(2, 51))
-                + list(range(55, 101, 5))
-                + list(range(110, max_clusters + 1, 10))
+        # Validate inputs
+        if max_clusters < 2:
+            raise ValueError("max_clusters must be at least 2")
+        if len(embeddings) != len(weights):
+            raise ValueError(
+                "embeddings and weights must have the same number of samples"
             )
 
-        sil_scores, inertias, calinski_scores, bic_scores = [], [], [], []
-
-        for K in K_values:
-            # TODO: improve with early stopping
-            if K >= len(embeddings) - 1:
-                continue
-            clustering = KMeans(
-                n_clusters=K, n_init="auto", random_state=self.random_state
-            ).fit(embeddings, sample_weight=response_weights)
-            labels = clustering.labels_
-
-            # Silhouette Score
-            sil = silhouette_score(embeddings, labels)
-            sil_scores.append(sil)
-
-            # Inertia
-            inertias.append(clustering.inertia_)
-
-            # Custom Calinski-Harabasz
-            calinski = weighted_calinski_harabasz(
-                embeddings, labels, response_weights, clustering.cluster_centers_
+        silhouttes = []
+        ch_scores = []
+        db_scores = []
+        for k in range(2, max_clusters + 1):
+            # Fit K-means with sample weights
+            kmeans = KMeans(
+                n_clusters=k, n_init="auto", random_state=self._random_state
             )
-            calinski_scores.append(calinski)
+            kmeans.fit(embeddings, sample_weight=weights)
+            labels = kmeans.labels_
 
-            # BIC
-            bic = len(embeddings) * np.log(clustering.inertia_) + K * np.log(
-                len(embeddings)
+            silhouette_avg = silhouette_score(
+                X=embeddings, labels=labels, random_state=self._random_state
             )
-            bic_scores.append(bic)
+            silhouttes.append(silhouette_avg)
 
-        # Normalize metrics
-        sil_norm = normalize(sil_scores, higher_better=True)
-        inertia_norm = normalize(inertias, higher_better=False)
-        calinski_norm = normalize(calinski_scores, higher_better=True)
-        bic_norm = normalize(bic_scores, higher_better=False)
+            ch_score = calinski_harabasz_score(X=embeddings, labels=labels)
+            ch_scores.append(ch_score)
 
-        # Combine scores (adjust weights as needed)
-        weights = [0.4, 0.1, 0.4, 0.1]  # Silhouette, Inertia, Calinski, BIC
-        combined_scores = [
-            w * s + w_i * i + w_c * c + w_b * b
-            for s, i, c, b in zip(sil_norm, inertia_norm, calinski_norm, bic_norm)
-            for w, w_i, w_c, w_b in [weights]
-        ]
+            db_score = davies_bouldin_score(X=embeddings, labels=labels)
+            db_scores.append(db_score)
 
-        best_idx = np.argmax(combined_scores)
-        best_K = K_values[best_idx]
+            logger.debug(f"Silhouette score for K={k}: {silhouette_avg}")
+            logger.debug(f"Calinski-Harabasz score for K={k}: {ch_score}")
+            logger.debug(f"Davies-Bouldin score for K={k}: {db_score}")
 
-        # Plot the results
-        plot_cluster_metrics(
-            K_values,
-            sil_norm,
-            inertia_norm,
-            calinski_norm,
-            bic_norm,
-            combined_scores,
-            best_K,
+        # Normalize scores for comparison
+        silhouttes_normalized = (silhouttes - np.min(silhouttes)) / (
+            np.max(silhouttes) - np.min(silhouttes)
+        )
+        ch_scores_normalized = (ch_scores - np.min(ch_scores)) / (
+            np.max(ch_scores) - np.min(ch_scores)
+        )
+        db_scores_normalized = (db_scores - np.min(db_scores)) / (
+            np.max(db_scores) - np.min(db_scores)
         )
 
-        print_progress("auto_cluster_count", "complete")
-        self.timesteps.steps["auto_cluster_count"] = time.time()
-        return best_K
+        combined_scores = (
+            1 / 3 * ch_scores_normalized
+            + 1 / 3 * silhouttes_normalized
+            + 1 / 3 * (1 - db_scores_normalized)
+        )
+
+        # Find the K with the maximum combined score
+        optimal_k = int(
+            np.argmax(combined_scores) + 2
+        )  # +2 because we started from k=2
+
+        # Plot the metrics
+        plt.figure(figsize=(10, 6))
+        k_values = list(range(2, max_clusters + 1))
+        plt.plot(k_values, silhouttes_normalized, "b-", label="Normalized Silhouette")
+        plt.plot(
+            k_values, ch_scores_normalized, "g-", label="Normalized Calinski-Harabasz"
+        )
+        plt.plot(
+            k_values, db_scores_normalized, "y-", label="Normalized Davies-Bouldin"
+        )
+        plt.plot(k_values, combined_scores, "r-", label="Combined Score")
+        plt.xlabel("Number of Clusters (K)")
+        plt.ylabel("Score")
+        plt.title("Cluster Count Selection Metrics")
+        plt.legend()
+        plt.grid(True)
+        os.makedirs(self.result_dir, exist_ok=True)
+        plt.savefig(f"{self.result_dir}/cluster_count_selection_metrics.png")
+        plt.close()
+
+        logger.debug(f"Optimal K: {optimal_k}")
+
+        # Fallback to max_clusters if no elbow is found
+        print_progress("find_optimal_k", "complete")
+        self.timesteps.steps["find_optimal_k"] = time.time()
+        return optimal_k if optimal_k is not None else max_clusters
 
     def start_clustering(
         self,
@@ -274,7 +301,7 @@ class Clusterer:
         print_progress("cluster", "start")
         # Side Effect: Assigns cluster IDs to responses
         clustering = KMeans(
-            n_clusters=K, n_init="auto", random_state=self.random_state
+            n_clusters=K, n_init="auto", random_state=self._random_state
         ).fit(embeddings, sample_weight=response_weights)
         cluster_indices = np.copy(clustering.labels_)
         valid_clusters = [i for i in range(K) if np.sum(cluster_indices == i) > 0]
@@ -431,24 +458,26 @@ class Clusterer:
         embeddings_map = self.embed_responses(responses, embedding_model)
         embeddings = np.asarray(list(embeddings_map.values()))
 
-        outlier_stats = self.detect_outliers(
-            responses,
-            embeddings,
-            outlier_k=5,
-            z_score_threshold=1.5,
-        )
-
-        # Update responses to exclude outliers
-        responses = [response for response in responses if not response.is_outlier]
-        embeddings_map = {
-            response.text: embeddings_map[response.text] for response in responses
-        }
-        embeddings = np.asarray(list(embeddings_map.values()))
+        if self.algorithm_settings.outlier_detection:
+            outlier_stats = self.detect_outliers(
+                responses,
+                embeddings,
+                outlier_k=self.algorithm_settings.outlier_detection.nearest_neighbors,
+                z_score_threshold=self.algorithm_settings.outlier_detection.z_score_threshold,
+            )
+            # Update responses to exclude outliers
+            responses = [response for response in responses if not response.is_outlier]
+            embeddings_map = {
+                response.text: embeddings_map[response.text] for response in responses
+            }
+            embeddings = np.asarray(list(embeddings_map.values()))
+        else:
+            outlier_stats = None
 
         response_weights = np.array([response.count for response in responses])
 
         if self.algorithm_settings.method.cluster_count_method == "auto":
-            K = self.auto_cluster_count(embeddings, response_weights)
+            K = self.find_optimal_k(embeddings, response_weights)
         else:
             K = self.algorithm_settings.method.cluster_count
 
@@ -456,9 +485,14 @@ class Clusterer:
             responses, embeddings, embeddings_map, K, response_weights
         )
 
-        merger_stats, clusters = self.merge_clusters(
-            clusters, similarity_threshold=0.85, embeddings_map=embeddings_map
-        )
+        if self.algorithm_settings.agglomerative_clustering:
+            merger_stats, clusters = self.merge_clusters(
+                clusters,
+                similarity_threshold=self.algorithm_settings.agglomerative_clustering.similarity_threshold,
+                embeddings_map=embeddings_map,
+            )
+        else:
+            merger_stats = None
 
         for cluster in clusters:
             cluster.center = (
@@ -474,6 +508,8 @@ class Clusterer:
                 response.similarity = cluster.similarity_to_response(
                     response, embeddings_map
                 )
+            cluster.responses.sort(key=lambda x: x.similarity or 0, reverse=True)
+            cluster.name = f'Cluster "{cluster.responses[0].text}"'
 
         return ClusteringResult(
             clusters=clusters,
@@ -486,99 +522,5 @@ class Clusterer:
         )
 
 
-def plot_cluster_metrics(
-    K_values, sil_norm, inertia_norm, calinski_norm, bic_norm, combined_scores, best_K
-):
-    plt.figure(figsize=(12, 6))
-    plt.plot(K_values, sil_norm, label="Silhouette (Normalized)", marker="o")
-    plt.plot(K_values, inertia_norm, label="Inverted Inertia (Normalized)", marker="s")
-    plt.plot(
-        K_values, calinski_norm, label="Calinski-Harabasz (Normalized)", marker="^"
-    )
-    plt.plot(K_values, bic_norm, label="Inverted BIC (Normalized)", marker="v")
-    plt.plot(
-        K_values,
-        combined_scores,
-        label="Combined Score",
-        linestyle="--",
-        marker="x",
-    )
-    plt.axvline(best_K, color="r", linestyle=":", label=f"Optimal K={best_K}")
-    plt.xlabel("Number of Clusters (K)")
-    plt.ylabel("Normalized Score")
-    plt.title("Clustering Evaluation Metrics")
-    plt.legend()
-    plt.grid(True)
-
-
-# Normalization function
-def normalize(scores, higher_better=True):
-    min_val, max_val = min(scores), max(scores)
-    if max_val == min_val:
-        return [0.5] * len(scores)
-    if higher_better:
-        return [(x - min_val) / (max_val - min_val) for x in scores]
-    else:
-        return [(max_val - x) / (max_val - min_val) for x in scores]
-
-
-def weighted_calinski_harabasz(embeddings, labels, sample_weight, cluster_centers):
-    overall_centroid = np.average(embeddings, weights=sample_weight, axis=0)
-    K = len(cluster_centers)
-    N = np.sum(sample_weight)
-
-    if K <= 1:
-        return 0.0
-
-    # Between-cluster dispersion
-    B = 0.0
-    for label in range(K):
-        mask = labels == label
-        cluster_weight = sample_weight[mask].sum()
-        centroid_diff = cluster_centers[label] - overall_centroid
-        B += cluster_weight * np.sum(centroid_diff**2)
-
-    # Within-cluster dispersion (inertia)
-    W = np.sum(
-        [
-            sample_weight[i] * np.sum((x - cluster_centers[label]) ** 2)
-            for i, (x, label) in enumerate(zip(embeddings, labels))
-        ]
-    )
-
-    return (B / (K - 1)) / (W / (N - K)) if (W != 0 and K != 1) else 0.0
-
-
 if __name__ == "__main__":
-    from database_manager import DatabaseManager
-
-    database_manager = DatabaseManager(echo=True)
-    app_state = ApplicationState()
-    app_state.set_file_path(
-        "C:\\Users\\Luis\\Projects\\Word-Clustering-Tool-for-SocPsych\\example_data\\example_short.csv"
-    )
-    app_state.set_file_settings(
-        FileSettings(
-            delimiter=";",
-            has_header=True,
-            selected_columns=[1, 2, 3, 4, 5, 6, 7, 8, 9],
-        )
-    )
-    app_state.set_algorithm_settings(
-        AlgorithmSettings(method=ManualClusterCount(cluster_count=50))
-    )
-    file_path = app_state.get_file_path()
-    file_settings = app_state.get_file_settings()
-    algo_settings = app_state.get_algorithm_settings()
-    assert file_path is not None
-    assert file_settings is not None
-    assert algo_settings is not None
-    clusterer = Clusterer(app_state)
-    result = clusterer.run()
-    run = Run(
-        file_path=file_path,
-        file_settings=file_settings.model_dump_json(),
-        algorithm_settings=algo_settings.model_dump_json(),
-        result=result,
-    )
-    database_manager.save_to_db(result)
+    pass

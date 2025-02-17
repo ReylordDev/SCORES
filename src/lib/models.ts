@@ -44,7 +44,7 @@ export type ClusteringStep =
   | "load_model"
   | "embed_responses"
   | "detect_outliers"
-  | "auto_cluster_count"
+  | "find_optimal_k"
   | "cluster"
   | "merge"
   | "save";
@@ -311,7 +311,7 @@ export const progressionMessages: Record<ClusteringStep, string> = {
   load_model: "Loading language model",
   embed_responses: "Embedding responses",
   detect_outliers: "Detecting outliers",
-  auto_cluster_count: "Determining cluster count",
+  find_optimal_k: "Finding optimal cluster count",
   cluster: "Clustering",
   merge: "Merging clusters",
   save: "Saving results",

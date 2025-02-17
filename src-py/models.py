@@ -41,7 +41,7 @@ ClusteringStepType = Literal[
     "load_model",
     "embed_responses",
     "detect_outliers",
-    "auto_cluster_count",
+    "find_optimal_k",
     "cluster",
     "merge",
     "save",
@@ -408,10 +408,10 @@ class Timesteps(SQLModel, table=True):
 class ClusteringResult(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     clusters: list[Cluster] = Relationship(back_populates="result")
-    outlier_statistics: OutlierStatistics = Relationship(
+    outlier_statistics: Optional[OutlierStatistics] = Relationship(
         back_populates="clustering_result"
     )
-    merger_statistics: MergingStatistics = Relationship(
+    merger_statistics: Optional[MergingStatistics] = Relationship(
         back_populates="clustering_result"
     )
     inter_cluster_similarities: list[SimilarityPair] = Relationship(
@@ -433,6 +433,7 @@ class Run(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str
     file_path: str
+    random_seed: int
     created_at: float = Field(default_factory=time.time)
 
     file_settings: str = Field(sa_column=Column(JSON))

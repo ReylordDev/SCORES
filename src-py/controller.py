@@ -1,8 +1,9 @@
 import sys
-from uuid import UUID  # noqa: F401
+import uuid
 from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
+    AutomaticClusterCount,
     ClusterSimilaritiesMessage,
     ClusterAssignmentsMessage,
     Command,
@@ -10,7 +11,6 @@ from models import (
     FilePathPayload,
     FileSettings,
     AlgorithmSettings,
-    ManualClusterCount,
     OutliersMessage,
     Run,
     RunNamePayload,
@@ -65,15 +65,18 @@ class Controller:
                 if not algorithm_settings:
                     print_message("error", Error(error="Algorithm settings not set"))
                     return
+                run_id = uuid.uuid4()
+                self.app_state.set_run_id(run_id)
                 clusterer = Clusterer(self.app_state)
                 result = clusterer.run()
                 run = Run(
+                    id=run_id,
                     file_path=self.app_state.get_file_path(),
                     file_settings=file_settings.model_dump_json(),
                     algorithm_settings=algorithm_settings.model_dump_json(),
                     result=result,
+                    random_seed=clusterer.get_random_state(),
                 )
-                self.app_state.set_run_id(run.id)
                 self.database_manager.create_output_file(run)
                 self.database_manager.create_assignments_file(run)
                 self.database_manager.save_run(session, run, result.timesteps)
@@ -83,6 +86,20 @@ class Controller:
                 print_message("error", Error(error="Run ID cannot be empty"))
                 return
             self.app_state.set_run_id(command.data.run_id)
+            with self.database_manager.create_session() as session:
+                self.app_state.set_file_settings(
+                    self.database_manager.get_file_settings(
+                        session, command.data.run_id
+                    )
+                )
+                self.app_state.set_algorithm_settings(
+                    self.database_manager.get_algorithm_settings(
+                        session, command.data.run_id
+                    )
+                )
+                self.app_state.set_file_path(
+                    self.database_manager.get_file_path(session, command.data.run_id)
+                )
         elif command.action == "get_runs":
             with self.database_manager.create_session() as session:
                 runs = []
@@ -278,7 +295,7 @@ if __name__ == "__main__":
         controller.handle_command(
             Command(
                 action="set_algorithm_settings",
-                data=AlgorithmSettings(method=ManualClusterCount(cluster_count=25)),
+                data=AlgorithmSettings(method=AutomaticClusterCount(max_clusters=100)),
             )
         )
         controller.handle_command(Command(action="run_clustering"))

@@ -3,6 +3,7 @@ import time
 import uuid
 from sqlmodel import create_engine, SQLModel, Session, select
 from models import (
+    AlgorithmSettings,
     Cluster,
     ClusteringResult,
     FileSettings,
@@ -106,6 +107,21 @@ class DatabaseManager:
                 .where(ClusteringResult.run_id == run_id)
             )
         ).one()
+
+    def get_file_settings(self, session: Session, run_id: uuid.UUID):
+        settings_str = (
+            session.exec(select(Run).where(Run.id == run_id)).one().file_settings
+        )
+        return FileSettings.model_validate_json(settings_str)
+
+    def get_algorithm_settings(self, session: Session, run_id: uuid.UUID):
+        settings_str = (
+            session.exec(select(Run).where(Run.id == run_id)).one().algorithm_settings
+        )
+        return AlgorithmSettings.model_validate_json(settings_str)
+
+    def get_file_path(self, session: Session, run_id: uuid.UUID):
+        return session.exec(select(Run).where(Run.id == run_id)).one().file_path
 
     def update_cluster_name(
         self, session: Session, cluster_id: uuid.UUID, new_name: str

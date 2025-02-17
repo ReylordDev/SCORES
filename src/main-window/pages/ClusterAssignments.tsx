@@ -291,7 +291,7 @@ export default function ClusterAssignments() {
                 {previewClusters.reduce(
                   (acc, cluster) => acc + cluster.count,
                   0
-                )}
+                )}{" "}
                 matching responses
               </p>
             )}

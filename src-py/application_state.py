@@ -3,7 +3,7 @@ from uuid import UUID
 
 from loguru import logger
 from models import FileSettings, AlgorithmSettings
-from utils.utils import is_production_environment
+from utils.utils import get_user_data_path, is_production_environment
 
 DEBUG_RUN_ID = ""
 
@@ -49,3 +49,9 @@ class ApplicationState:
     def reset_run_id(self):
         """Reset the current run ID to None"""
         self._current_run_id = None
+
+    def get_results_dir(self):
+        if not self._current_run_id:
+            raise ValueError("Run ID is not set")
+        results_dir = f"{get_user_data_path()}/results/{self._current_run_id}"
+        return results_dir

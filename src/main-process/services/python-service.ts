@@ -180,7 +180,7 @@ export class PythonService extends EventEmitter {
       case "load_model":
       case "embed_responses":
       case "detect_outliers":
-      case "auto_cluster_count":
+      case "find_optimal_k":
       case "cluster":
       case "merge":
       case "save":
