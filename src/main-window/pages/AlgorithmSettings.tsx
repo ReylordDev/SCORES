@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
 import { TitleBar } from "../../components/TitleBar";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Switch } from "../../components/ui/switch";
 import { Button } from "../../components/ui/button";
 import { SquarePen, ChartScatter, X } from "lucide-react";
@@ -24,6 +24,7 @@ export default function AlgorithmSettings() {
   const [autoChooseClusters, setAutoChooseClusters] = useState(true);
   const [clusterCount, setClusterCount] = useState<number | null>(null);
   const [maxClusters, setMaxClusters] = useState<number | null>(null);
+  const [minClusters, setMinClusters] = useState<number | null>(null);
   const [excludedWords, setExcludedWords] = useState<string[]>([]);
   const [useOutlierDetection, setUseOutlierDetection] = useState(false);
   const [nearestNeighbors, setNearestNeighbors] = useState<number | null>(null);
@@ -49,11 +50,13 @@ export default function AlgorithmSettings() {
         if (settings.method.cluster_count_method === "auto") {
           setAutoChooseClusters(true);
           setMaxClusters(settings.method.max_clusters);
+          setMinClusters(settings.method.min_clusters);
           setClusterCount(null);
         } else {
           setAutoChooseClusters(false);
           setClusterCount(settings.method.cluster_count);
           setMaxClusters(null);
+          setMinClusters(null);
         }
 
         setExcludedWords(settings.excluded_words);
@@ -82,24 +85,61 @@ export default function AlgorithmSettings() {
     return () => unsubscribe();
   }, []);
 
-  const submitAlgorithmSettings = () => {
-    console.log("Submitting settings...");
+  const settingsAreValid = useMemo(() => {
     const method: ClusterCount = autoChooseClusters
-      ? { cluster_count_method: "auto", max_clusters: maxClusters }
+      ? {
+          cluster_count_method: "auto",
+          max_clusters: maxClusters,
+          min_clusters: minClusters,
+        }
       : { cluster_count_method: "manual", cluster_count: clusterCount };
 
     if (method.cluster_count_method === "manual" && clusterCount === null) {
-      console.error("Cluster count must be specified when using manual mode.");
-      return;
-    } else if (method.cluster_count_method === "auto" && maxClusters === null) {
-      console.error(
-        "Max clusters must be specified when using automatic mode."
-      );
-      return;
+      return false;
+    } else if (
+      method.cluster_count_method === "auto" &&
+      (maxClusters === null || minClusters === null)
+    ) {
+      return false;
+    }
+    if (method.cluster_count_method === "auto" && minClusters > maxClusters) {
+      return false;
     }
 
+    if (useOutlierDetection && (!nearestNeighbors || !zScoreThreshold)) {
+      return false;
+    }
+
+    if (useAgglomerativeClustering && !similarityThreshold) {
+      return false;
+    }
+
+    return true;
+  }, [
+    autoChooseClusters,
+    clusterCount,
+    maxClusters,
+    minClusters,
+    excludedWords,
+    useOutlierDetection,
+    nearestNeighbors,
+    zScoreThreshold,
+    useAgglomerativeClustering,
+    similarityThreshold,
+  ]);
+
+  const submitAlgorithmSettings = () => {
+    console.log("Submitting settings...");
+    const method: ClusterCount = autoChooseClusters
+      ? {
+          cluster_count_method: "auto",
+          max_clusters: maxClusters,
+          min_clusters: minClusters,
+        }
+      : { cluster_count_method: "manual", cluster_count: clusterCount };
+
     window.algorithm.setSettings({
-      method,
+      method: method,
       excluded_words: excludedWords,
       outlier_detection: useOutlierDetection
         ? {
@@ -130,7 +170,7 @@ export default function AlgorithmSettings() {
           <div className="flex justify-end">
             <Button
               onClick={submitAlgorithmSettings}
-              disabled={!autoChooseClusters && !clusterCount}
+              disabled={!settingsAreValid}
             >
               <ChartScatter size={24} />
               Start Clustering
@@ -146,12 +186,10 @@ export default function AlgorithmSettings() {
                   checked={autoChooseClusters}
                   onCheckedChange={(isOn) => {
                     setAutoChooseClusters(isOn);
-                    if (isOn) {
-                      setClusterCount(undefined);
+                    if (!isOn) {
                       setMaxClusters(null);
-                    } else {
-                      setMaxClusters(undefined);
                       setClusterCount(null);
+                      setMinClusters(null);
                     }
                   }}
                 />
@@ -169,38 +207,43 @@ export default function AlgorithmSettings() {
               </p>
             }
           />
-          <TooltipWrapper
-            wrappedContent={
-              <div
-                className={cn(
-                  "flex items-center justify-between p-4 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100",
-                  !autoChooseClusters && "text-gray-400"
-                )}
-              >
-                <label htmlFor="maxClusterCount">
-                  <p>Maximum number of clusters to consider</p>
-                </label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={maxClusters || ""}
-                  onChange={(e) => setMaxClusters(e.target.valueAsNumber)}
-                  id="maxClusterCount"
-                  className="w-24 "
-                  disabled={!autoChooseClusters}
-                />
-              </div>
-            }
-            tooltipContent={
-              <p className="text-left">
-                The maximum number of clusters to consider when automatically
-                choosing the number of clusters.
-                <br></br>
-                If not set, the program will consider all possible cluster
-                counts up to the number of data points divided by 2.
-              </p>
-            }
-          />
+          <div className="flex flex-col gap-2 p-4 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100">
+            <div
+              className={cn(
+                "flex items-center justify-between",
+                !autoChooseClusters && "text-gray-400"
+              )}
+            >
+              <label htmlFor="maxClusterCount">
+                <p>Maximum number of clusters to consider</p>
+              </label>
+              <Input
+                type="number"
+                min={2}
+                step={1}
+                value={maxClusters || ""}
+                onChange={(e) => setMaxClusters(e.target.valueAsNumber)}
+                id="maxClusterCount"
+                className="w-24 "
+                disabled={!autoChooseClusters}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <label htmlFor="minClusterCount">
+                <p>Minimum number of clusters to consider</p>
+              </label>
+              <Input
+                type="number"
+                min={2}
+                step={1}
+                value={minClusters || ""}
+                onChange={(e) => setMinClusters(e.target.valueAsNumber)}
+                id="minClusterCount"
+                className="w-24"
+                disabled={!autoChooseClusters}
+              />
+            </div>
+          </div>
           <TooltipWrapper
             wrappedContent={
               <div
@@ -214,6 +257,7 @@ export default function AlgorithmSettings() {
                 </label>
                 <Input
                   type="number"
+                  step={1}
                   id="clusterCount"
                   min={1}
                   value={clusterCount || ""}
@@ -289,6 +333,7 @@ export default function AlgorithmSettings() {
                 <Input
                   type="number"
                   min={1}
+                  step={1}
                   value={nearestNeighbors || ""}
                   onChange={(e) => setNearestNeighbors(e.target.valueAsNumber)}
                   className="w-24"

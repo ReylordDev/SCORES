@@ -197,6 +197,7 @@ class FileSettings(CamelModel):
 class AutomaticClusterCount(CamelModel):
     cluster_count_method: Literal["auto"] = "auto"
     max_clusters: int
+    min_clusters: int
 
 
 class ManualClusterCount(CamelModel):
@@ -216,7 +217,6 @@ class AgglomerativeClusteringSettings(CamelModel):
 
 class AlgorithmSettings(CamelModel):
     method: Union[AutomaticClusterCount, ManualClusterCount] = Field(
-        default=AutomaticClusterCount(max_clusters=10),
         discriminator="cluster_count_method",
     )
     excluded_words: list[str] = Field(default=[])

@@ -158,9 +158,10 @@ export interface FileSettings {
   selected_columns: number[];
 }
 
-export interface AutomaticClusterCount {
+interface AutomaticClusterCount {
   cluster_count_method: "auto";
   max_clusters: number;
+  min_clusters: number;
 }
 
 interface ManualClusterCount {

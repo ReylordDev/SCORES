@@ -212,9 +212,14 @@ class Clusterer:
         print_progress("find_optimal_k", "start")
         assert self.algorithm_settings.method.cluster_count_method == "auto"
         max_clusters = self.algorithm_settings.method.max_clusters
+        min_clusters = self.algorithm_settings.method.min_clusters
         # Validate inputs
         if max_clusters < 2:
             raise ValueError("max_clusters must be at least 2")
+        if min_clusters < 2:
+            raise ValueError("min_clusters must be at least 2")
+        if min_clusters > max_clusters:
+            raise ValueError("min_clusters must be less than max_clusters")
         if len(embeddings) != len(weights):
             raise ValueError(
                 "embeddings and weights must have the same number of samples"
@@ -223,7 +228,8 @@ class Clusterer:
         silhouttes = []
         ch_scores = []
         db_scores = []
-        for k in range(2, max_clusters + 1):
+        k_values = [k for k in range(min_clusters, max_clusters + 1)]
+        for k in k_values:
             # Fit K-means with sample weights
             kmeans = KMeans(
                 n_clusters=k, n_init="auto", random_state=self._random_state
@@ -263,14 +269,10 @@ class Clusterer:
             + 1 / 3 * (1 - db_scores_normalized)
         )
 
-        # Find the K with the maximum combined score
-        optimal_k = int(
-            np.argmax(combined_scores) + 2
-        )  # +2 because we started from k=2
+        optimal_k = k_values[np.argmax(combined_scores)]
 
         # Plot the metrics
         plt.figure(figsize=(10, 6))
-        k_values = list(range(2, max_clusters + 1))
         plt.plot(k_values, silhouttes_normalized, "b-", label="Normalized Silhouette")
         plt.plot(
             k_values, ch_scores_normalized, "g-", label="Normalized Calinski-Harabasz"
