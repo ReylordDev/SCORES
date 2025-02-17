@@ -341,90 +341,101 @@ class Clusterer:
         embeddings_map: dict[str, np.ndarray],
     ):
         print_progress("merge", "start")
-        cluster_centers = np.asarray(
-            [np.asarray(cluster.center) for cluster in clusters]
-        )
 
-        # merge the closest clusters using Agglomorative Clustering
-        # until everything is closer than the threshold
-        meta_clustering = AgglomerativeClustering(
-            n_clusters=None,
-            distance_threshold=1 - similarity_threshold,
-            linkage="complete",
-            metric="cosine",
-        ).fit(cluster_centers)
+        total_mergers = []
+        while True:
+            cluster_centers = np.asarray(
+                [np.asarray(cluster.center) for cluster in clusters]
+            )
 
-        meta_clustering_indices = meta_clustering.labels_
+            # merge the closest clusters using Agglomorative Clustering
+            # until everything is closer than the threshold
+            meta_clustering = AgglomerativeClustering(
+                n_clusters=None,
+                distance_threshold=1 - similarity_threshold,
+                linkage="complete",
+                metric="cosine",
+            ).fit(cluster_centers)
 
-        mergers: list[Merger] = []
-        post_merge_cluster_ids = [cluster.id for cluster in clusters]
-        for meta_clustering_index in np.unique(meta_clustering_indices):
-            merged_cluster_indices = np.where(
-                meta_clustering_indices == meta_clustering_index
-            )[0].tolist()
-            assert isinstance(merged_cluster_indices, list)
-            if len(merged_cluster_indices) > 1:
-                S = np.dot(
-                    cluster_centers[merged_cluster_indices, :],
-                    cluster_centers[merged_cluster_indices, :].T,
-                )
-                triu_indices = np.triu_indices(len(S), k=1)
-                similarity_pairs = []
-                merged_clusters: list[Cluster] = [
-                    clusters[i]  # type: ignore
-                    for i in merged_cluster_indices
-                ]
-                for i, j in zip(triu_indices[0], triu_indices[1]):
-                    similarity_pairs.append(
-                        SimilarityPair(
-                            cluster_1_id=merged_clusters[i].id,
-                            cluster_2_id=merged_clusters[j].id,
-                            similarity=S[i, j],
+            meta_clustering_indices = meta_clustering.labels_
+
+            iteration_mergers: list[Merger] = []
+            post_merge_cluster_ids = [cluster.id for cluster in clusters]
+            for meta_clustering_index in np.unique(meta_clustering_indices):
+                merged_cluster_indices = np.where(
+                    meta_clustering_indices == meta_clustering_index
+                )[0].tolist()
+                assert isinstance(merged_cluster_indices, list)
+                if len(merged_cluster_indices) > 1:
+                    S = np.dot(
+                        cluster_centers[merged_cluster_indices, :],
+                        cluster_centers[merged_cluster_indices, :].T,
+                    )
+                    triu_indices = np.triu_indices(len(S), k=1)
+                    similarity_pairs = []
+                    merged_clusters: list[Cluster] = [
+                        clusters[i]  # type: ignore
+                        for i in merged_cluster_indices
+                    ]
+                    for i, j in zip(triu_indices[0], triu_indices[1]):
+                        similarity_pairs.append(
+                            SimilarityPair(
+                                cluster_1_id=merged_clusters[i].id,
+                                cluster_2_id=merged_clusters[j].id,
+                                similarity=S[i, j],
+                            )
                         )
+                    similarity_pairs.sort(key=lambda x: x.similarity, reverse=True)
+                    merger = Merger(
+                        clusters=merged_clusters,
+                        similarity_pairs=similarity_pairs,
                     )
-                similarity_pairs.sort(key=lambda x: x.similarity, reverse=True)
-                merger = Merger(
-                    clusters=merged_clusters,
-                    similarity_pairs=similarity_pairs,
-                )
-                mergers.append(merger)
+                    iteration_mergers.append(merger)
 
-                new_center = np.average(
-                    [cluster.center for cluster in merged_clusters],
-                    axis=0,
-                    weights=[cluster.count for cluster in merged_clusters],
-                )
-
-                merged_cluster = Cluster(
-                    center=new_center.tolist(),
-                    index=merged_clusters[0].index,
-                    is_merger_result=True,
-                )
-
-                merged_cluster.responses = [
-                    Response(
-                        text=response.text,
-                        cluster_id=merged_cluster.id,
-                        count=response.count,
-                        similarity=merged_cluster.similarity_to_response(
-                            response, embeddings_map
-                        ),
+                    new_center = np.average(
+                        [cluster.center for cluster in merged_clusters],
+                        axis=0,
+                        weights=[cluster.count for cluster in merged_clusters],
                     )
-                    for cluster in merged_clusters
-                    for response in cluster.responses
-                ]
 
-                post_merge_cluster_ids.append(merged_cluster.id)
-                clusters.append(merged_cluster)
+                    merged_cluster = Cluster(
+                        center=new_center.tolist(),
+                        index=merged_clusters[0].index,
+                        is_merger_result=True,
+                    )
 
-                for cluster in merged_clusters:
-                    post_merge_cluster_ids.remove(cluster.id)
+                    merged_cluster.responses = [
+                        Response(
+                            text=response.text,
+                            cluster_id=merged_cluster.id,
+                            count=response.count,
+                            similarity=merged_cluster.similarity_to_response(
+                                response, embeddings_map
+                            ),
+                        )
+                        for cluster in merged_clusters
+                        for response in cluster.responses
+                    ]
 
-        clusters = [
-            cluster for cluster in clusters if cluster.id in post_merge_cluster_ids
-        ]
+                    post_merge_cluster_ids.append(merged_cluster.id)
+                    clusters.append(merged_cluster)
+
+                    for cluster in merged_clusters:
+                        post_merge_cluster_ids.remove(cluster.id)
+
+            clusters = [
+                cluster for cluster in clusters if cluster.id in post_merge_cluster_ids
+            ]
+
+            logger.debug(f"Number of mergers: {len(iteration_mergers)}")
+            logger.debug(f"Number of clusters after merging: {len(clusters)}")
+
+            total_mergers.extend(iteration_mergers)
+
+            if len(iteration_mergers) == 0:
+                break
         merging_statistics = MergingStatistics(
-            mergers=mergers, threshold=similarity_threshold
+            mergers=total_mergers, threshold=similarity_threshold
         )
         print_progress("merge", "complete")
         self.timesteps.steps["merge"] = time.time()

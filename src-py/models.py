@@ -211,6 +211,7 @@ class OutlierDetectionSettings(CamelModel):
 
 class AgglomerativeClusteringSettings(CamelModel):
     similarity_threshold: float
+    iterative: bool = False
 
 
 class AlgorithmSettings(CamelModel):

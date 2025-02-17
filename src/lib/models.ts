@@ -177,6 +177,7 @@ export interface OutlierDetectionSettings {
 
 export interface AgglomerativeClusteringSettings {
   similarity_threshold: number;
+  iterative: boolean;
 }
 
 export interface AlgorithmSettings {

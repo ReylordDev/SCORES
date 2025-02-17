@@ -33,6 +33,7 @@ export default function AlgorithmSettings() {
   const [similarityThreshold, setSimilarityThreshold] = useState<number | null>(
     null
   );
+  const [iterativeAggClustering, setIterativeAggClustering] = useState(false);
 
   const navigate = useNavigate();
 
@@ -67,6 +68,9 @@ export default function AlgorithmSettings() {
         if (settings.agglomerative_clustering) {
           setSimilarityThreshold(
             settings.agglomerative_clustering.similarity_threshold
+          );
+          setIterativeAggClustering(
+            settings.agglomerative_clustering.iterative
           );
         }
       }
@@ -104,7 +108,10 @@ export default function AlgorithmSettings() {
           }
         : undefined,
       agglomerative_clustering: useAgglomerativeClustering
-        ? { similarity_threshold: similarityThreshold }
+        ? {
+            similarity_threshold: similarityThreshold,
+            iterative: iterativeAggClustering,
+          }
         : undefined,
     });
     window.algorithm.runClustering();
@@ -339,6 +346,19 @@ export default function AlgorithmSettings() {
                     setSimilarityThreshold(e.target.valueAsNumber)
                   }
                   className="w-24"
+                  disabled={!useAgglomerativeClustering}
+                />
+              </div>
+              <div
+                className={cn(
+                  "flex items-center justify-between",
+                  !useAgglomerativeClustering && "text-gray-400"
+                )}
+              >
+                <p>Repeat Merging</p>
+                <Switch
+                  checked={iterativeAggClustering}
+                  onCheckedChange={(isOn) => setIterativeAggClustering(isOn)}
                   disabled={!useAgglomerativeClustering}
                 />
               </div>

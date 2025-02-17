@@ -3,6 +3,7 @@ import uuid
 from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
+    AgglomerativeClusteringSettings,
     AutomaticClusterCount,
     ClusterSimilaritiesMessage,
     ClusterAssignmentsMessage,
@@ -295,7 +296,12 @@ if __name__ == "__main__":
         controller.handle_command(
             Command(
                 action="set_algorithm_settings",
-                data=AlgorithmSettings(method=AutomaticClusterCount(max_clusters=100)),
+                data=AlgorithmSettings(
+                    method=AutomaticClusterCount(max_clusters=100),
+                    agglomerative_clustering=AgglomerativeClusteringSettings(
+                        similarity_threshold=0.87, iterative=True
+                    ),
+                ),
             )
         )
         controller.handle_command(Command(action="run_clustering"))
