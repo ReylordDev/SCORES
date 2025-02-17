@@ -2,7 +2,12 @@ import csv
 import os
 import random
 import time
+import numpy as np
 
+
+from sklearn.cluster import AgglomerativeClustering, KMeans
+from sklearn.manifold import TSNE
+from sklearn.decomposition import PCA
 from sklearn.metrics import (
     silhouette_score,
     calinski_harabasz_score,
@@ -10,14 +15,13 @@ from sklearn.metrics import (
 )
 from utils.ipc import print_progress
 from matplotlib import pyplot as plt
-import numpy as np
 from sentence_transformers import SentenceTransformer
-from sklearn.cluster import AgglomerativeClustering, KMeans
 from application_state import ApplicationState
 from loguru import logger
 from collections import Counter
 from models import (
     Cluster,
+    ManifoldPosition,
     Merger,
     MergingStatistics,
     OutlierStatistic,
@@ -42,6 +46,7 @@ class Clusterer:
         self.timesteps = Timesteps(steps={})
         self._random_state = random.randint(0, 1000)
         self.result_dir = app_state.get_results_dir()
+        os.makedirs(self.result_dir, exist_ok=True)
         print_progress("process_input_file", "todo")
         print_progress("load_model", "todo")
         print_progress("embed_responses", "todo")
@@ -279,7 +284,6 @@ class Clusterer:
         plt.title("Cluster Count Selection Metrics")
         plt.legend()
         plt.grid(True)
-        os.makedirs(self.result_dir, exist_ok=True)
         plt.savefig(f"{self.result_dir}/cluster_count_selection_metrics.png")
         plt.close()
 
@@ -467,6 +471,7 @@ class Clusterer:
         embedding_model = self.load_embedding_model("BAAI/bge-large-en-v1.5")
 
         embeddings_map = self.embed_responses(responses, embedding_model)
+        original_embeddings_map = embeddings_map.copy()
         embeddings = np.asarray(list(embeddings_map.values()))
 
         if self.algorithm_settings.outlier_detection:
@@ -522,7 +527,11 @@ class Clusterer:
             cluster.responses.sort(key=lambda x: x.similarity or 0, reverse=True)
             cluster.name = f'Cluster "{cluster.responses[0].text}"'
 
-        return ClusteringResult(
+        responses, clusters = self.reduce_dimensionality(
+            responses, clusters, original_embeddings_map
+        )
+
+        result = ClusteringResult(
             clusters=clusters,
             outlier_statistics=outlier_stats,
             merger_statistics=merger_stats,
@@ -531,6 +540,144 @@ class Clusterer:
             ),
             timesteps=self.timesteps,
         )
+        return result
+
+    def reduce_dimensionality(
+        self,
+        responses: list[Response],
+        clusters: list[Cluster],
+        embeddings_map: dict[str, np.ndarray],
+    ):
+        embeddings = np.array([embeddings_map[response.text] for response in responses])
+        centers = np.array([cluster.center for cluster in clusters])
+
+        pca = PCA(n_components=50, random_state=self._random_state)
+        embeddings_pca = pca.fit_transform(embeddings)
+        centers_pca = pca.transform(centers)
+        combined = np.concatenate([embeddings_pca, centers_pca], axis=0)
+
+        tsne = TSNE(n_components=2, random_state=self._random_state)
+        combined_tsne = tsne.fit_transform(combined)
+
+        responses_tsne = combined_tsne[: len(embeddings), :]
+        centers_tsne = combined_tsne[len(embeddings) :, :]
+
+        for i, response in enumerate(responses):
+            x, y = responses_tsne[i][0], responses_tsne[i][1]
+            response.manifold_position = ManifoldPosition(x=float(x), y=float(y))
+
+        for i, cluster in enumerate(clusters):
+            x, y = centers_tsne[i][0], centers_tsne[i][1]
+            cluster.manifold_position = ManifoldPosition(x=float(x), y=float(y))
+
+        return responses, clusters
+
+    def plot_clusters(
+        self, clustering_result: ClusteringResult, embeddings_map: dict[str, np.ndarray]
+    ):
+        # Collect all non-outlier responses and outliers
+        non_outlier_responses = clustering_result.get_all_responses()
+        outlier_responses = []
+        if clustering_result.outlier_statistics is not None:
+            outlier_responses = [
+                os.response for os in clustering_result.outlier_statistics.outliers
+            ]
+        all_responses = non_outlier_responses + outlier_responses
+
+        # Prepare data for plotting
+        texts = [response.text for response in all_responses]
+        if not texts:
+            logger.warning("No responses to plot")
+            return
+
+        # Check for missing embeddings
+        missing = [text for text in texts if text not in embeddings_map]
+        if missing:
+            logger.warning(
+                f"Missing embeddings for {len(missing)} responses; skipping plot"
+            )
+            return
+
+        embeddings = np.array([embeddings_map[text] for text in texts])
+
+        clusters = clustering_result.clusters
+        centers = np.array([cluster.center for cluster in clustering_result.clusters])
+
+        # Reduce dimensionality with PCA
+        pca = PCA(n_components=50, random_state=self._random_state)
+        embeddings_pca = pca.fit_transform(embeddings)
+        centers_pca = pca.transform(centers)
+
+        combined = np.concatenate([embeddings_pca, centers_pca], axis=0)
+
+        # # Reduce dimensionality with t-SNE
+        tsne = TSNE(n_components=2, random_state=self._random_state)
+        combined_tsne = tsne.fit_transform(combined)
+
+        responses_tsne = combined_tsne[: len(embeddings), :]
+        centers_tsne = combined_tsne[len(embeddings) :, :]
+
+        # Generate cluster labels and outlier flags
+        cluster_id_to_label = {cluster.id: idx for idx, cluster in enumerate(clusters)}
+        labels = []
+        is_outlier = []
+        for response in all_responses:
+            if response in outlier_responses:
+                is_outlier.append(True)
+                labels.append(-1)  # -1 indicates outlier
+            else:
+                if response.cluster_id is None:
+                    logger.warning(f"Missing cluster ID for response: {response.text}")
+                    labels.append(-1)
+                else:
+                    is_outlier.append(False)
+                    labels.append(cluster_id_to_label.get(response.cluster_id, -1))
+
+        colors = plt.cm.get_cmap("viridis", len(clusters))
+
+        # Create plot
+        plt.figure(figsize=(10, 8))
+
+        for idx, cluster in enumerate(clusters):
+            cluster_responses = responses_tsne[
+                np.where(np.array(labels) == cluster_id_to_label[cluster.id])
+            ]
+
+            plt.scatter(
+                cluster_responses[:, 0],
+                cluster_responses[:, 1],
+                color=colors(cluster_id_to_label[cluster.id]),
+                s=30,
+                alpha=0.6,
+            )
+
+            center = centers_tsne[idx]
+
+            plt.scatter(
+                center[0],
+                center[1],
+                color=colors(cluster_id_to_label[cluster.id]),
+                marker="x",
+                s=100,
+                linewidths=1.5,
+                label=f"{cluster.index}: {cluster.name}",
+            )
+
+            plt.annotate(
+                str(cluster.index),
+                (center[0], center[1]),
+                textcoords="offset points",
+                xytext=(0, 5),
+                ha="center",
+            )
+
+        plt.legend(title="Clusters", bbox_to_anchor=(1.05, 1), loc="upper left")
+        plt.xlabel("t-SNE Dimension 1")
+        plt.ylabel("t-SNE Dimension 2")
+        plt.title("t-SNE Visualization of Clusters and Their Centers")
+        plt.tight_layout()
+        plt.savefig(f"{self.result_dir}/cluster_visualization.png")
+        plt.close()
 
 
 if __name__ == "__main__":

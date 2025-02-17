@@ -225,12 +225,27 @@ class AlgorithmSettings(CamelModel):
     agglomerative_clustering: Optional[AgglomerativeClusteringSettings] = None
 
 
+class ManifoldPosition(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    x: float
+    y: float
+
+    response_id: Optional[uuid.UUID] = Field(default=None, foreign_key="response.id")
+    response: Optional["Response"] = Relationship(back_populates="manifold_position")
+
+    cluster_id: Optional[uuid.UUID] = Field(default=None, foreign_key="cluster.id")
+    cluster: Optional["Cluster"] = Relationship(back_populates="manifold_position")
+
+
 class Response(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     text: str
     is_outlier: bool = False
     similarity: Optional[float] = None
     count: int = 0
+    manifold_position: Optional[ManifoldPosition] = Relationship(
+        back_populates="response"
+    )
 
     cluster_id: Optional[uuid.UUID] = Field(default=None, foreign_key="cluster.id")
     cluster: Optional["Cluster"] = Relationship(back_populates="responses")
@@ -301,6 +316,9 @@ class Cluster(SQLModel, table=True):
     center: list[float] = Field(sa_column=Column(JSON))
     responses: list[Response] = Relationship(back_populates="cluster")
     is_merger_result: bool = False
+    manifold_position: Optional[ManifoldPosition] = Relationship(
+        back_populates="cluster"
+    )
 
     def __init__(self, **data):
         super().__init__(**data)

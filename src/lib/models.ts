@@ -188,6 +188,14 @@ export interface AlgorithmSettings {
   agglomerative_clustering?: AgglomerativeClusteringSettings;
 }
 
+interface ManifoldPosition {
+  id: UUID;
+  x: number;
+  y: number;
+  response: Response | null;
+  cluster: Cluster | null;
+}
+
 export interface Response {
   id: UUID;
   text: string;
@@ -195,6 +203,7 @@ export interface Response {
   is_outlier: boolean;
   similarity: number | null;
   count: number;
+  manifold_position: ManifoldPosition | null;
   cluster_id: UUID | null;
   cluster: Cluster | null;
   outlier_statistic: OutlierStatistic | null;
@@ -208,6 +217,7 @@ export interface Cluster {
   responses: Response[];
   count: number;
   is_merger_result: boolean;
+  manifold_position: ManifoldPosition | null;
 
   result_id: UUID;
   result: ClusteringResult;
