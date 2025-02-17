@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { scan } from "react-scan";
 import { MemoryRouter as Router, Routes, Route } from "react-router";
 import FileSelection from "./pages/FileSelection";
 import FilePreview from "./pages/FilePreview";
@@ -11,6 +12,10 @@ import Outliers from "./pages/Outliers";
 import Mergers from "./pages/Mergers";
 import { useEffect, useState } from "react";
 import { AppSettings } from "../lib/models";
+
+scan({
+  enabled: true,
+});
 
 const App = () => {
   const [settings, setSettings] = useState<AppSettings | null>(null);

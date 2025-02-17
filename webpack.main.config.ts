@@ -20,5 +20,8 @@ export const mainConfig: Configuration = {
     alias: {
       "@": path.resolve(__dirname, "src"), // Add this
     },
+    fallback: {
+      url: require.resolve("url"),
+    },
   },
 };

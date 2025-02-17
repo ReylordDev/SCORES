@@ -223,9 +223,11 @@ export function TooltipWrapper({
   }, []);
 
   useEffect(() => {
-    window.settings.onSettingsChanged((settings) => {
+    const unsubscribe = window.settings.onSettingsChanged((settings) => {
       setTutorialMode(settings.tutorialMode);
     });
+
+    return () => unsubscribe();
   }, []);
 
   return (

@@ -248,10 +248,6 @@ class Clusterer:
             db_score = davies_bouldin_score(X=embeddings, labels=labels)
             db_scores.append(db_score)
 
-            logger.debug(f"Silhouette score for K={k}: {silhouette_avg}")
-            logger.debug(f"Calinski-Harabasz score for K={k}: {ch_score}")
-            logger.debug(f"Davies-Bouldin score for K={k}: {db_score}")
-
         # Normalize scores for comparison
         silhouttes_normalized = (silhouttes - np.min(silhouttes)) / (
             np.max(silhouttes) - np.min(silhouttes)
@@ -432,9 +428,6 @@ class Clusterer:
             clusters = [
                 cluster for cluster in clusters if cluster.id in post_merge_cluster_ids
             ]
-
-            logger.debug(f"Number of mergers: {len(iteration_mergers)}")
-            logger.debug(f"Number of clusters after merging: {len(clusters)}")
 
             total_mergers.extend(iteration_mergers)
 
