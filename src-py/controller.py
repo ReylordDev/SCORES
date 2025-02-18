@@ -313,6 +313,7 @@ def main():
 if __name__ == "__main__":
     DEBUG = False
     if DEBUG:
+        print("Running in debug mode")
         initialize_logger()
         controller = Controller()
         controller.handle_command(
@@ -336,13 +337,10 @@ if __name__ == "__main__":
         controller.handle_command(
             Command(
                 action="set_algorithm_settings",
-                # data=AlgorithmSettings(
-                #     method=ManualClusterCount(cluster_count=37),
-                # ),
                 data=AlgorithmSettings(
-                    method=AutomaticClusterCount(max_clusters=100, min_clusters=10),
+                    method=ManualClusterCount(cluster_count=75),
                     agglomerative_clustering=AgglomerativeClusteringSettings(
-                        similarity_threshold=0.87, iterative=True
+                        iterative=True, similarity_threshold=0.87
                     ),
                 ),
             )

@@ -333,6 +333,10 @@ class Clusterer:
     ):
         print_progress("merge", "start")
 
+        assert self.algorithm_settings.agglomerative_clustering is not None
+
+        current_max_index = max([cluster.index for cluster in clusters])
+
         total_mergers = []
         while True:
             cluster_centers = np.asarray(
@@ -391,9 +395,10 @@ class Clusterer:
 
                     merged_cluster = Cluster(
                         center=new_center.tolist(),
-                        index=merged_clusters[0].index,
+                        index=current_max_index + 1,
                         is_merger_result=True,
                     )
+                    current_max_index += 1
 
                     merged_cluster.responses = [
                         Response(
@@ -407,6 +412,7 @@ class Clusterer:
                         for cluster in merged_clusters
                         for response in cluster.responses
                     ]
+                    merged_cluster.normalize_center()
 
                     post_merge_cluster_ids.append(merged_cluster.id)
                     clusters.append(merged_cluster)
@@ -420,7 +426,11 @@ class Clusterer:
 
             total_mergers.extend(iteration_mergers)
 
-            if len(iteration_mergers) == 0 or len(clusters) == 1:
+            if (
+                len(iteration_mergers) == 0
+                or len(clusters) == 1
+                or not self.algorithm_settings.agglomerative_clustering.iterative
+            ):
                 break
         merging_statistics = MergingStatistics(
             mergers=total_mergers, threshold=similarity_threshold
@@ -495,14 +505,7 @@ class Clusterer:
             merger_stats = None
 
         for cluster in clusters:
-            cluster.center = (
-                np.asarray(cluster.center)
-                / np.linalg.norm(
-                    np.asarray(cluster.center),
-                    ord=2,
-                    axis=0,
-                )
-            ).tolist()
+            cluster.normalize_center()
             for response in cluster.responses:
                 response.cluster_id = cluster.id
                 response.similarity = cluster.similarity_to_response(

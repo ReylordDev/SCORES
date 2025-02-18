@@ -400,6 +400,16 @@ class Cluster(SQLModel, table=True):
         dict_1.update(dict_2)
         return dict_1
 
+    def normalize_center(self):
+        self.center = (
+            np.asarray(self.center)
+            / np.linalg.norm(
+                np.asarray(self.center),
+                ord=2,
+                axis=0,
+            )
+        ).tolist()
+
 
 class Merger(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
