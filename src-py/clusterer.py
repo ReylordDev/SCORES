@@ -197,22 +197,11 @@ class Clusterer:
         embeddings: np.ndarray,
         weights: np.ndarray,
     ):
-        """
-        Finds the optimal number of clusters (K) using a combination of the Elbow method
-        and the silhouette score for weighted K-means.
-
-        Parameters:
-        - embeddings (np.ndarray): Input embeddings of shape (n_samples, n_features).
-        - weights (np.ndarray): Sample weights of shape (n_samples,).
-        - max_clusters (int): Maximum number of clusters to consider.
-
-        Returns:
-        - int: Optimal number of clusters.
-        """
         print_progress("find_optimal_k", "start")
         assert self.algorithm_settings.method.cluster_count_method == "auto"
         max_clusters = self.algorithm_settings.method.max_clusters
         min_clusters = self.algorithm_settings.method.min_clusters
+
         # Validate inputs
         if max_clusters < 2:
             raise ValueError("max_clusters must be at least 2")
@@ -431,7 +420,7 @@ class Clusterer:
 
             total_mergers.extend(iteration_mergers)
 
-            if len(iteration_mergers) == 0:
+            if len(iteration_mergers) == 0 or len(clusters) == 1:
                 break
         merging_statistics = MergingStatistics(
             mergers=total_mergers, threshold=similarity_threshold

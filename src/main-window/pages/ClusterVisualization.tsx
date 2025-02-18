@@ -2,7 +2,7 @@ import { _ClusterPositionDetail } from "../../lib/models";
 import { TitleBar } from "../../components/TitleBar";
 import { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
-import { Data, ScatterData } from "plotly.js";
+import { Data, ScatterData, Color } from "plotly.js";
 
 // Define a color sequence for clusters
 const CLUSTER_COLORS = [

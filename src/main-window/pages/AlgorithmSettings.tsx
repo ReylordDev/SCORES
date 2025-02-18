@@ -214,6 +214,21 @@ export default function AlgorithmSettings() {
                 !autoChooseClusters && "text-gray-400"
               )}
             >
+              <div className="flex items-center justify-between">
+                <label htmlFor="minClusterCount">
+                  <p>Minimum number of clusters to consider</p>
+                </label>
+                <Input
+                  type="number"
+                  min={2}
+                  step={1}
+                  value={minClusters || ""}
+                  onChange={(e) => setMinClusters(e.target.valueAsNumber)}
+                  id="minClusterCount"
+                  className="w-24"
+                  disabled={!autoChooseClusters}
+                />
+              </div>
               <label htmlFor="maxClusterCount">
                 <p>Maximum number of clusters to consider</p>
               </label>
@@ -225,21 +240,6 @@ export default function AlgorithmSettings() {
                 onChange={(e) => setMaxClusters(e.target.valueAsNumber)}
                 id="maxClusterCount"
                 className="w-24 "
-                disabled={!autoChooseClusters}
-              />
-            </div>
-            <div className="flex items-center justify-between">
-              <label htmlFor="minClusterCount">
-                <p>Minimum number of clusters to consider</p>
-              </label>
-              <Input
-                type="number"
-                min={2}
-                step={1}
-                value={minClusters || ""}
-                onChange={(e) => setMinClusters(e.target.valueAsNumber)}
-                id="minClusterCount"
-                className="w-24"
                 disabled={!autoChooseClusters}
               />
             </div>
