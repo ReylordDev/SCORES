@@ -18,9 +18,9 @@ export function formatTime(timeInSeconds: number, precise = false): string {
   let formattedTime = "";
 
   if (hours > 0) {
-    formattedTime += `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")} hr`;
+    formattedTime += `${hours}:${minutes.toFixed(0).padStart(2, "0")}:${seconds.toFixed(0).padStart(2, "0")} hr`;
   } else if (minutes > 0) {
-    formattedTime += `${minutes}:${seconds.toString().padStart(2, "0")} min`;
+    formattedTime += `${minutes}:${seconds.toFixed(0).padStart(2, "0")} min`;
   } else {
     if (precise) {
       formattedTime += `${seconds.toFixed(precision)} sec`;
