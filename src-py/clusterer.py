@@ -79,7 +79,7 @@ class Clusterer:
                             )
                             continue
                         # get the next entry provided by the current participant
-                        response = row[column_index].strip().lower()
+                        response = preprocess_response(row[column_index])
                         if response == "" or response is None:
                             continue
                         for excluded_word in excluded_words:
@@ -670,6 +670,11 @@ class Clusterer:
         plt.tight_layout()
         plt.savefig(f"{self.result_dir}/cluster_visualization.png")
         plt.close()
+
+
+def preprocess_response(response: str):
+    # Maybe move this into utils
+    return response.strip().lower().replace("\n", " ")
 
 
 if __name__ == "__main__":

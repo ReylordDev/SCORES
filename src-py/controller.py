@@ -311,7 +311,7 @@ def main():
 
 
 if __name__ == "__main__":
-    DEBUG = False
+    DEBUG = True
     if DEBUG:
         print("Running in debug mode")
         initialize_logger()
@@ -319,18 +319,16 @@ if __name__ == "__main__":
         controller.handle_command(
             Command(
                 action="set_file_path",
-                data=FilePathPayload(
-                    file_path="C:\\Users\\Luis\\Projects\\Word-Clustering-Tool-for-SocPsych\\example_data\\example_short.csv"
-                ),
+                data=FilePathPayload(file_path="./example_data/quarantine-effects.csv"),
             )
         )
         controller.handle_command(
             Command(
                 action="set_file_settings",
                 data=FileSettings(
-                    delimiter=";",
+                    delimiter=",",
                     has_header=True,
-                    selected_columns=[1, 2, 3, 4, 5, 6, 7, 8, 9],
+                    selected_columns=[2],
                 ),
             )
         )
@@ -338,10 +336,7 @@ if __name__ == "__main__":
             Command(
                 action="set_algorithm_settings",
                 data=AlgorithmSettings(
-                    method=ManualClusterCount(cluster_count=75),
-                    agglomerative_clustering=AgglomerativeClusteringSettings(
-                        iterative=True, similarity_threshold=0.87
-                    ),
+                    method=ManualClusterCount(cluster_count=50),
                 ),
             )
         )

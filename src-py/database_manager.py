@@ -15,6 +15,7 @@ from models import (
 import os
 from utils.utils import get_user_data_path
 from utils.ipc import print_progress
+from clusterer import preprocess_response
 
 
 class DatabaseManager:
@@ -149,7 +150,7 @@ class DatabaseManager:
                 for i in file_settings.selected_columns:
                     # get the next response provided by the current participant
                     text = row[i]
-                    response = response_text_map.get(text.strip().lower())
+                    response = response_text_map.get(preprocess_response(text))
                     if response is None or response.cluster is None:
                         row.append("")
                         continue
