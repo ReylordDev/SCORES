@@ -84,15 +84,19 @@ class Clusterer:
                             continue
                         for excluded_word in excluded_words:
                             if (
-                                excluded_word != ""
-                                and excluded_word.lower() in response.lower()
+                                response == excluded_word
+                                or f"{excluded_word} " in response
                             ):
                                 logger.info(
                                     f"Excluded word found: {excluded_word} in response: {response}"
                                 )
+
+                                # skip the response if it contains an excluded word
                                 break
-                        # otherwise, count the response
-                        response_counter[response] += 1
+                        else:
+                            # if the response is not an excluded word, count it
+                            response_counter[response] += 1
+                            break
             responses = list(response_counter.keys())
             responses = [
                 Response(text=response, count=count)
@@ -460,7 +464,7 @@ class Clusterer:
     def run(self) -> ClusteringResult:
         print_progress("start", "start")
         self.timesteps.steps["start"] = time.time()
-        responses = self.process_input_file([])
+        responses = self.process_input_file(self.algorithm_settings.excluded_words)
 
         embedding_model = self.load_embedding_model("BAAI/bge-large-en-v1.5")
 
