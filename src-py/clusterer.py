@@ -516,7 +516,8 @@ class Clusterer:
                     response, embeddings_map
                 )
             cluster.responses.sort(key=lambda x: x.similarity or 0, reverse=True)
-            cluster.name = f'Cluster "{cluster.responses[0].text}"'
+            max_chars = 70
+            cluster.name = f'Cluster "{cluster.responses[0].text[:max_chars]}{"..." if len(cluster.responses[0].text) > max_chars else ""}"'
 
         responses, clusters = self.reduce_dimensionality(
             responses, clusters, original_embeddings_map
