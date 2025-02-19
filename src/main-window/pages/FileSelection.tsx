@@ -200,14 +200,14 @@ function PreviousRunsDialog() {
           <Search className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 select-none opacity-50" />
         </div>
       </div>
-      <div className="scrollbar max-h-[70vh] flex-grow overflow-y-auto p-6">
-        <Table>
+      <div className="scrollbar max-h-[70vh] overflow-y-auto p-6">
+        <Table className="w-full table-fixed">
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>File Path</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
+              <TableHead className="w-[25%]">Name</TableHead>
+              <TableHead className="w-[25%] whitespace-nowrap">Date</TableHead>
+              <TableHead className="w-[40%]">File Path</TableHead>
+              <TableHead className="w-[10%]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -217,19 +217,20 @@ function PreviousRunsDialog() {
                 <TableRow
                   key={index}
                   className="cursor-pointer"
-                  // Or use an alert dialog to confirm the selection
                   onClick={() => handleRunSelection(run)}
                 >
-                  <TableCell>
-                    <p>{run.name}</p>
+                  <TableCell className="max-w-0">
+                    <div className="truncate">{run.name}</div>
                   </TableCell>
-                  <TableCell>
-                    <p>{formatDate(run.created_at, "en-US")}</p>
+                  <TableCell className="whitespace-nowrap">
+                    {formatDate(run.created_at, "en-US")}
                   </TableCell>
-                  <TableCell>
-                    <p className="select-text">{run.file_path}</p>
+                  <TableCell className="max-w-0">
+                    <div className="truncate">
+                      {run.file_path.split(/[/\\]/).pop()}
+                    </div>
                   </TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableCell className="w-[10%] text-center">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button
