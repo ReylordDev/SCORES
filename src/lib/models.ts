@@ -20,7 +20,8 @@ type Action =
   | "delete_run"
   | "get_outliers"
   | "get_mergers"
-  | "get_cluster_positions";
+  | "get_cluster_positions"
+  | "get_selection_statistics";
 
 export interface ClusterNamePayload {
   clusterId: UUID;
@@ -163,7 +164,8 @@ export interface Message {
     | "cluster_similarities"
     | "outliers"
     | "mergers"
-    | "cluster_positions";
+    | "cluster_positions"
+    | "selection_statistics";
   data:
     | ProgressMessage
     | Error
@@ -175,7 +177,8 @@ export interface Message {
     | CurrentRunMessage
     | OutliersMessage
     | MergersMessage
-    | ClusterPositionsMessage;
+    | ClusterPositionsMessage
+    | KSelectionStatistic[];
 }
 
 export interface FileSettings {
@@ -323,6 +326,18 @@ export interface Timesteps {
   steps: Record<ClusteringStep, number>;
 }
 
+export interface KSelectionStatistic {
+  id: UUID;
+  k: number;
+  silhouette: number | null;
+  davies_bouldin: number | null;
+  calinski_harabasz: number | null;
+  combined: number | null;
+
+  clustering_result_id: UUID;
+  clustering_result: ClusteringResult;
+}
+
 export interface ClusteringResult {
   id: UUID;
   clusters: Cluster[];
@@ -330,6 +345,7 @@ export interface ClusteringResult {
   merger_statistics: MergingStatistics;
   inter_cluster_similarities: SimilarityPair[];
   timesteps: Timesteps;
+  k_selection_statistics: KSelectionStatistic[] | null;
   run_id: UUID;
   run: Run;
   all_responses: Response[];
@@ -437,6 +453,10 @@ declare global {
       onReceiveClusterPositions: (
         callback: (clusterPositions: ClusterPositionsMessage) => void
       ) => () => void;
+      requestSelectionStats: () => void;
+      onReceiveSelectionStats: (
+        callback: (selectionStats: KSelectionStatistic[]) => void
+      ) => () => void;
     };
   }
 }
@@ -506,6 +526,8 @@ export const CHANNELS = {
   PLOTS: {
     CLUSTER_POSITIONS_REQUEST: "plots:get-cluster-positions",
     CLUSTER_POSITIONS_RESPONSE: "plots:receive-cluster-positions",
+    SELECTION_STATS_REQUEST: "plots:get-selection-stats",
+    SELECTION_STATS_RESPONSE: "plots:receive-selection-stats",
   },
 };
 
@@ -524,6 +546,7 @@ export const PYTHON_SERVICE_EVENTS = {
   READY: "ready",
   PLOTS: {
     CLUSTER_POSITIONS: "plots-cluster-positions",
+    SELECTION_STATS: "plots-selection-stats",
   },
 };
 

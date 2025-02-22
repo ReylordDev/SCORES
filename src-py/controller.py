@@ -295,6 +295,21 @@ class Controller:
                     ),
                 )
 
+        elif command.action == "get_selection_statistics":
+            with self.database_manager.create_session() as session:
+                run_id = self.app_state.get_run_id()
+                if not run_id:
+                    print_message("error", Error(error="Run ID not set"))
+                    return
+                result = self.database_manager.get_run_result(session, run_id)
+                if not result:
+                    print_message("error", Error(error="Run result not found"))
+                    return
+                print_message(
+                    "selection_statistics",
+                    result.k_selection_statistics,
+                )
+
         else:
             logger.error(f"Invalid action: {command.action}")
             print_message("error", Error(error=f"Invalid action: {command.action}"))

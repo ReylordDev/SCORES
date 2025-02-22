@@ -16,6 +16,7 @@ import {
   SETTINGS_SERVICE_EVENTS,
   AppSettings,
   ClusterPositionsMessage,
+  KSelectionStatistic,
 } from "./lib/models";
 
 // Handle setup events
@@ -127,6 +128,17 @@ app.whenReady().then(async () => {
       );
     }
   );
+
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.PLOTS.SELECTION_STATS,
+    (data: KSelectionStatistic[]) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.PLOTS.SELECTION_STATS_RESPONSE,
+        data
+      );
+    }
+  );
+
   settingsService.on(
     SETTINGS_SERVICE_EVENTS.SETTINGS_CHANGED,
     (settings: AppSettings) => {

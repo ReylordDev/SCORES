@@ -15,6 +15,7 @@ import {
   MergersMessage,
   AppSettings,
   ClusterPositionsMessage,
+  KSelectionStatistic,
 } from "../lib/models";
 import {
   contextBridge,
@@ -214,5 +215,15 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.PLOTS, {
     ipcRenderer.on(CHANNELS.PLOTS.CLUSTER_POSITIONS_RESPONSE, listener);
     return () =>
       ipcRenderer.off(CHANNELS.PLOTS.CLUSTER_POSITIONS_RESPONSE, listener);
+  },
+  onReceiveSelectionStats: (callback) => {
+    const listener = (_: IpcRendererEvent, stats: KSelectionStatistic[]) =>
+      callback(stats);
+    ipcRenderer.on(CHANNELS.PLOTS.SELECTION_STATS_RESPONSE, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.PLOTS.SELECTION_STATS_RESPONSE, listener);
+  },
+  requestSelectionStats: () => {
+    ipcRenderer.send(CHANNELS.PLOTS.SELECTION_STATS_REQUEST);
   },
 } satisfies Window["plots"]);

@@ -32,6 +32,7 @@ ActionType = Literal[
     "get_outliers",
     "get_mergers",
     "get_cluster_positions",
+    "get_selection_statistics",
     "update_cluster_name",
     "delete_run",
 ]
@@ -191,6 +192,7 @@ MessageType = Literal[
     "outliers",
     "mergers",
     "cluster_positions",
+    "selection_statistics",
 ]
 MessageDataType = Union[
     ProgressMessage,
@@ -202,6 +204,7 @@ MessageDataType = Union[
     OutliersMessage,
     MergersMessage,
     ClusterPositionsMessage,
+    list["KSelectionStatistic"],
     str,
     None,
 ]
@@ -463,6 +466,22 @@ class Timesteps(SQLModel, table=True):
     clustering_result: "ClusteringResult" = Relationship(back_populates="timesteps")
 
 
+class KSelectionStatistic(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    k: int
+    silhouette: Optional[float] = None
+    davies_bouldin: Optional[float] = None
+    calinski_harabasz: Optional[float] = None
+    combined: Optional[float] = None
+
+    result_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="clusteringresult.id"
+    )
+    result: Optional["ClusteringResult"] = Relationship(
+        back_populates="k_selection_statistics"
+    )
+
+
 class ClusteringResult(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     clusters: list[Cluster] = Relationship(back_populates="result")
@@ -476,6 +495,10 @@ class ClusteringResult(SQLModel, table=True):
         back_populates="result"
     )
     timesteps: Timesteps = Relationship(back_populates="clustering_result")
+
+    k_selection_statistics: Optional[list[KSelectionStatistic]] = Relationship(
+        back_populates="result"
+    )
 
     run_id: Optional[uuid.UUID] = Field(default=None, foreign_key="run.id")
     run: "Run" = Relationship(back_populates="result")

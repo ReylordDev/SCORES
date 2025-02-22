@@ -182,4 +182,10 @@ export function registerIpcHandlers(
       action: "get_cluster_positions",
     });
   });
+
+  ipcMain.on(CHANNELS.PLOTS.SELECTION_STATS_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "get_selection_statistics",
+    });
+  });
 }

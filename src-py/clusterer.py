@@ -21,6 +21,7 @@ from loguru import logger
 from collections import Counter
 from models import (
     Cluster,
+    KSelectionStatistic,
     ManifoldPosition,
     Merger,
     MergingStatistics,
@@ -232,6 +233,7 @@ class Clusterer:
             )
             max_clusters = len(embeddings)
 
+        # Calculate metrics for each cluster count
         silhouttes = []
         ch_scores = []
         db_scores = []
@@ -294,10 +296,23 @@ class Clusterer:
 
         logger.debug(f"Optimal K: {optimal_k}")
 
-        # Fallback to max_clusters if no elbow is found
+        selection_stats = []
+        for i, k in enumerate(k_values):
+            selection_stats.append(
+                KSelectionStatistic(
+                    k=k,
+                    silhouette=silhouttes_normalized[i],
+                    calinski_harabasz=ch_scores_normalized[i],
+                    davies_bouldin=db_scores_normalized[i],
+                    combined=combined_scores[i],
+                )
+            )
+
         print_progress("find_optimal_k", "complete")
         self.timesteps.steps["find_optimal_k"] = time.time()
-        return optimal_k if optimal_k is not None else max_clusters
+        if not optimal_k:
+            optimal_k = max_clusters
+        return optimal_k, selection_stats
 
     def start_clustering(
         self,
@@ -510,9 +525,10 @@ class Clusterer:
         response_weights = np.array([response.count for response in responses])
 
         if self.algorithm_settings.method.cluster_count_method == "auto":
-            K = self.find_optimal_k(embeddings, response_weights)
+            K, selection_stats = self.find_optimal_k(embeddings, response_weights)
         else:
             K = self.algorithm_settings.method.cluster_count
+            selection_stats = None
 
         clusters = self.start_clustering(
             responses, embeddings, embeddings_map, K, response_weights
@@ -550,6 +566,7 @@ class Clusterer:
                 clusters
             ),
             timesteps=self.timesteps,
+            k_selection_statistics=selection_stats,
         )
         return result
 

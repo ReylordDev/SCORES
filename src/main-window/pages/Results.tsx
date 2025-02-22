@@ -241,6 +241,12 @@ export default function Results() {
                 onClick={() => navigate("/cluster_visualization")}
                 icon={<Eye />}
               />
+              <ResultsCard
+                title="Cluster Count Visualization"
+                description="Visualize the cluster count selection process"
+                onClick={() => navigate("/k_selection")}
+                icon={<Eye />}
+              />
             </div>
             <Card className="h-full w-1/3">
               <CardHeader>

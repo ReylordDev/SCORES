@@ -13,6 +13,7 @@ import Mergers from "./pages/Mergers";
 import { useEffect, useState } from "react";
 import { AppSettings } from "../lib/models";
 import ClusterVisualization from "./pages/ClusterVisualization";
+import KSelectionVisualization from "./pages/KSelectionVisualization";
 
 scan({
   enabled: true,
@@ -63,6 +64,7 @@ const App = () => {
           path="/cluster_visualization"
           element={<ClusterVisualization />}
         />
+        <Route path="/k_selection" element={<KSelectionVisualization />} />
       </Routes>
     </Router>
   );

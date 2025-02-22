@@ -16,6 +16,7 @@ import {
   OutliersMessage,
   MergersMessage,
   ClusterPositionsMessage,
+  KSelectionStatistic,
 } from "../../lib/models";
 import { SettingsService } from "./settings-service";
 import { spawn, ChildProcess } from "child_process";
@@ -162,6 +163,12 @@ export class PythonService extends EventEmitter {
         this.emit(
           PYTHON_SERVICE_EVENTS.PLOTS.CLUSTER_POSITIONS,
           message.data as ClusterPositionsMessage
+        );
+        break;
+      case "selection_statistics":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.PLOTS.SELECTION_STATS,
+          message.data as KSelectionStatistic[]
         );
         break;
       default:
