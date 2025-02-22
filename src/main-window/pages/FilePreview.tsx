@@ -2,11 +2,19 @@ import { Link } from "react-router";
 import { TitleBar } from "../../components/TitleBar";
 import { useEffect, useState } from "react";
 import { ArrowRightCircle, Check, Square } from "lucide-react";
-import { findDelimiter, parseCSVLine } from "../../lib/utils";
+import { findDelimiter, parseCSVLine, cn } from "../../lib/utils";
 import { Button } from "../../components/ui/button";
 import { Switch } from "../../components/ui/switch";
 import { Input } from "../../components/ui/input";
 import { FileSettings } from "../../lib/models";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
 
 const ColumnHeader = ({
   isOn,
@@ -19,20 +27,20 @@ const ColumnHeader = ({
 }) => {
   return (
     <div
-      className={`flex cursor-pointer items-center justify-center gap-2 rounded-md p-2 ${
-        isOn ? "bg-accent text-background" : "hover:bg-accent-200"
+      className={`flex cursor-pointer items-center justify-center gap-2 rounded-md p-2 h-full ${
+        isOn ? "bg-accent text-background" : "hover:bg-accent-200 text-text"
       }`}
       onClick={() => onChange(!isOn)}
     >
-      <Check size={16} className={`text-background ${isOn ? "" : "hidden"}`} />
-      <Square size={16} className={`text-text ${isOn ? "hidden" : ""}`} />
-      <p className="w-full select-none font-normal">{title}</p>
-      <input
+      <Check size={20} className={cn(isOn ? "text-background" : "hidden")} />
+      <Square size={20} className={cn(!isOn ? "text-text" : "hidden")} />
+      <p className="w-full select-none font-medium text-lg">{title}</p>
+      <Input
         type="checkbox"
         checked={isOn}
         onChange={() => onChange(!isOn)}
         className="hidden"
-      ></input>
+      ></Input>
     </div>
   );
 };
@@ -178,7 +186,7 @@ export default function FilePreview() {
       <TitleBar index={1} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col justify-start gap-4 bg-background px-24 pt-8 text-text xl:gap-8 xl:px-32 xl:pb-8"
+        className="dark:dark flex flex-col justify-start gap-8 bg-background px-32 pb-8 pt-8 text-text"
       >
         <h1 className="flex w-full flex-col text-5xl">File Preview</h1>
         <div className="flex flex-col gap-2 border-b pb-4">
@@ -229,61 +237,52 @@ export default function FilePreview() {
             </div>
           </div>
           <div className="scrollbar overflow-x-auto">
-            <table className="w-full overflow-hidden">
-              <thead>
-                <tr>
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-background">
                   {hasHeader &&
                     headers &&
                     headers.map((header, index) => (
-                      <th
-                        key={index}
-                        className="border-x border-b border-dashed border-text p-1"
-                      >
+                      <TableHead key={index} className="px-1 m-0 border">
                         <ColumnHeader
                           key={index}
                           onChange={() => toggleColumn(index)}
                           title={header}
                           isOn={selectedColumns.includes(index)}
                         />
-                      </th>
+                      </TableHead>
                     ))}
                   {!hasHeader &&
                     Array(columnCount)
                       .fill(0)
                       .map((_, index) => (
-                        <th
-                          key={index}
-                          className="border-x border-b border-dashed border-text p-1"
-                        >
+                        <TableHead key={index} className="px-1 m-0 border">
                           <ColumnHeader
                             key={index}
                             onChange={() => toggleColumn(index)}
                             title={`Column ${index}`}
                             isOn={selectedColumns.includes(index)}
                           />
-                        </th>
+                        </TableHead>
                       ))}
-                </tr>
-              </thead>
-              <tbody>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {displayData &&
                   displayData.map((row, rowIndex) => (
-                    <tr key={rowIndex}>
+                    <TableRow key={rowIndex} className="hover:bg-background">
                       {row.map((cell, cellIndex) => (
-                        <td
+                        <TableCell
                           key={cellIndex}
-                          className="border-x border-dashed border-text p-2 select-none"
+                          className="py-2 px-1 m-0 border-x"
                         >
-                          <p className="line-clamp-1 max-w-64 text-center">
-                            {cell}
-                          </p>
-                        </td>
+                          <p className="line-clamp-1">{cell}</p>
+                        </TableCell>
                       ))}
-                    </tr>
+                    </TableRow>
                   ))}
-              </tbody>
-            </table>
-            <div className="my-2"></div>
+              </TableBody>
+            </Table>
           </div>
         </div>
         <div className="flex items-center justify-end gap-4">

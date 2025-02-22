@@ -3,6 +3,7 @@ import uuid
 from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
+    AdvancedSettings,
     AgglomerativeClusteringSettings,
     AutomaticClusterCount,
     ClusterPositionsMessage,
@@ -71,7 +72,11 @@ class Controller:
                 run_id = uuid.uuid4()
                 self.app_state.set_run_id(run_id)
                 clusterer = Clusterer(self.app_state)
-                result = clusterer.run()
+                try:
+                    result = clusterer.run()
+                except Exception as e:
+                    print_message("error", Error(error=str(e)))
+                    return
                 run = Run(
                     id=run_id,
                     file_path=self.app_state.get_file_path(),
@@ -337,6 +342,7 @@ if __name__ == "__main__":
                 action="set_algorithm_settings",
                 data=AlgorithmSettings(
                     method=ManualClusterCount(cluster_count=50),
+                    advanced_settings=AdvancedSettings(),
                 ),
             )
         )

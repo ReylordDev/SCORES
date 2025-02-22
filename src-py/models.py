@@ -239,6 +239,10 @@ class AgglomerativeClusteringSettings(CamelModel):
     iterative: bool = False
 
 
+class AdvancedSettings(CamelModel):
+    embedding_model: Optional[str] = None
+
+
 class AlgorithmSettings(CamelModel):
     method: Union[AutomaticClusterCount, ManualClusterCount] = Field(
         discriminator="cluster_count_method",
@@ -247,6 +251,7 @@ class AlgorithmSettings(CamelModel):
     seed: int = Field(default_factory=lambda: random.randint(0, 1000))
     outlier_detection: Optional[OutlierDetectionSettings] = None
     agglomerative_clustering: Optional[AgglomerativeClusteringSettings] = None
+    advanced_settings: AdvancedSettings
 
 
 class ManifoldPosition(SQLModel, table=True):

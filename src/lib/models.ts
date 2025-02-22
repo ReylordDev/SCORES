@@ -207,12 +207,17 @@ export interface AgglomerativeClusteringSettings {
   iterative: boolean;
 }
 
+export interface AdvancedSettings {
+  embedding_model: string | null;
+}
+
 export interface AlgorithmSettings {
   method: ClusterCount;
   excluded_words: string[];
   seed?: number;
   outlier_detection?: OutlierDetectionSettings;
   agglomerative_clustering?: AgglomerativeClusteringSettings;
+  advanced_settings: AdvancedSettings;
 }
 
 export interface ManifoldPosition {

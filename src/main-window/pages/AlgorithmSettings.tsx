@@ -3,12 +3,13 @@ import { TitleBar } from "../../components/TitleBar";
 import { useState, useEffect, useMemo } from "react";
 import { Switch } from "../../components/ui/switch";
 import { Button } from "../../components/ui/button";
-import { SquarePen, ChartScatter, X } from "lucide-react";
+import { SquarePen, ChartScatter, X, Settings2 } from "lucide-react";
 import { TooltipWrapper } from "../../components/Tooltip";
 import { Input } from "../../components/ui/input";
 import {
   ClusterCount,
   AlgorithmSettings as AlgorithmSettingsType,
+  AdvancedSettings,
 } from "../../lib/models";
 import {
   Dialog,
@@ -19,6 +20,7 @@ import {
   DialogTrigger,
 } from "../../components/ui/dialog";
 import { cn } from "../../lib/utils";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 export default function AlgorithmSettings() {
   const [autoChooseClusters, setAutoChooseClusters] = useState(true);
@@ -35,6 +37,9 @@ export default function AlgorithmSettings() {
     null
   );
   const [iterativeAggClustering, setIterativeAggClustering] = useState(false);
+  const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettings>({
+    embedding_model: null,
+  });
 
   const navigate = useNavigate();
 
@@ -76,6 +81,9 @@ export default function AlgorithmSettings() {
             settings.agglomerative_clustering.iterative
           );
         }
+
+        // Load advanced settings if they exist
+        setAdvancedSettings(settings.advanced_settings);
       }
     });
 
@@ -153,6 +161,7 @@ export default function AlgorithmSettings() {
             iterative: iterativeAggClustering,
           }
         : undefined,
+      advanced_settings: advancedSettings,
     });
     window.algorithm.runClustering();
     navigate("/progress");
@@ -414,6 +423,29 @@ export default function AlgorithmSettings() {
               </div>
             </div>
           </div>
+          <TooltipWrapper
+            wrappedContent={
+              <div className="flex items-center justify-between p-4 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100">
+                <div className="flex flex-col">
+                  <p>Advanced Settings</p>
+                  <p className="text-base font-normal text-gray-500">
+                    Configure advanced algorithm parameters
+                  </p>
+                </div>
+                <AdvancedSettingsDialog
+                  settings={advancedSettings}
+                  setSettings={setAdvancedSettings}
+                />
+              </div>
+            }
+            tooltipContent={
+              <p className="text-left">
+                Advanced settings for fine-tuning the clustering algorithm.
+                These settings should only be modified if you understand their
+                impact on the clustering process.
+              </p>
+            }
+          />
         </div>
       </div>
     </div>
@@ -494,6 +526,64 @@ function ExcludedWordsDialog({
               </div>
             ))}
           </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function AdvancedSettingsDialog({
+  settings,
+  setSettings,
+}: {
+  settings: AdvancedSettings;
+  setSettings: (settings: AdvancedSettings) => void;
+}) {
+  const [modelName, setModelName] = useState(settings.embedding_model || null);
+
+  const handleSave = () => {
+    setSettings({
+      ...settings,
+      embedding_model: modelName,
+    });
+  };
+
+  console.log("Advanced settings", settings);
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="secondary">
+          <Settings2 size={16} />
+          Configure
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Advanced Settings</DialogTitle>
+          <DialogDescription>
+            Configure advanced algorithm parameters. Only modify these if you
+            understand their impact on the clustering process.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="modelName">Embedding Model Name</label>
+            <Input
+              id="modelName"
+              type="text"
+              defaultValue={settings.embedding_model}
+              onChange={(e) => setModelName(e.target.value.trim())}
+              placeholder="Enter HuggingFace model name"
+            />
+            <p className="text-sm text-gray-500">
+              The name of the HuggingFace model to use for generating
+              embeddings. Leave empty to use the default model.
+            </p>
+          </div>
+          <DialogClose asChild>
+            <Button onClick={handleSave}>Save Changes</Button>
+          </DialogClose>
         </div>
       </DialogContent>
     </Dialog>

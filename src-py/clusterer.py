@@ -43,10 +43,20 @@ class Clusterer:
         self.file_path = file_path
         self.file_settings = file_settings
         self.algorithm_settings = algorithm_settings
+
         self.timesteps = Timesteps(steps={})
         self._random_state = random.randint(0, 1000)
+
         self.result_dir = app_state.get_results_dir()
         os.makedirs(self.result_dir, exist_ok=True)
+
+        if algorithm_settings.advanced_settings.embedding_model:
+            self.embedding_model_name = (
+                algorithm_settings.advanced_settings.embedding_model
+            )
+        else:
+            self.embedding_model_name = "BAAI/bge-large-en-v1.5"
+
         print_progress("process_input_file", "todo")
         print_progress("load_model", "todo")
         print_progress("embed_responses", "todo")
@@ -96,7 +106,6 @@ class Clusterer:
                         else:
                             # if the response is not an excluded word, count it
                             response_counter[response] += 1
-                            break
             responses = list(response_counter.keys())
             responses = [
                 Response(text=response, count=count)
@@ -110,10 +119,10 @@ class Clusterer:
             logger.error(f"Error reading file: {e}")
             return []
 
-    def load_embedding_model(self, language_model: str):
+    def load_embedding_model(self, model_name: str):
         print_progress("load_model", "start")
         try:
-            model = SentenceTransformer(language_model)
+            model = SentenceTransformer(model_name)
             print_progress("load_model", "complete")
             self.timesteps.steps["load_model"] = time.time()
             return model
@@ -217,6 +226,11 @@ class Clusterer:
             raise ValueError(
                 "embeddings and weights must have the same number of samples"
             )
+        if max_clusters >= len(embeddings):
+            logger.info(
+                f"Number of clusters ({max_clusters}) exceeds number of responses ({len(embeddings)}); reducing to {len(embeddings)}"
+            )
+            max_clusters = len(embeddings)
 
         silhouttes = []
         ch_scores = []
@@ -294,6 +308,11 @@ class Clusterer:
         response_weights: np.ndarray,
     ):
         print_progress("cluster", "start")
+        if len(embeddings) < K:
+            logger.warning(
+                f"Number of clusters ({K}) exceeds number of responses ({len(embeddings)}); reducing to {len(embeddings)}"
+            )
+            K = len(embeddings)
         # Side Effect: Assigns cluster IDs to responses
         clustering = KMeans(
             n_clusters=K, n_init="auto", random_state=self._random_state
@@ -466,7 +485,7 @@ class Clusterer:
         self.timesteps.steps["start"] = time.time()
         responses = self.process_input_file(self.algorithm_settings.excluded_words)
 
-        embedding_model = self.load_embedding_model("BAAI/bge-large-en-v1.5")
+        embedding_model = self.load_embedding_model(self.embedding_model_name)
 
         embeddings_map = self.embed_responses(responses, embedding_model)
         original_embeddings_map = embeddings_map.copy()
