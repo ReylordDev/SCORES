@@ -311,7 +311,7 @@ def main():
 
 
 if __name__ == "__main__":
-    DEBUG = True
+    DEBUG = False
     if DEBUG:
         print("Running in debug mode")
         initialize_logger()
