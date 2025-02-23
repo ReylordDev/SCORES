@@ -1,4 +1,5 @@
 import sys
+import traceback
 import uuid
 from pydantic import ValidationError
 from utils.logging import initialize_logger
@@ -43,40 +44,42 @@ class Controller:
         if command.action == "set_file_path":
             if not command.data or not isinstance(command.data, FilePathPayload):
                 print_message("error", Error(error="File path cannot be empty"))
-                return
+                raise
             self.app_state.set_file_path(command.data.file_path)
         elif command.action == "get_file_path":
             print_message("file_path", self.app_state.get_file_path())
         elif command.action == "set_file_settings":
             if not command.data or not isinstance(command.data, FileSettings):
                 print_message("error", Error(error="File settings cannot be empty"))
-                return
+                raise
             self.app_state.set_file_settings(command.data)
         elif command.action == "set_algorithm_settings":
             if not command.data or not isinstance(command.data, AlgorithmSettings):
                 print_message(
                     "error", Error(error="Algorithm settings cannot be empty")
                 )
-                return
+                raise
             self.app_state.set_algorithm_settings(command.data)
         elif command.action == "run_clustering":
             with self.database_manager.create_session() as session:
                 file_settings = self.app_state.get_file_settings()
                 if not file_settings:
                     print_message("error", Error(error="File settings not set"))
-                    return
+                    raise
                 algorithm_settings = self.app_state.get_algorithm_settings()
                 if not algorithm_settings:
                     print_message("error", Error(error="Algorithm settings not set"))
-                    return
+                    raise
                 run_id = uuid.uuid4()
                 self.app_state.set_run_id(run_id)
                 clusterer = Clusterer(self.app_state)
                 try:
                     result = clusterer.run()
                 except Exception as e:
+                    logger.error(traceback.format_exc())
+                    logger.error(f"Error running clustering: {e}")
                     print_message("error", Error(error=str(e)))
-                    return
+                    raise
                 run = Run(
                     id=run_id,
                     file_path=self.app_state.get_file_path(),
@@ -92,7 +95,7 @@ class Controller:
         elif command.action == "set_run_id":
             if not command.data or not isinstance(command.data, RunIdPayload):
                 print_message("error", Error(error="Run ID cannot be empty"))
-                return
+                raise
             self.app_state.set_run_id(command.data.run_id)
             with self.database_manager.create_session() as session:
                 self.app_state.set_file_settings(
@@ -119,21 +122,21 @@ class Controller:
                 run_id = self.app_state.get_run_id()
                 if not run_id:
                     logger.warning("Run ID not set")
-                    return
+                    raise
                 run = self.database_manager.get_run(session, run_id)
                 if not run:
                     print_message("error", Error(error="Run not found"))
-                    return
+                    raise
                 if not run.result:
                     print_message("error", Error(error="Run not finished"))
-                    return
+                    raise
                 print_message(
                     "run", CurrentRunMessage(run=run, timesteps=run.result.timesteps)
                 )
         elif command.action == "update_run_name":
             if not command.data or not isinstance(command.data, RunNamePayload):
                 print_message("error", Error(error="Run name cannot be empty"))
-                return
+                raise
             self.database_manager.update_run_name(
                 command.data.run_id, command.data.name
             )
@@ -142,7 +145,7 @@ class Controller:
                 run_id = self.app_state.get_run_id()
                 if not run_id:
                     print_message("error", Error(error="Run ID not set"))
-                    return
+                    raise
                 print_message(
                     "cluster_assignments",
                     ClusterAssignmentsMessage(
@@ -166,7 +169,7 @@ class Controller:
                 run_id = self.app_state.get_run_id()
                 if not run_id:
                     print_message("error", Error(error="Run ID not set"))
-                    return
+                    raise
                 print_message(
                     "cluster_similarities",
                     ClusterSimilaritiesMessage(
@@ -191,7 +194,7 @@ class Controller:
                 run_id = self.app_state.get_run_id()
                 if not run_id:
                     print_message("error", Error(error="Run ID not set"))
-                    return
+                    raise
                 outlier_stats = self.database_manager.get_outlier_statistics(
                     session, run_id
                 )
@@ -212,7 +215,7 @@ class Controller:
         elif command.action == "update_cluster_name":
             if not command.data or not isinstance(command.data, ClusterNamePayload):
                 print_message("error", Error(error="Cluster name cannot be empty"))
-                return
+                raise
             with self.database_manager.create_session() as session:
                 self.database_manager.update_cluster_name(
                     session, command.data.cluster_id, command.data.name
@@ -220,7 +223,7 @@ class Controller:
         elif command.action == "delete_run":
             if not command.data or not isinstance(command.data, RunIdPayload):
                 print_message("error", Error(error="Run ID cannot be empty"))
-                return
+                raise
             with self.database_manager.create_session() as session:
                 self.database_manager.delete_run(command.data.run_id)
         elif command.action == "reset_run_id":
@@ -230,7 +233,7 @@ class Controller:
                 run_id = self.app_state.get_run_id()
                 if not run_id:
                     print_message("error", Error(error="Run ID not set"))
-                    return
+                    raise
                 merger_stats = self.database_manager.get_merger_statistics(
                     session, run_id
                 )
@@ -262,7 +265,7 @@ class Controller:
                 run_id = self.app_state.get_run_id()
                 if not run_id:
                     print_message("error", Error(error="Run ID not set"))
-                    return
+                    raise
                 print_message(
                     "cluster_positions",
                     ClusterPositionsMessage(
@@ -300,11 +303,11 @@ class Controller:
                 run_id = self.app_state.get_run_id()
                 if not run_id:
                     print_message("error", Error(error="Run ID not set"))
-                    return
+                    raise
                 result = self.database_manager.get_run_result(session, run_id)
                 if not result:
                     print_message("error", Error(error="Run result not found"))
-                    return
+                    raise
                 print_message(
                     "selection_statistics",
                     result.k_selection_statistics,

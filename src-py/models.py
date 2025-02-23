@@ -496,7 +496,7 @@ class ClusteringResult(SQLModel, table=True):
     )
     timesteps: Timesteps = Relationship(back_populates="clustering_result")
 
-    k_selection_statistics: Optional[list[KSelectionStatistic]] = Relationship(
+    k_selection_statistics: list[KSelectionStatistic] = Relationship(
         back_populates="result"
     )
 

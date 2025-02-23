@@ -496,6 +496,7 @@ class Clusterer:
         return cluster_similarity_pairs
 
     def run(self) -> ClusteringResult:
+        logger.error
         print_progress("start", "start")
         self.timesteps.steps["start"] = time.time()
         responses = self.process_input_file(self.algorithm_settings.excluded_words)
@@ -528,7 +529,7 @@ class Clusterer:
             K, selection_stats = self.find_optimal_k(embeddings, response_weights)
         else:
             K = self.algorithm_settings.method.cluster_count
-            selection_stats = None
+            selection_stats = []
 
         clusters = self.start_clustering(
             responses, embeddings, embeddings_map, K, response_weights

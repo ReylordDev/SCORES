@@ -287,7 +287,7 @@ export default function FileSelection() {
       <TitleBar index={0} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-24 pt-8 text-text xl:px-32 xl:pb-8 2xl:px-48 2xl:pb-16"
+        className="dark:dark select-none flex flex-col bg-background px-24 pt-8 text-text xl:px-32 xl:pb-8 2xl:px-48 2xl:pb-16"
       >
         <div className="mb-8 flex w-full flex-col gap-2">
           <h1 className="text-5xl">
