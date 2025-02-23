@@ -287,22 +287,18 @@ export default function FileSelection() {
       <TitleBar index={0} />
       <div
         id="mainContent"
-        className="dark:dark select-none flex flex-col bg-background px-24 pt-8 text-text xl:px-32 xl:pb-8 2xl:px-48 2xl:pb-16"
+        className="dark:dark select-none flex flex-col bg-background text-text px-32 py-8 gap-8"
       >
-        <div className="mb-8 flex w-full flex-col gap-2">
+        <div className="flex flex-col gap-2">
           <h1 className="text-5xl">
-            <span className="bg-gradient-to-l from-accent-300 to-accent-600 bg-clip-text text-transparent">
-              Response Clustering
-            </span>
-            <br></br>
-            based on{" "}
-            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              LLM Embeddings
+            <span className="bg-gradient-to-r from-primary-600 to-accent via-secondary-500 bg-clip-text text-transparent">
+              Semantic Clustering of Open Responses <br></br>
+              via Embedding Similarity
             </span>
           </h1>
-          <p>Analyze your open-ended survey responses with ease.</p>
+          <p>Analyze your free-text survey responses with ease.</p>
         </div>
-        <div className="mb-8 flex h-full items-center justify-between">
+        <div className="mb-8 mt-16 flex h-full items-center justify-between">
           <FileSelector handleFileSelection={handleFileSelection} />
           <div className="flex h-full flex-col items-center justify-start gap-8 p-4 text-center xl:p-12 w-1/2">
             <div className="flex flex-col items-center justify-center gap-2">

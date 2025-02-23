@@ -811,6 +811,14 @@ video {
   margin-top: 1rem;
 }
 
+.mb-16 {
+  margin-bottom: 4rem;
+}
+
+.mt-16 {
+  margin-top: 4rem;
+}
+
 .line-clamp-1 {
   overflow: hidden;
   display: -webkit-box;
@@ -1443,18 +1451,73 @@ video {
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
+.from-secondary {
+  --tw-gradient-from: var(--secondary) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
 .from-primary {
   --tw-gradient-from: var(--primary) var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
+.from-primary-300 {
+  --tw-gradient-from: var(--primary-300) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-primary-800 {
+  --tw-gradient-from: var(--primary-800) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.from-primary-600 {
+  --tw-gradient-from: var(--primary-600) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.via-accent {
+  --tw-gradient-to: rgb(255 255 255 / 0)  var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--accent) var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+
+.via-secondary {
+  --tw-gradient-to: rgb(255 255 255 / 0)  var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--secondary) var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+
+.via-secondary-500 {
+  --tw-gradient-to: rgb(255 255 255 / 0)  var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--secondary-500) var(--tw-gradient-via-position), var(--tw-gradient-to);
+}
+
 .to-accent-600 {
   --tw-gradient-to: var(--accent-600) var(--tw-gradient-to-position);
 }
 
+.to-primary {
+  --tw-gradient-to: var(--primary) var(--tw-gradient-to-position);
+}
+
 .to-secondary {
   --tw-gradient-to: var(--secondary) var(--tw-gradient-to-position);
+}
+
+.to-secondary-600 {
+  --tw-gradient-to: var(--secondary-600) var(--tw-gradient-to-position);
+}
+
+.to-accent {
+  --tw-gradient-to: var(--accent) var(--tw-gradient-to-position);
+}
+
+.to-accent-500 {
+  --tw-gradient-to: var(--accent-500) var(--tw-gradient-to-position);
 }
 
 .bg-clip-text {
@@ -1548,6 +1611,11 @@ video {
 .py-6 {
   padding-top: 1.5rem;
   padding-bottom: 1.5rem;
+}
+
+.py-8 {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
 
 .pb-2 {
@@ -1665,6 +1733,11 @@ video {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+
+.text-6xl {
+  font-size: 3.75rem;
+  line-height: 1;
 }
 
 .font-bold {
@@ -2261,6 +2334,10 @@ body {
   background-color: var(--accent-600);
 }
 
+.hover\:bg-background:hover {
+  background-color: var(--background);
+}
+
 .hover\:bg-background-100:hover {
   background-color: var(--background-100);
 }
@@ -2291,10 +2368,6 @@ body {
 
 .hover\:bg-secondary-600:hover {
   background-color: var(--secondary-600);
-}
-
-.hover\:bg-background:hover {
-  background-color: var(--background);
 }
 
 .hover\:text-destructive-foreground:hover {

@@ -169,7 +169,7 @@ export default function FilePreview() {
         <TitleBar index={1} />
         <div
           id="mainContent"
-          className="dark:dark flex flex-col items-center justify-start gap-4 bg-background px-24"
+          className="dark:dark flex flex-col items-center text-text justify-start gap-4 bg-background px-24"
         >
           <div className="mt-24 flex w-full justify-center p-8">
             <h1 className="text-4xl">

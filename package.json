@@ -1,6 +1,6 @@
 {
-  "name": "psycluster",
-  "productName": "PsyCluster",
+  "name": "scores",
+  "productName": "SCORES",
   "version": "0.0.1",
   "description": "...",
   "main": ".webpack/main",

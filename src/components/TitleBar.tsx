@@ -199,7 +199,7 @@ export function TitleBar({ index }: { index: number }) {
                     variant="ghost"
                     onClick={() => {
                       window.electron.openUrl(
-                        "https://github.com/ReylordDev/psycluster"
+                        "https://github.com/ReylordDev/SCORES"
                       );
                     }}
                   >
