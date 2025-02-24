@@ -6,6 +6,7 @@ import { Data } from "plotly.js";
 
 export default function KSelectionVisualization() {
   const [stats, setStats] = useState<KSelectionStatistic[]>([]);
+  const [optimalK, setOptimalK] = useState<number | null>(null);
 
   useEffect(() => {
     const unsubscribe = window.plots.onReceiveSelectionStats(
@@ -21,6 +22,15 @@ export default function KSelectionVisualization() {
   useEffect(() => {
     window.plots.requestSelectionStats();
   }, []);
+
+  useEffect(() => {
+    if (stats.length > 0) {
+      const optimal = stats.reduce((prev, current) =>
+        prev.combined > current.combined ? prev : current
+      );
+      setOptimalK(optimal.k);
+    }
+  }, [stats]);
 
   // Generate plot traces for each metric
   const traces = [
@@ -56,6 +66,17 @@ export default function KSelectionVisualization() {
       mode: "lines+markers",
       name: "Combined Score",
     },
+    {
+      x: [optimalK, optimalK],
+      y: [0, 1],
+      type: "scatter",
+      mode: "lines",
+      line: {
+        dash: "dot",
+        color: "red",
+      },
+      name: "Selected Cluster Count",
+    },
   ];
 
   return (
@@ -65,13 +86,23 @@ export default function KSelectionVisualization() {
         id="mainContent"
         className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"
       >
-        <h1 className="text-4xl">Cluster Count Visualization</h1>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-4xl">Cluster Count Visualization</h1>
+          <p>
+            The selected number of clusters is{" "}
+            <span className="font-bold">{optimalK}</span>, based on the combined
+            score of the evaluation metrics.
+          </p>
+        </div>
         <Plot
           data={traces as Data[]}
           layout={{
             title: "Cluster Evaluation Metrics vs. Number of Clusters (k)",
-            xaxis: { title: "Number of Clusters (k)" },
-            yaxis: { title: "Score" },
+            xaxis: { title: "Number of Clusters (k)", dtick: 1 },
+            yaxis: {
+              title: "Score",
+              dtick: 0.1,
+            },
             legend: {
               font: {
                 family: "Poppins",
@@ -83,6 +114,19 @@ export default function KSelectionVisualization() {
             autosize: true,
             paper_bgcolor: "#f9f4fd",
             plot_bgcolor: "#f9f4fd",
+            margin: {
+              l: 50,
+              r: 0,
+              b: 50,
+              t: 50,
+              pad: 0,
+            },
+          }}
+          config={{
+            displayModeBar: false,
+            staticPlot: false,
+            scrollZoom: false,
+            showAxisDragHandles: false,
           }}
           style={{ width: "100%", height: "600px" }}
         />
