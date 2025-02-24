@@ -799,6 +799,10 @@ video {
   margin-right: 0.5rem;
 }
 
+.mt-16 {
+  margin-top: 4rem;
+}
+
 .mt-2 {
   margin-top: 0.5rem;
 }
@@ -809,14 +813,6 @@ video {
 
 .mt-4 {
   margin-top: 1rem;
-}
-
-.mb-16 {
-  margin-bottom: 4rem;
-}
-
-.mt-16 {
-  margin-top: 4rem;
 }
 
 .line-clamp-1 {
@@ -1437,42 +1433,8 @@ video {
   background-color: rgb(228 228 231 / var(--tw-bg-opacity));
 }
 
-.bg-gradient-to-l {
-  background-image: linear-gradient(to left, var(--tw-gradient-stops));
-}
-
 .bg-gradient-to-r {
   background-image: linear-gradient(to right, var(--tw-gradient-stops));
-}
-
-.from-accent-300 {
-  --tw-gradient-from: var(--accent-300) var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-
-.from-secondary {
-  --tw-gradient-from: var(--secondary) var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-
-.from-primary {
-  --tw-gradient-from: var(--primary) var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-
-.from-primary-300 {
-  --tw-gradient-from: var(--primary-300) var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-
-.from-primary-800 {
-  --tw-gradient-from: var(--primary-800) var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
 .from-primary-600 {
@@ -1481,43 +1443,13 @@ video {
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
-.via-accent {
-  --tw-gradient-to: rgb(255 255 255 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--accent) var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
-
-.via-secondary {
-  --tw-gradient-to: rgb(255 255 255 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--secondary) var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
-
 .via-secondary-500 {
   --tw-gradient-to: rgb(255 255 255 / 0)  var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--secondary-500) var(--tw-gradient-via-position), var(--tw-gradient-to);
 }
 
-.to-accent-600 {
-  --tw-gradient-to: var(--accent-600) var(--tw-gradient-to-position);
-}
-
-.to-primary {
-  --tw-gradient-to: var(--primary) var(--tw-gradient-to-position);
-}
-
-.to-secondary {
-  --tw-gradient-to: var(--secondary) var(--tw-gradient-to-position);
-}
-
-.to-secondary-600 {
-  --tw-gradient-to: var(--secondary-600) var(--tw-gradient-to-position);
-}
-
 .to-accent {
   --tw-gradient-to: var(--accent) var(--tw-gradient-to-position);
-}
-
-.to-accent-500 {
-  --tw-gradient-to: var(--accent-500) var(--tw-gradient-to-position);
 }
 
 .bg-clip-text {
@@ -1733,11 +1665,6 @@ video {
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
-}
-
-.text-6xl {
-  font-size: 3.75rem;
-  line-height: 1;
 }
 
 .font-bold {
@@ -2773,26 +2700,6 @@ body {
 
   .xl\:p-12 {
     padding: 3rem;
-  }
-
-  .xl\:px-32 {
-    padding-left: 8rem;
-    padding-right: 8rem;
-  }
-
-  .xl\:pb-8 {
-    padding-bottom: 2rem;
-  }
-}
-
-@media (min-width: 1536px) {
-  .\32xl\:px-48 {
-    padding-left: 12rem;
-    padding-right: 12rem;
-  }
-
-  .\32xl\:pb-16 {
-    padding-bottom: 4rem;
   }
 }
 

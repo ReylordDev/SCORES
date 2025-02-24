@@ -566,7 +566,7 @@ function AdvancedSettingsDialog({
             understand their impact on the clustering process.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-2">
             <label htmlFor="modelName">Embedding Model Name</label>
             <Input
