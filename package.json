@@ -1,8 +1,8 @@
 {
   "name": "scores",
   "productName": "SCORES",
-  "version": "0.0.1",
-  "description": "...",
+  "version": "1.0.0",
+  "description": "Desktop interface for clustering free-text survey response data, using large language model embeddings and clustering algorithms. Includes functionality to determine the optimal number of clusters automatically and visualize the results.",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
