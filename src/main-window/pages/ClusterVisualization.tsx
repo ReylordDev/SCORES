@@ -24,8 +24,7 @@ import { Label } from "../../components/ui/label";
 const getClusterColor = (index: number, totalClusters: number) => {
   if (totalClusters === 0) return "#cccccc";
   const hue = (index * 360) / totalClusters;
-  const lightness = 30 + (index % 3) * 10; // Vary between 30-50% lightness
-  return `hsl(${hue}, 100%, ${lightness}%)`;
+  return `hsl(${hue}, 80%, 50%)`;
 };
 
 export default function ClusterVisualization() {

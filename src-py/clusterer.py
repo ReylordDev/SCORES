@@ -33,6 +33,7 @@ from models import (
     ClusteringResult,
 )
 from utils.utils import preprocess_response
+from cache import EmbeddingCache
 
 
 class Clusterer:
@@ -59,6 +60,9 @@ class Clusterer:
             )
         else:
             self.embedding_model_name = "BAAI/bge-large-en-v1.5"
+
+        # Initialize the embedding cache
+        self.embedding_cache = EmbeddingCache()
 
         print_progress("process_input_file", "todo")
         print_progress("load_model", "todo")
@@ -138,13 +142,56 @@ class Clusterer:
         self, responses: list[Response], embedding_model: SentenceTransformer
     ):
         print_progress("embed_responses", "start")
-        # Side Effect: Embeds the responses and sets the embeddings in the Response objects
-        norm_embeddings = embedding_model.encode(
-            [response.text for response in responses], normalize_embeddings=True
+
+        # Get the list of texts to embed
+        texts = [response.text for response in responses]
+
+        # Try to get embeddings from cache first
+        cached_embeddings = self.embedding_cache.get_embeddings(
+            self.embedding_model_name, texts
         )
-        embeddings_map: dict[str, np.ndarray] = {}
-        for i, response in enumerate(responses):
-            embeddings_map[response.text] = norm_embeddings[i]
+
+        # Convert to a mutable dictionary since Mapping doesn't support __setitem__
+        cached_embeddings_dict = dict(cached_embeddings)
+
+        # Identify which texts need to be embedded
+        texts_to_embed = [
+            text for text in texts if cached_embeddings_dict[text] is None
+        ]
+
+        if texts_to_embed:
+            logger.info(
+                f"Embedding {len(texts_to_embed)} texts (found {len(texts) - len(texts_to_embed)} in cache)"
+            )
+            # Embed only the texts that weren't in the cache
+            new_embeddings = embedding_model.encode(
+                texts_to_embed, normalize_embeddings=True
+            )
+
+            # Create a dictionary of new embeddings
+            new_embeddings_dict = {
+                text: new_embeddings[i] for i, text in enumerate(texts_to_embed)
+            }
+
+            # Save the new embeddings to the cache
+            self.embedding_cache.save_embeddings(
+                self.embedding_model_name, new_embeddings_dict
+            )
+
+            # Update the cached embeddings with the new ones
+            # TODO: This is a hack to get the embeddings map to work
+            for text, embedding in new_embeddings_dict.items():
+                cached_embeddings_dict[text] = embedding
+        else:
+            logger.info(f"All {len(texts)} texts found in cache")
+
+        # Create the final embeddings map
+        embeddings_map = {
+            text: embedding
+            for text, embedding in cached_embeddings_dict.items()
+            if embedding is not None
+        }
+
         print_progress("embed_responses", "complete")
         self.timesteps.steps["embed_responses"] = time.time()
         return embeddings_map

@@ -27,6 +27,7 @@ from loguru import logger
 from application_state import ApplicationState
 from database_manager import DatabaseManager
 from clusterer import Clusterer
+from cache import EmbeddingCache
 
 
 class Controller:
@@ -34,6 +35,8 @@ class Controller:
         print_progress("init", "start")
         self.app_state = ApplicationState()
         self.database_manager = DatabaseManager()
+        self.embedding_cache = EmbeddingCache()
+        self.embedding_cache.clear_expired_caches()
 
         print_progress("init", "complete")
 

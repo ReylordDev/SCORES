@@ -109,3 +109,5 @@ build
 dist
 *.spec
 .venv*
+
+cache
