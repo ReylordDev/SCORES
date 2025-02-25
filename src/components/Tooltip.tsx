@@ -233,7 +233,7 @@ export function TooltipWrapper({
   return (
     <Tooltip placement={placement}>
       <TooltipTrigger asChild>{wrappedContent}</TooltipTrigger>
-      <TooltipContent className="text-text">
+      <TooltipContent className="text-text z-50">
         <TooltipContentContainer tutorialMode={tutorialMode} small={small}>
           {tooltipContent}
         </TooltipContentContainer>

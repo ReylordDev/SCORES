@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
+import { TooltipWrapper } from "../../components/Tooltip";
 
 const ColumnHeader = ({
   isOn,
@@ -190,52 +191,97 @@ export default function FilePreview() {
       >
         <h1 className="flex w-full flex-col text-5xl">File Preview</h1>
         <div className="flex flex-col gap-2 border-b pb-4">
-          <div className="flex w-full items-start justify-between">
-            <div className="flex flex-col">
-              <p>Header row</p>
-              <p className="text-wrap text-base font-normal text-gray-500">
-                Whether the first line of data already contains responses.
-              </p>
-            </div>
-            <Switch checked={hasHeader} onCheckedChange={setHasHeader} />
-          </div>
-          <div className="flex items-center justify-between">
-            <label htmlFor="delimiter">
-              <div className="flex flex-col">
-                <p>Line separator</p>
-                <p className="text-base font-normal text-gray-500">
-                  Enter the character that separates each column
-                </p>
+          <TooltipWrapper
+            wrappedContent={
+              <div className="flex w-full items-start justify-between">
+                <div className="flex flex-col">
+                  <p>Header row</p>
+                  <p className="text-wrap text-base font-normal text-gray-500">
+                    Whether the first line of data already contains responses.
+                  </p>
+                </div>
+                <Switch checked={hasHeader} onCheckedChange={setHasHeader} />
               </div>
-            </label>
-            <Input
-              id="delimiter"
-              value={delimiter || ""}
-              onChange={(e) => setDelimiter(e.target.value)}
-              className="w-20 text-center"
-            />
-          </div>
+            }
+            tooltipContent={
+              <p className="text-left">
+                The header row is the first row of the file that contains the
+                names of each column. Some CSV files may not have a header row.
+                In that case, disable this option.
+              </p>
+            }
+            placement="bottom-start"
+          />
+          <TooltipWrapper
+            wrappedContent={
+              <div className="flex items-center justify-between">
+                <label htmlFor="delimiter">
+                  <div className="flex flex-col">
+                    <p>Line separator</p>
+                    <p className="text-base font-normal text-gray-500">
+                      Enter the character that separates each column
+                    </p>
+                  </div>
+                </label>
+                <Input
+                  id="delimiter"
+                  value={delimiter || ""}
+                  onChange={(e) => setDelimiter(e.target.value)}
+                  className="w-20 text-center"
+                />
+              </div>
+            }
+            tooltipContent={
+              <p className="text-left">
+                The line separator is the character that separates each column
+                in the file.
+                <br></br>
+                Common separators include commas (","), tabs ("\t"), and
+                semicolons (";").
+                <br></br>
+                The application will automatically detect the separator for you
+                based on the first few lines of the file.
+                <br></br>
+                You should only need to change this if the preview data looks
+                incorrect. This may also hint at a formatting problem in the
+                file itself.
+              </p>
+            }
+            placement="bottom-start"
+          />
         </div>
         <div className="flex flex-col gap-4 h-full">
-          <div className="flex items-center justify-between">
-            <p>
-              Select all columns that contain responses to open-ended questions:
-            </p>
-            <div>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setSelectedColumns(
-                    selectedColumns.length === 0
-                      ? [...Array(headers.length).keys()]
-                      : []
-                  );
-                }}
-              >
-                Toggle all
-              </Button>
-            </div>
-          </div>
+          <TooltipWrapper
+            wrappedContent={
+              <div className="flex items-center justify-between">
+                <p>
+                  Select all columns that contain responses to open-ended
+                  questions:
+                </p>
+                <div>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setSelectedColumns(
+                        selectedColumns.length === 0
+                          ? [...Array(headers.length).keys()]
+                          : []
+                      );
+                    }}
+                  >
+                    Toggle all
+                  </Button>
+                </div>
+              </div>
+            }
+            tooltipContent={
+              <p className="text-left">
+                Only the selected columns will be used in the analysis.
+              </p>
+            }
+            placement="bottom-start"
+            small={true}
+          />
           <div className="scrollbar overflow-x-auto">
             <Table>
               <TableHeader>
