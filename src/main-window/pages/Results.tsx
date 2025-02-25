@@ -33,13 +33,20 @@ import {
 } from "../../components/ui/card";
 
 import { TooltipWrapper } from "../../components/Tooltip";
-import { progressionMessages, Run, Timesteps } from "../../lib/models";
+import {
+  AlgorithmSettings,
+  progressionMessages,
+  Run,
+  Timesteps,
+} from "../../lib/models";
 import { Progress } from "../../components/ui/progress";
 import { Input } from "../../components/ui/input";
 
 export default function Results() {
   const [run, setRun] = useState<Run | null>(null);
   const [timesteps, setTimesteps] = useState<Timesteps | null>(null);
+  const [algorithmSettings, setAlgorithmSettings] =
+    useState<AlgorithmSettings | null>(null);
   const [runName, setRunName] = useState<string | null>(null);
   const [runNameInput, setRunNameInput] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -79,8 +86,12 @@ export default function Results() {
         console.log("Received current run", run);
         setRun(run);
         setRunName(run.name);
-        setTimesteps(timesteps);
         setRunNameInput(run.name);
+
+        setTimesteps(timesteps);
+
+        const algorithm_settings = JSON.parse(run.algorithm_settings);
+        setAlgorithmSettings(algorithm_settings);
       }
     );
     return () => {
@@ -223,30 +234,36 @@ export default function Results() {
                 onClick={() => navigate("/cluster_similarities")}
                 icon={<GitCompare />}
               />
-              <ResultsCard
-                title="Outliers"
-                description="Identify responses that don't fit into any cluster"
-                onClick={() => navigate("/outliers")}
-                icon={<AlertTriangle />}
-              />
-              <ResultsCard
-                title="Cluster Mergers"
-                description="See which clusters were merged together"
-                onClick={() => navigate("/mergers")}
-                icon={<GitMerge />}
-              />
+              {algorithmSettings.outlier_detection && (
+                <ResultsCard
+                  title="Outliers"
+                  description="Identify responses that don't fit into any cluster"
+                  onClick={() => navigate("/outliers")}
+                  icon={<AlertTriangle />}
+                />
+              )}
+              {algorithmSettings.agglomerative_clustering && (
+                <ResultsCard
+                  title="Cluster Mergers"
+                  description="See which clusters were merged together"
+                  onClick={() => navigate("/mergers")}
+                  icon={<GitMerge />}
+                />
+              )}
               <ResultsCard
                 title="Cluster Visualization"
                 description="Visualize the clusters"
                 onClick={() => navigate("/cluster_visualization")}
                 icon={<Eye />}
               />
-              <ResultsCard
-                title="Cluster Count Visualization"
-                description="Visualize the cluster count selection process"
-                onClick={() => navigate("/k_selection")}
-                icon={<Eye />}
-              />
+              {algorithmSettings.method.cluster_count_method === "auto" && (
+                <ResultsCard
+                  title="Cluster Count Visualization"
+                  description="Visualize the cluster count selection process"
+                  onClick={() => navigate("/k_selection")}
+                  icon={<Eye />}
+                />
+              )}
             </div>
             <Card className="h-full w-1/3">
               <CardHeader>

@@ -65,13 +65,13 @@ export default function AlgorithmSettings() {
         }
 
         setExcludedWords(settings.excluded_words);
-        setUseOutlierDetection(settings.outlier_detection !== undefined);
+        setUseOutlierDetection(settings.outlier_detection !== null);
         if (settings.outlier_detection) {
           setNearestNeighbors(settings.outlier_detection.nearest_neighbors);
           setZScoreThreshold(settings.outlier_detection.z_score_threshold);
         }
         setUseAgglomerativeClustering(
-          settings.agglomerative_clustering !== undefined
+          settings.agglomerative_clustering !== null
         );
         if (settings.agglomerative_clustering) {
           setSimilarityThreshold(
@@ -154,13 +154,13 @@ export default function AlgorithmSettings() {
             nearest_neighbors: nearestNeighbors,
             z_score_threshold: zScoreThreshold,
           }
-        : undefined,
+        : null,
       agglomerative_clustering: useAgglomerativeClustering
         ? {
             similarity_threshold: similarityThreshold,
             iterative: iterativeAggClustering,
           }
-        : undefined,
+        : null,
       advanced_settings: advancedSettings,
     });
     window.algorithm.runClustering();
