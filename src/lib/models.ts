@@ -217,10 +217,10 @@ export interface AdvancedSettings {
 export interface AlgorithmSettings {
   method: ClusterCount;
   excluded_words: string[];
-  seed?: number;
   outlier_detection?: OutlierDetectionSettings;
   agglomerative_clustering?: AgglomerativeClusteringSettings;
   advanced_settings: AdvancedSettings;
+  random_state: number;
 }
 
 export interface ManifoldPosition {

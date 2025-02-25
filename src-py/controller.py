@@ -5,8 +5,6 @@ from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
     AdvancedSettings,
-    AgglomerativeClusteringSettings,
-    AutomaticClusterCount,
     ClusterPositionsMessage,
     ClusterSimilaritiesMessage,
     ClusterAssignmentsMessage,
@@ -80,13 +78,18 @@ class Controller:
                     logger.error(f"Error running clustering: {e}")
                     print_message("error", Error(error=str(e)))
                     raise
+                algorithm_settings_dict = algorithm_settings.model_dump()
+                algorithm_settings_dict["random_state"] = (
+                    self.app_state.get_random_state()
+                )
+                algorithm_settings = AlgorithmSettings(**algorithm_settings_dict)
+
                 run = Run(
                     id=run_id,
                     file_path=self.app_state.get_file_path(),
                     file_settings=file_settings.model_dump_json(),
                     algorithm_settings=algorithm_settings.model_dump_json(),
                     result=result,
-                    random_seed=clusterer.get_random_state(),
                 )
                 self.database_manager.create_output_file(run)
                 self.database_manager.create_assignments_file(run)

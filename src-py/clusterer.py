@@ -32,6 +32,7 @@ from models import (
     Timesteps,
     ClusteringResult,
 )
+from utils.utils import preprocess_response
 
 
 class Clusterer:
@@ -46,7 +47,8 @@ class Clusterer:
         self.algorithm_settings = algorithm_settings
 
         self.timesteps = Timesteps(steps={})
-        self._random_state = random.randint(0, 1000)
+        self._random_state = app_state.get_random_state()
+        logger.debug(f"Random state: {self._random_state}")
 
         self.result_dir = app_state.get_results_dir()
         os.makedirs(self.result_dir, exist_ok=True)
@@ -707,11 +709,6 @@ class Clusterer:
         plt.tight_layout()
         plt.savefig(f"{self.result_dir}/cluster_visualization.png")
         plt.close()
-
-
-def preprocess_response(response: str):
-    # Maybe move this into utils
-    return response.strip().lower().replace("\n", " ")
 
 
 if __name__ == "__main__":

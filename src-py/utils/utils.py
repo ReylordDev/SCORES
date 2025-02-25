@@ -20,6 +20,10 @@ def get_user_data_path():
         return os.getcwd()
 
 
+def preprocess_response(response: str):
+    return response.strip().lower().replace("\n", " ")
+
+
 if __name__ == "__main__":
     print(is_bundled())
     print(is_production_environment())

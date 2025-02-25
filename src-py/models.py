@@ -1,5 +1,4 @@
 import os
-import random
 from typing import Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, computed_field
 from pydantic.alias_generators import to_camel
@@ -251,10 +250,10 @@ class AlgorithmSettings(CamelModel):
         discriminator="cluster_count_method",
     )
     excluded_words: list[str] = Field(default=[])
-    seed: int = Field(default_factory=lambda: random.randint(0, 1000))
     outlier_detection: Optional[OutlierDetectionSettings] = None
     agglomerative_clustering: Optional[AgglomerativeClusteringSettings] = None
     advanced_settings: AdvancedSettings
+    random_state: Optional[int] = None
 
 
 class ManifoldPosition(SQLModel, table=True):
@@ -514,7 +513,6 @@ class Run(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     name: str
     file_path: str
-    random_seed: int
     created_at: float = Field(default_factory=time.time)
 
     file_settings: str = Field(sa_column=Column(JSON))

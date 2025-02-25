@@ -13,9 +13,8 @@ from models import (
     Timesteps,
 )
 import os
-from utils.utils import get_user_data_path
+from utils.utils import get_user_data_path, preprocess_response
 from utils.ipc import print_progress
-from clusterer import preprocess_response
 
 
 class DatabaseManager:

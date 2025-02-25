@@ -40,6 +40,7 @@ export default function AlgorithmSettings() {
   const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettings>({
     embedding_model: null,
   });
+  const [randomState, setRandomState] = useState<number | null>(null);
 
   const navigate = useNavigate();
 
@@ -84,6 +85,7 @@ export default function AlgorithmSettings() {
 
         // Load advanced settings if they exist
         setAdvancedSettings(settings.advanced_settings);
+        setRandomState(settings.random_state);
       }
     });
 
@@ -162,6 +164,7 @@ export default function AlgorithmSettings() {
           }
         : null,
       advanced_settings: advancedSettings,
+      random_state: randomState,
     });
     window.algorithm.runClustering();
     navigate("/progress");

@@ -1,3 +1,4 @@
+import random
 from typing import Optional
 from uuid import UUID
 
@@ -13,8 +14,10 @@ class ApplicationState:
         self.file_path = None
         self.file_settings = None
         self.algorithm_settings = None
+        self.random_state = 0
 
         if DEBUG_RUN_ID and not is_production_environment():
+            logger.debug("Using debug run ID")
             self._current_run_id = UUID(DEBUG_RUN_ID)
         else:
             self._current_run_id: Optional[UUID] = None
@@ -33,9 +36,14 @@ class ApplicationState:
 
     def set_algorithm_settings(self, algorithm_settings: AlgorithmSettings):
         self.algorithm_settings = algorithm_settings
+        self.random_state = algorithm_settings.random_state or random.randint(1, 1000)
+        logger.debug(f"Random state: {self.random_state}")
 
     def get_algorithm_settings(self):
         return self.algorithm_settings
+
+    def get_random_state(self):
+        return self.random_state
 
     def set_run_id(self, run_id: UUID):
         if isinstance(run_id, str):
