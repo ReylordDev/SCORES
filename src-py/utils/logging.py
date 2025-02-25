@@ -1,3 +1,4 @@
+import locale
 import os
 import sys
 
@@ -18,8 +19,12 @@ def initialize_logger():
         os.path.join(get_user_data_path(), "logs", "python.log"),
         rotation="500 MB",
         level=log_level,
-        encoding="utf-8",
     )
     logger.info(
-        f"\nLogger initialized in {'PRODUCTION' if is_production_environment() else 'DEVELOPMENT'} mode",
+        f"\nLogger initialized in {'PRODUCTION' if is_production_environment() else 'DEVELOPMENT'} mode, log level: {log_level}",
     )
+    logger.debug(f"Python default encoding: {sys.getdefaultencoding()}")
+    logger.debug(f"Stdout encoding: {sys.stdout.encoding}")
+    logger.debug(f"File system encoding: {sys.getfilesystemencoding()}")
+    logger.debug(f"Locale preferred encoding: {locale.getpreferredencoding()}")
+    logger.debug(f"Locale settings: {locale.getlocale()}")

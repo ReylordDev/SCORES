@@ -43,6 +43,7 @@ export class PythonService extends EventEmitter {
           PRODUCTION: String(!this.config.isDev),
           USER_DATA_PATH: this.config.dataDir,
           LOG_LEVEL: "INFO",
+          PYTHONIOENCODING: "utf-8",
         },
       });
 
@@ -102,6 +103,7 @@ export class PythonService extends EventEmitter {
           PRODUCTION: String(!this.config.isDev),
           USER_DATA_PATH: this.config.dataDir,
           LOG_LEVEL: "DEBUG",
+          PYTHONIOENCODING: "utf-8",
         },
       });
       this.shell.on("message", this.handleMessage.bind(this));
