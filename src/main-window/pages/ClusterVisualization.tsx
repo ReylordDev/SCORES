@@ -23,22 +23,25 @@ import { Label } from "../../components/ui/label";
 
 const getClusterColor = (index: number, totalClusters: number) => {
   if (totalClusters === 0) return "#cccccc";
-  const hue = (index * 360) / totalClusters;
+  // Use modulo to wrap around if index exceeds total clusters
+  const hue = ((index % totalClusters) * 360) / totalClusters;
   return `hsl(${hue}, 80%, 50%)`;
 };
 
 export default function ClusterVisualization() {
-  const [clusterPositions, setClusterPositions] = useState<
-    _ClusterPositionDetail[]
-  >([]);
+  const [clusters, setClusters] = useState<_ClusterPositionDetail[]>([]);
   const [selectedClusters, setSelectedClusters] = useState<number[]>([]);
   const [xRange, setXRange] = useState<number[]>([]);
   const [yRange, setYRange] = useState<number[]>([]);
 
   useEffect(() => {
     const unsub = window.plots.onReceiveClusterPositions((clusterPositions) => {
-      console.log(clusterPositions);
-      setClusterPositions(clusterPositions.clusters);
+      console.log("clusterPositions", clusterPositions);
+      const clusters = clusterPositions.clusters.map((c) => ({
+        ...c,
+        color: getClusterColor(c.index, clusterPositions.clusters.length),
+      }));
+      setClusters(clusters);
     });
     return () => unsub();
   }, []);
@@ -49,32 +52,26 @@ export default function ClusterVisualization() {
 
   // Initialize selected clusters when positions update
   useEffect(() => {
-    if (clusterPositions.length > 0) {
-      setSelectedClusters(clusterPositions.map((c) => c.index));
+    if (clusters.length > 0) {
+      setSelectedClusters(clusters.map((c) => c.index));
     }
-  }, [clusterPositions]);
+  }, [clusters]);
 
   // Initialize plot ranges using max and min values
   useEffect(() => {
     const margin = 2;
-    if (clusterPositions.length > 0) {
-      const xValues = clusterPositions.flatMap((c) =>
-        c.responses.map((r) => r.x)
-      );
-      const yValues = clusterPositions.flatMap((c) =>
-        c.responses.map((r) => r.y)
-      );
+    if (clusters.length > 0) {
+      const xValues = clusters.flatMap((c) => c.responses.map((r) => r.x));
+      const yValues = clusters.flatMap((c) => c.responses.map((r) => r.y));
       setXRange([Math.min(...xValues) - margin, Math.max(...xValues) + margin]);
       setYRange([Math.min(...yValues) - margin, Math.max(...yValues) + margin]);
     }
-  }, [clusterPositions]);
+  }, [clusters]);
 
   const toggleCluster = (clusterIndex: number) => {
     if (clusterIndex === -1) {
       setSelectedClusters((prev) =>
-        prev.length === clusterPositions.length
-          ? []
-          : clusterPositions.map((c) => c.index)
+        prev.length === clusters.length ? [] : clusters.map((c) => c.index)
       );
       return;
     }
@@ -86,10 +83,10 @@ export default function ClusterVisualization() {
   };
 
   // Generate plot data dynamically from cluster positions
-  const plotData = clusterPositions
+  const plotData = clusters
     .filter((cluster) => selectedClusters.includes(cluster.index))
     .flatMap((cluster) => {
-      const color = getClusterColor(cluster.index, clusterPositions.length);
+      const color = cluster.color;
 
       // Response points trace
       const responsesTrace = {
@@ -130,7 +127,6 @@ export default function ClusterVisualization() {
         showlegend: false,
         hoverinfo: "none",
       };
-
       return [responsesTrace, centerTrace];
     });
 
@@ -155,18 +151,13 @@ export default function ClusterVisualization() {
                 </DialogDescription>
               </DialogHeader>
               <ClusterLegend
-                clusters={clusterPositions}
+                clusters={clusters}
                 selectedClusters={selectedClusters}
                 onToggleCluster={toggleCluster}
               />
             </DialogContent>
           </Dialog>
         </div>
-        {/* <ClusterLegend
-          clusters={clusterPositions}
-          selectedClusters={selectedClusters}
-          onToggleCluster={toggleCluster}
-        /> */}
         <Plot
           data={plotData as Data[]}
           layout={{
@@ -285,10 +276,7 @@ const ClusterLegend = ({
             <span
               className="size-4 rounded-full"
               style={{
-                backgroundColor: getClusterColor(
-                  cluster.index,
-                  clusters.length
-                ),
+                backgroundColor: cluster.color,
               }}
             />
             <span className="text-base">

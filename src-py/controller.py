@@ -27,7 +27,7 @@ from loguru import logger
 from application_state import ApplicationState
 from database_manager import DatabaseManager
 from clusterer import Clusterer
-from cache import EmbeddingCache
+from app_cache import EmbeddingCache
 
 
 class Controller:

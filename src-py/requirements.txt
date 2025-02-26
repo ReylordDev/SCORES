@@ -1,7 +1,0 @@
-loguru
-sentence-transformers
-scikit-learn
-sqlmodel
-cairosvg
-matplotlib
-pyinstaller

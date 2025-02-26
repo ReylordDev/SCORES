@@ -1,6 +1,5 @@
 import csv
 import os
-import random
 import time
 import numpy as np
 
@@ -33,7 +32,7 @@ from models import (
     ClusteringResult,
 )
 from utils.utils import preprocess_response
-from cache import EmbeddingCache
+from app_cache import EmbeddingCache
 
 
 class Clusterer:
@@ -604,8 +603,8 @@ class Clusterer:
             max_chars = 70
             cluster.name = f'Cluster "{cluster.responses[0].text[:max_chars]}{"..." if len(cluster.responses[0].text) > max_chars else ""}"'
 
-        responses, clusters = self.reduce_dimensionality(
-            responses, clusters, original_embeddings_map
+        clusters = self.reduce_dimensionality(
+            clusters, outlier_stats, original_embeddings_map
         )
 
         result = ClusteringResult(
@@ -622,10 +621,14 @@ class Clusterer:
 
     def reduce_dimensionality(
         self,
-        responses: list[Response],
         clusters: list[Cluster],
+        outlier_stats: OutlierStatistics | None,
         embeddings_map: dict[str, np.ndarray],
     ):
+        responses = [response for cluster in clusters for response in cluster.responses]
+        if outlier_stats is not None:
+            for outlier in outlier_stats.outliers:
+                responses.append(outlier.response)
         embeddings = np.array([embeddings_map[response.text] for response in responses])
         centers = np.array([cluster.center for cluster in clusters])
 
@@ -648,7 +651,7 @@ class Clusterer:
             x, y = centers_tsne[i][0], centers_tsne[i][1]
             cluster.manifold_position = ManifoldPosition(x=float(x), y=float(y))
 
-        return responses, clusters
+        return clusters
 
     def plot_clusters(
         self, clustering_result: ClusteringResult, embeddings_map: dict[str, np.ndarray]

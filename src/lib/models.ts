@@ -143,6 +143,7 @@ export interface _ClusterPositionDetail {
   x: number;
   y: number;
   responses: _ResponsePositionDetail[];
+  color: string; // HSL color
 }
 
 export interface ClusterPositionsMessage {
