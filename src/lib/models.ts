@@ -126,28 +126,28 @@ export interface MergersMessage {
   threshold: number;
 }
 
-export interface _ResponsePositionDetail {
+export interface ResponsePositionDetail {
   id: UUID;
   text: string;
   is_outlier: boolean;
   count: number;
-  x: number;
-  y: number;
+  pos_2d: { x: number; y: number };
+  pos_3d: { x: number; y: number; z: number };
 }
 
-export interface _ClusterPositionDetail {
+export interface ClusterPositionDetail {
   id: UUID;
   name: string;
   index: number;
   count: number;
-  x: number;
-  y: number;
-  responses: _ResponsePositionDetail[];
+  pos_2d: { x: number; y: number };
+  pos_3d: { x: number; y: number; z: number };
+  responses: ResponsePositionDetail[];
   color: string; // HSL color
 }
 
 export interface ClusterPositionsMessage {
-  clusters: _ClusterPositionDetail[];
+  clusters: ClusterPositionDetail[];
 }
 
 export interface Error {
@@ -224,10 +224,19 @@ export interface AlgorithmSettings {
   random_state: number;
 }
 
-export interface ManifoldPosition {
+export interface ManifoldPosition2d {
   id: UUID;
   x: number;
   y: number;
+  response: Response | null;
+  cluster: Cluster | null;
+}
+
+export interface ManifoldPosition3d {
+  id: UUID;
+  x: number;
+  y: number;
+  z: number;
   response: Response | null;
   cluster: Cluster | null;
 }
@@ -239,7 +248,8 @@ export interface Response {
   is_outlier: boolean;
   similarity: number | null;
   count: number;
-  manifold_position: ManifoldPosition | null;
+  manifold_position2d: ManifoldPosition2d | null;
+  manifold_position3d: ManifoldPosition3d | null;
   cluster_id: UUID | null;
   cluster: Cluster | null;
   outlier_statistic: OutlierStatistic | null;
@@ -253,7 +263,8 @@ export interface Cluster {
   responses: Response[];
   count: number;
   is_merger_result: boolean;
-  manifold_position: ManifoldPosition | null;
+  manifold_position2d: ManifoldPosition2d | null;
+  manifold_position3d: ManifoldPosition3d | null;
 
   result_id: UUID;
   result: ClusteringResult;

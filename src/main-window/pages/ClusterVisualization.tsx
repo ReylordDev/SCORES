@@ -1,8 +1,8 @@
-import { _ClusterPositionDetail } from "../../lib/models";
+import { ClusterPositionDetail } from "../../lib/models";
 import { TitleBar } from "../../components/TitleBar";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
-import { Data } from "plotly.js";
+import { Data, ScatterData } from "plotly.js";
 import { Input } from "../../components/ui/input";
 import {
   Dialog,
@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { Label } from "../../components/ui/label";
+import { Switch } from "../../components/ui/switch";
 
 const getClusterColor = (index: number, totalClusters: number) => {
   if (totalClusters === 0) return "#cccccc";
@@ -28,11 +29,40 @@ const getClusterColor = (index: number, totalClusters: number) => {
   return `hsl(${hue}, 80%, 50%)`;
 };
 
+interface Range2d {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+interface Range3d {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  minZ: number;
+  maxZ: number;
+}
+
 export default function ClusterVisualization() {
-  const [clusters, setClusters] = useState<_ClusterPositionDetail[]>([]);
+  const [clusters, setClusters] = useState<ClusterPositionDetail[]>([]);
   const [selectedClusters, setSelectedClusters] = useState<number[]>([]);
-  const [xRange, setXRange] = useState<number[]>([]);
-  const [yRange, setYRange] = useState<number[]>([]);
+  const [range2d, setRange2d] = useState<Range2d>({
+    minX: 0,
+    maxX: 0,
+    minY: 0,
+    maxY: 0,
+  });
+  const [range3d, setRange3d] = useState<Range3d>({
+    minX: 0,
+    maxX: 0,
+    minY: 0,
+    maxY: 0,
+    minZ: 0,
+    maxZ: 0,
+  });
+  const [use3d, setUse3d] = useState(false);
 
   useEffect(() => {
     const unsub = window.plots.onReceiveClusterPositions((clusterPositions) => {
@@ -61,10 +91,35 @@ export default function ClusterVisualization() {
   useEffect(() => {
     const margin = 2;
     if (clusters.length > 0) {
-      const xValues = clusters.flatMap((c) => c.responses.map((r) => r.x));
-      const yValues = clusters.flatMap((c) => c.responses.map((r) => r.y));
-      setXRange([Math.min(...xValues) - margin, Math.max(...xValues) + margin]);
-      setYRange([Math.min(...yValues) - margin, Math.max(...yValues) + margin]);
+      const xValues2d = clusters.flatMap((c) =>
+        c.responses.map((r) => r.pos_2d.x)
+      );
+      const yValues2d = clusters.flatMap((c) =>
+        c.responses.map((r) => r.pos_2d.y)
+      );
+      setRange2d({
+        minX: Math.min(...xValues2d) - margin,
+        maxX: Math.max(...xValues2d) + margin,
+        minY: Math.min(...yValues2d) - margin,
+        maxY: Math.max(...yValues2d) + margin,
+      });
+      const xValues3d = clusters.flatMap((c) =>
+        c.responses.map((r) => r.pos_3d.x)
+      );
+      const yValues3d = clusters.flatMap((c) =>
+        c.responses.map((r) => r.pos_3d.y)
+      );
+      const zValues3d = clusters.flatMap((c) =>
+        c.responses.map((r) => r.pos_3d.z)
+      );
+      setRange3d({
+        minX: Math.min(...xValues3d) - margin,
+        maxX: Math.max(...xValues3d) + margin,
+        minY: Math.min(...yValues3d) - margin,
+        maxY: Math.max(...yValues3d) + margin,
+        minZ: Math.min(...zValues3d) - margin,
+        maxZ: Math.max(...zValues3d) + margin,
+      });
     }
   }, [clusters]);
 
@@ -83,52 +138,81 @@ export default function ClusterVisualization() {
   };
 
   // Generate plot data dynamically from cluster positions
-  const plotData = clusters
-    .filter((cluster) => selectedClusters.includes(cluster.index))
-    .flatMap((cluster) => {
-      const color = cluster.color;
+  const plotData2d = useMemo(() => {
+    return clusters
+      .filter((cluster) => selectedClusters.includes(cluster.index))
+      .flatMap((cluster) => {
+        const color = cluster.color;
 
-      // Response points trace
-      const responsesTrace = {
-        x: cluster.responses.map((r) => r.x),
-        y: cluster.responses.map((r) => r.y),
-        mode: "markers",
-        type: "scatter",
-        name: `${cluster.index}: ${cluster.name.slice(0, 50)}`,
-        marker: {
-          color: color,
-          opacity: 0.7,
-          size: 8,
-        },
-        hoverinfo: "text",
-        text: cluster.responses.map((r) => r.text),
-      };
+        // Response points trace
+        const responsesTrace = {
+          x: cluster.responses.map((r) => r.pos_2d.x),
+          y: cluster.responses.map((r) => r.pos_2d.y),
+          mode: "markers",
+          type: "scatter",
+          name: `${cluster.index}: ${cluster.name.slice(0, 50)}`,
+          marker: { color, opacity: 0.7, size: 8 },
+          hoverinfo: "text",
+          text: cluster.responses.map((r) => r.text),
+        };
 
-      // Cluster center trace
-      const centerTrace = {
-        x: [cluster.x],
-        y: [cluster.y],
-        mode: "text+markers",
-        type: "scatter",
-        marker: {
-          symbol: "star",
-          size: 12,
-          color: color,
-        },
-        text: [cluster.index.toString()],
-        textposition: "top center",
-        textfont: {
-          size: 16,
-          weight: 400,
-          shadow: "auto",
-          family: "Poppins",
-        },
-        textinfo: "text",
-        showlegend: false,
-        hoverinfo: "none",
-      };
-      return [responsesTrace, centerTrace];
-    });
+        // Cluster center trace
+        const centerTrace = {
+          x: [cluster.pos_2d.x],
+          y: [cluster.pos_2d.y],
+          mode: "text+markers",
+          type: "scatter",
+          marker: { symbol: "star", size: 12, color },
+          text: [cluster.index.toString()],
+          textposition: "top center",
+          textfont: { size: 16, weight: 400, family: "Poppins" },
+          showlegend: false,
+          name: `${cluster.index}: ${cluster.name.slice(0, 50)}`,
+          hoverinfo: "name",
+        };
+
+        return [responsesTrace, centerTrace];
+      });
+  }, [clusters, selectedClusters]);
+
+  const plotData3d = useMemo(() => {
+    return clusters
+      .filter((cluster) => selectedClusters.includes(cluster.index))
+      .flatMap((cluster) => {
+        const color = cluster.color;
+
+        // Response points trace
+        const responsesTrace = {
+          x: cluster.responses.map((r) => r.pos_3d.x),
+          y: cluster.responses.map((r) => r.pos_3d.y),
+          z: cluster.responses.map((r) => r.pos_3d.z),
+          mode: "markers",
+          type: "scatter3d",
+          name: `${cluster.index}: ${cluster.name.slice(0, 50)}`,
+          marker: { color, opacity: 0.7, size: 6 },
+          hoverinfo: "text",
+          text: cluster.responses.map((r) => r.text),
+        };
+
+        // Cluster center trace
+        const centerTrace = {
+          x: [cluster.pos_3d.x],
+          y: [cluster.pos_3d.y],
+          z: [cluster.pos_3d.z],
+          mode: "text+markers",
+          type: "scatter3d",
+          marker: { symbol: "star", size: 10, color },
+          text: [cluster.index.toString()],
+          textposition: "top center",
+          textfont: { size: 16, weight: 400, family: "Poppins" },
+          showlegend: false,
+          name: `${cluster.index}: ${cluster.name.slice(0, 50)}`,
+          hoverinfo: "name",
+        };
+
+        return [responsesTrace, centerTrace];
+      });
+  }, [clusters, selectedClusters]);
 
   return (
     <div className="w-screen h-screen bg-background text-text">
@@ -139,8 +223,13 @@ export default function ClusterVisualization() {
       >
         <div className="flex justify-between items-center">
           <h1 className="text-4xl">Cluster Visualization</h1>
+          <div className="flex items-center gap-2">
+            2D
+            <Switch checked={use3d} onCheckedChange={setUse3d}></Switch>
+            3D
+          </div>
           <Dialog>
-            <DialogTrigger>
+            <DialogTrigger asChild>
               <Button variant="default">Show Legend</Button>
             </DialogTrigger>
             <DialogContent>
@@ -158,87 +247,150 @@ export default function ClusterVisualization() {
             </DialogContent>
           </Dialog>
         </div>
-        <Plot
-          data={plotData as Data[]}
-          layout={{
-            title: "Cluster Positions with Response Points",
-            paper_bgcolor: "#f9f4fd",
-            plot_bgcolor: "#f9f4fd",
-            showlegend: false,
-            hoverlabel: {
-              bgcolor: "white",
-              font: {
-                family: "Poppins",
-                size: 14,
-              },
-            },
-            hovermode: "closest",
-            autosize: true,
-            xaxis: {
-              title: "X",
-              showgrid: true,
-              zeroline: false,
-              rangeselector: {
-                font: {
-                  family: "Poppins",
-                  size: 14,
-                },
-              },
-              autorange: false,
-              range: xRange,
-            },
-            yaxis: {
-              title: "Y",
-              showgrid: true,
-              zeroline: false,
-              rangeselector: {
-                font: {
-                  family: "Poppins",
-                  size: 14,
-                },
-              },
-              autorange: false,
-              range: yRange,
-            },
-            margin: {
-              l: 50,
-              r: 0,
-              b: 50,
-              t: 0,
-              pad: 0,
-            },
-          }}
-          config={{
-            displayModeBar: false,
-            staticPlot: false,
-            scrollZoom: false,
-            showAxisDragHandles: false,
-          }}
-          style={{
-            width: "100%",
-            height: "100%",
-          }}
-          onClick={(event) => {
-            const points = event.points;
-            if (points[0]?.curveNumber % 2 === 1) {
-              // Center traces are odd indices
-              const clusterIndex = points[0].data.text[0];
-              // Not doing anything with this yet.
-              // toggleCluster(Number(clusterIndex));
-            }
-          }}
-        />
+        {use3d ? (
+          <Plot3d plotData={plotData3d as Data[]} range3d={range3d} />
+        ) : (
+          <Plot2d plotData={plotData2d as Data[]} range2d={range2d} />
+        )}
       </div>
     </div>
   );
 }
+
+const Plot2d = ({
+  plotData,
+  range2d,
+}: {
+  plotData: Data[];
+  range2d: Range2d;
+}) => {
+  return (
+    <Plot
+      data={plotData as Data[]}
+      layout={{
+        title: "Cluster Positions with Response Points",
+        paper_bgcolor: "#f9f4fd",
+        plot_bgcolor: "#f9f4fd",
+        showlegend: false,
+        hoverlabel: {
+          bgcolor: "white",
+          font: {
+            family: "Poppins",
+            size: 14,
+          },
+        },
+        hovermode: "closest",
+        autosize: true,
+        xaxis: {
+          title: "X",
+          showgrid: true,
+          zeroline: false,
+          rangeselector: {
+            font: {
+              family: "Poppins",
+              size: 14,
+            },
+          },
+          autorange: false,
+          range: [range2d.minX, range2d.maxX],
+        },
+        yaxis: {
+          title: "Y",
+          showgrid: true,
+          zeroline: false,
+          rangeselector: {
+            font: {
+              family: "Poppins",
+              size: 14,
+            },
+          },
+          autorange: false,
+          range: [range2d.minY, range2d.maxY],
+        },
+        margin: {
+          l: 50,
+          r: 0,
+          b: 50,
+          t: 0,
+          pad: 0,
+        },
+      }}
+      config={{
+        displayModeBar: false,
+        staticPlot: false,
+        showAxisDragHandles: false,
+      }}
+      style={{
+        width: "100%",
+        height: "100%",
+      }}
+      onClick={(event) => {
+        const points = event.points;
+        if (points[0]?.curveNumber % 2 === 1) {
+          // Center traces are odd indices
+          const clusterIndex = points[0].data.text[0];
+          // Not doing anything with this yet.
+          // toggleCluster(Number(clusterIndex));
+        }
+      }}
+    />
+  );
+};
+
+const Plot3d = ({
+  plotData,
+  range3d,
+}: {
+  plotData: Data[];
+  range3d: Range3d;
+}) => {
+  return (
+    <Plot
+      data={plotData}
+      layout={{
+        title: "Cluster Positions with Response Points (3D)",
+        paper_bgcolor: "#f9f4fd",
+        plot_bgcolor: "#f9f4fd",
+        showlegend: false,
+        hoverlabel: {
+          bgcolor: "white",
+          font: {
+            family: "Poppins",
+            size: 14,
+          },
+        },
+        hovermode: "closest",
+        autosize: true,
+        scene: {
+          xaxis: { title: "X", range: [range3d.minX, range3d.maxX] },
+          yaxis: { title: "Y", range: [range3d.minY, range3d.maxY] },
+          zaxis: { title: "Z", range: [range3d.minZ, range3d.maxZ] },
+        },
+        margin: { l: 50, r: 0, b: 50, t: 0, pad: 0 },
+      }}
+      config={{
+        displayModeBar: false,
+        staticPlot: false,
+        showAxisDragHandles: false,
+      }}
+      style={{ width: "100%", height: "100%" }}
+      onClick={(event) => {
+        const points = event.points;
+        if (points[0]?.curveNumber % 2 === 1) {
+          const clusterIndex = points[0].data.text[0];
+          // toggleCluster(Number(clusterIndex)); // Uncomment if needed
+        }
+      }}
+    />
+  );
+};
 
 const ClusterLegend = ({
   clusters,
   selectedClusters,
   onToggleCluster,
 }: {
-  clusters: _ClusterPositionDetail[];
+  clusters: ClusterPositionDetail[];
   selectedClusters: number[];
   onToggleCluster: (clusterIndex: number) => void;
 }) => {

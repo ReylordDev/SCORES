@@ -155,24 +155,37 @@ class MergersMessage(BaseModel):
     threshold: float
 
 
+class Pos2d(BaseModel):
+    x: float
+    y: float
+
+
+class Pos3d(BaseModel):
+    x: float
+    y: float
+    z: float
+
+
+class ResponsePositionDetail(BaseModel):
+    id: uuid.UUID
+    text: str
+    is_outlier: bool
+    count: int
+    pos_2d: Pos2d
+    pos_3d: Pos3d
+
+
+class ClusterPositionDetail(BaseModel):
+    id: uuid.UUID
+    name: str
+    index: int
+    count: int
+    pos_2d: Pos2d
+    pos_3d: Pos3d
+    responses: list[ResponsePositionDetail]
+
+
 class ClusterPositionsMessage(BaseModel):
-    class ClusterPositionDetail(BaseModel):
-        class ResponsePositionDetail(BaseModel):
-            id: uuid.UUID
-            text: str
-            is_outlier: bool
-            count: int
-            x: float
-            y: float
-
-        id: uuid.UUID
-        name: str
-        index: int
-        count: int
-        x: float
-        y: float
-        responses: list[ResponsePositionDetail]
-
     clusters: list[ClusterPositionDetail]
 
 
@@ -256,16 +269,29 @@ class AlgorithmSettings(CamelModel):
     random_state: Optional[int] = None
 
 
-class ManifoldPosition(SQLModel, table=True):
+class ManifoldPosition2d(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     x: float
     y: float
 
     response_id: Optional[uuid.UUID] = Field(default=None, foreign_key="response.id")
-    response: Optional["Response"] = Relationship(back_populates="manifold_position")
+    response: Optional["Response"] = Relationship(back_populates="manifold_position2d")
 
     cluster_id: Optional[uuid.UUID] = Field(default=None, foreign_key="cluster.id")
-    cluster: Optional["Cluster"] = Relationship(back_populates="manifold_position")
+    cluster: Optional["Cluster"] = Relationship(back_populates="manifold_position2d")
+
+
+class ManifoldPosition3d(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    x: float
+    y: float
+    z: float
+
+    response_id: Optional[uuid.UUID] = Field(default=None, foreign_key="response.id")
+    response: Optional["Response"] = Relationship(back_populates="manifold_position3d")
+
+    cluster_id: Optional[uuid.UUID] = Field(default=None, foreign_key="cluster.id")
+    cluster: Optional["Cluster"] = Relationship(back_populates="manifold_position3d")
 
 
 class Response(SQLModel, table=True):
@@ -274,7 +300,10 @@ class Response(SQLModel, table=True):
     is_outlier: bool = False
     similarity: Optional[float] = None
     count: int = 0
-    manifold_position: Optional[ManifoldPosition] = Relationship(
+    manifold_position2d: Optional[ManifoldPosition2d] = Relationship(
+        back_populates="response"
+    )
+    manifold_position3d: Optional[ManifoldPosition3d] = Relationship(
         back_populates="response"
     )
 
@@ -347,7 +376,10 @@ class Cluster(SQLModel, table=True):
     center: list[float] = Field(sa_column=Column(JSON))
     responses: list[Response] = Relationship(back_populates="cluster")
     is_merger_result: bool = False
-    manifold_position: Optional[ManifoldPosition] = Relationship(
+    manifold_position2d: Optional[ManifoldPosition2d] = Relationship(
+        back_populates="cluster"
+    )
+    manifold_position3d: Optional[ManifoldPosition3d] = Relationship(
         back_populates="cluster"
     )
 

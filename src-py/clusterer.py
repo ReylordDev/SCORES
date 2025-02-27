@@ -21,7 +21,8 @@ from collections import Counter
 from models import (
     Cluster,
     KSelectionStatistic,
-    ManifoldPosition,
+    ManifoldPosition2d,
+    ManifoldPosition3d,
     Merger,
     MergingStatistics,
     OutlierStatistic,
@@ -637,19 +638,41 @@ class Clusterer:
         centers_pca = pca.transform(centers)
         combined = np.concatenate([embeddings_pca, centers_pca], axis=0)
 
-        tsne = TSNE(n_components=2, random_state=self._random_state)
-        combined_tsne = tsne.fit_transform(combined)
+        tsne_2d = TSNE(n_components=2, random_state=self._random_state)
+        combined_tsne2d = tsne_2d.fit_transform(combined)
 
-        responses_tsne = combined_tsne[: len(embeddings), :]
-        centers_tsne = combined_tsne[len(embeddings) :, :]
+        responses_tsne2d = combined_tsne2d[: len(embeddings), :]
+        centers_tsne2d = combined_tsne2d[len(embeddings) :, :]
 
         for i, response in enumerate(responses):
-            x, y = responses_tsne[i][0], responses_tsne[i][1]
-            response.manifold_position = ManifoldPosition(x=float(x), y=float(y))
+            x, y = responses_tsne2d[i][0], responses_tsne2d[i][1]
+            response.manifold_position2d = ManifoldPosition2d(x=float(x), y=float(y))
 
         for i, cluster in enumerate(clusters):
-            x, y = centers_tsne[i][0], centers_tsne[i][1]
-            cluster.manifold_position = ManifoldPosition(x=float(x), y=float(y))
+            x, y = centers_tsne2d[i][0], centers_tsne2d[i][1]
+            cluster.manifold_position2d = ManifoldPosition2d(x=float(x), y=float(y))
+
+        tsne_3d = TSNE(n_components=3, random_state=self._random_state)
+        combined_tsne3d = tsne_3d.fit_transform(combined)
+
+        responses_tsne3d = combined_tsne3d[: len(embeddings), :]
+        centers_tsne3d = combined_tsne3d[len(embeddings) :, :]
+
+        for i, response in enumerate(responses):
+            x, y, z = (
+                responses_tsne3d[i][0],
+                responses_tsne3d[i][1],
+                responses_tsne3d[i][2],
+            )
+            response.manifold_position3d = ManifoldPosition3d(
+                x=float(x), y=float(y), z=float(z)
+            )
+
+        for i, cluster in enumerate(clusters):
+            x, y, z = centers_tsne3d[i][0], centers_tsne3d[i][1], centers_tsne3d[i][2]
+            cluster.manifold_position3d = ManifoldPosition3d(
+                x=float(x), y=float(y), z=float(z)
+            )
 
         return clusters
 

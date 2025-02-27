@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
     AdvancedSettings,
+    ClusterPositionDetail,
     ClusterPositionsMessage,
     ClusterSimilaritiesMessage,
     ClusterAssignmentsMessage,
@@ -15,6 +16,9 @@ from models import (
     AlgorithmSettings,
     ManualClusterCount,
     OutliersMessage,
+    Pos2d,
+    Pos3d,
+    ResponsePositionDetail,
     Run,
     RunNamePayload,
     CurrentRunMessage,
@@ -276,30 +280,46 @@ class Controller:
                     "cluster_positions",
                     ClusterPositionsMessage(
                         clusters=[
-                            ClusterPositionsMessage.ClusterPositionDetail(
+                            ClusterPositionDetail(
                                 id=cluster.id,
                                 name=cluster.name,
                                 index=cluster.index,
                                 count=cluster.count,
-                                x=cluster.manifold_position.x,
-                                y=cluster.manifold_position.y,
+                                pos_2d=Pos2d(
+                                    x=cluster.manifold_position2d.x,
+                                    y=cluster.manifold_position2d.y,
+                                ),
+                                pos_3d=Pos3d(
+                                    x=cluster.manifold_position3d.x,
+                                    y=cluster.manifold_position3d.y,
+                                    z=cluster.manifold_position3d.z,
+                                ),
                                 responses=[
-                                    ClusterPositionsMessage.ClusterPositionDetail.ResponsePositionDetail(
+                                    ResponsePositionDetail(
                                         id=response.id,
                                         text=response.text,
                                         is_outlier=response.is_outlier,
                                         count=response.count,
-                                        x=response.manifold_position.x,
-                                        y=response.manifold_position.y,
+                                        pos_2d=Pos2d(
+                                            x=response.manifold_position2d.x,
+                                            y=response.manifold_position2d.y,
+                                        ),
+                                        pos_3d=Pos3d(
+                                            x=response.manifold_position3d.x,
+                                            y=response.manifold_position3d.y,
+                                            z=response.manifold_position3d.z,
+                                        ),
                                     )
                                     for response in cluster.responses
-                                    if response.manifold_position is not None
+                                    if response.manifold_position2d is not None
+                                    and response.manifold_position3d is not None
                                 ],
                             )
                             for cluster in self.database_manager.get_clusters(
                                 session, run_id
                             )
-                            if cluster.manifold_position is not None
+                            if cluster.manifold_position2d is not None
+                            and cluster.manifold_position3d is not None
                         ]
                     ),
                 )
