@@ -9,7 +9,7 @@ import {
   ClusterNamePayload,
 } from "../../lib/models";
 import fs from "fs";
-import { AppConfig } from "../../lib/config";
+import { AppConfig, consoleLog } from "../../lib/config";
 import { UUID } from "crypto";
 import { WindowManager } from "../windows/window-manager";
 import path from "path";
@@ -186,6 +186,24 @@ export function registerIpcHandlers(
   ipcMain.on(CHANNELS.PLOTS.SELECTION_STATS_REQUEST, () => {
     pythonService.sendCommand({
       action: "get_selection_statistics",
+    });
+  });
+
+  ipcMain.on(CHANNELS.MODELS.MODEL_STATUS_REQUEST, (_, modelName: string) => {
+    pythonService.sendCommand({
+      action: "get_download_status",
+      data: {
+        modelName,
+      },
+    });
+  });
+
+  ipcMain.on(CHANNELS.MODELS.DOWNLOAD_MODEL, (_, modelName: string) => {
+    pythonService.sendCommand({
+      action: "download_model",
+      data: {
+        modelName,
+      },
     });
   });
 }

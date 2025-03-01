@@ -17,6 +17,7 @@ import {
   MergersMessage,
   ClusterPositionsMessage,
   KSelectionStatistic,
+  DownloadStatusMessage,
 } from "../../lib/models";
 import { SettingsService } from "./settings-service";
 import { spawn, ChildProcess } from "child_process";
@@ -108,8 +109,6 @@ export class PythonService extends EventEmitter {
       });
       this.shell.on("message", this.handleMessage.bind(this));
     }
-
-    consoleLog("Python service initialized");
   }
 
   private handleMessage(message: Message) {
@@ -173,6 +172,12 @@ export class PythonService extends EventEmitter {
           message.data as KSelectionStatistic[]
         );
         break;
+      case "download_status":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.MODELS.DOWNLOAD_STATUS,
+          message.data as DownloadStatusMessage
+        );
+        break;
       default:
         consoleLog("Unknown message type:", message.type);
         this.emit(PYTHON_SERVICE_EVENTS.ERROR, "Unknown message type");
@@ -209,6 +214,7 @@ export class PythonService extends EventEmitter {
       // Application Progress steps
       case "init":
         if (progress.status === "complete") {
+          consoleLog("Python service is ready");
           this.emit(PYTHON_SERVICE_EVENTS.READY);
         }
         break;
@@ -224,6 +230,15 @@ export class PythonService extends EventEmitter {
     } else {
       this.shell.send(command);
     }
+  }
+
+  checkDefaultModelStatus() {
+    this.sendCommand({
+      action: "get_download_status",
+      data: {
+        modelName: this.settingsService.currentSettings.defaultModel,
+      },
+    });
   }
 
   shutdown() {

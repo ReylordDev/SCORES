@@ -17,6 +17,7 @@ import {
   AppSettings,
   ClusterPositionsMessage,
   KSelectionStatistic,
+  DownloadStatusMessage,
 } from "./lib/models";
 
 // Handle setup events
@@ -35,9 +36,47 @@ app.whenReady().then(async () => {
   await pythonService.initialize();
 
   pythonService.on(PYTHON_SERVICE_EVENTS.READY, () => {
-    windowManager.closeStartupWindow();
-    windowManager.createMainWindow();
+    pythonService.checkDefaultModelStatus();
   });
+
+  let initialized = false;
+  let defaultDownloadComplete = false;
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.MODELS.DOWNLOAD_STATUS,
+    (message: DownloadStatusMessage) => {
+      if (!initialized) {
+        if (message.status === "downloaded") {
+          defaultDownloadComplete = true;
+          windowManager.closeStartupWindow();
+          windowManager.createMainWindow();
+        } else {
+          consoleLog("Default Model not downloaded:", message.status);
+          windowManager.closeStartupWindow();
+          windowManager.createDownloadManagerWindow();
+          windowManager.sendDownloadWindowMessage(
+            CHANNELS.MODELS.DEFAULT_MODEL_STATUS,
+            message
+          );
+        }
+        initialized = true;
+      } else {
+        windowManager.sendDownloadWindowMessage(
+          CHANNELS.MODELS.DOWNLOAD_STATUS,
+          message
+        );
+        if (
+          message.model_name === settingsService.getDefaultModel() &&
+          message.status === "downloaded" &&
+          !defaultDownloadComplete
+        ) {
+          defaultDownloadComplete = true;
+          windowManager.closeDownloadWindow();
+          windowManager.createMainWindow();
+        }
+        consoleLog("Download status:", message);
+      }
+    }
+  );
 
   pythonService.on(PYTHON_SERVICE_EVENTS.FILE_PATH, (filePath: string) => {
     windowManager.sendMainWindowMessage(CHANNELS.FILE.PATH_RESPONSE, filePath);

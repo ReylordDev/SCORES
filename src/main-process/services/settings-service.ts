@@ -8,6 +8,7 @@ import { WindowManager } from "../windows/window-manager";
 export const DEFAULT_SETTINGS: AppSettings = {
   darkMode: false,
   tutorialMode: true,
+  defaultModel: "BAAI/bge-large-en-v1.5",
 };
 
 export class SettingsService extends EventEmitter {
@@ -57,5 +58,14 @@ export class SettingsService extends EventEmitter {
   setTutorialMode(tutorialMode: boolean) {
     this.settings.tutorialMode = tutorialMode;
     this.persistSettings();
+  }
+
+  setDefaultModel(defaultModel: string) {
+    this.settings.defaultModel = defaultModel;
+    this.persistSettings();
+  }
+
+  getDefaultModel(): string {
+    return this.settings.defaultModel;
   }
 }

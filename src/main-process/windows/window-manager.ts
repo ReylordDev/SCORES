@@ -6,10 +6,13 @@ declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 declare const STARTUP_WINDOW_WEBPACK_ENTRY: string;
 declare const STARTUP_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+declare const DOWNLOAD_WINDOW_WEBPACK_ENTRY: string;
+declare const DOWNLOAD_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
 export class WindowManager {
   private mainWindow: BrowserWindow;
   private startupWindow: BrowserWindow;
+  private downloadManagerWindow: BrowserWindow;
   private darkMode = false;
   private titleBarMask = false;
 
@@ -107,12 +110,42 @@ export class WindowManager {
     }
   }
 
+  closeDownloadWindow() {
+    if (this.downloadManagerWindow) {
+      this.downloadManagerWindow.close();
+    }
+  }
+
+  createDownloadManagerWindow() {
+    const downloadManagerWindow = new BrowserWindow({
+      width: 800,
+      height: 600,
+      title: "Download Manager",
+      icon: path.join(this.config.rootDir, "assets", "icons", "icon.png"),
+      webPreferences: {
+        preload: DOWNLOAD_WINDOW_PRELOAD_WEBPACK_ENTRY,
+      },
+    });
+
+    downloadManagerWindow.loadURL(DOWNLOAD_WINDOW_WEBPACK_ENTRY);
+    this.downloadManagerWindow = downloadManagerWindow;
+  }
+
+  sendDownloadWindowMessage(channel: string, data?: unknown) {
+    if (this.downloadManagerWindow) {
+      this.downloadManagerWindow.webContents.send(channel, data);
+    }
+  }
+
   cleanup() {
     if (this.mainWindow) {
       this.mainWindow.destroy();
     }
     if (this.startupWindow) {
       this.startupWindow.destroy();
+    }
+    if (this.downloadManagerWindow) {
+      this.downloadManagerWindow.destroy();
     }
   }
 }

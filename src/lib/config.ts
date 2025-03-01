@@ -43,22 +43,26 @@ export class AppConfig {
   }
 
   get scriptPath() {
+    return this.getScriptPath("controller");
+  }
+
+  getScriptPath(scriptName: string) {
     if (this.isPackaged) {
       switch (process.platform) {
         case "win32":
           return path.join(
             this.rootDir,
             "dist",
-            "controller",
-            "controller.exe"
+            scriptName,
+            scriptName + ".exe"
           );
         case "linux":
-          return path.join(this.rootDir, "dist", "controller", "controller");
+          return path.join(this.rootDir, "dist", scriptName, scriptName);
         default:
           throw new Error("Unsupported platform: " + process.platform);
       }
     }
-    return path.join(this.rootDir, "src-py", "controller.py");
+    return path.join(this.rootDir, "src-py", scriptName + ".py");
   }
 
   get settingsPath() {

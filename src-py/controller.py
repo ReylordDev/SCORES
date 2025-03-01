@@ -10,6 +10,8 @@ from models import (
     ClusterSimilaritiesMessage,
     ClusterAssignmentsMessage,
     Command,
+    DownloadStatusMessage,
+    DownloadStatusPayload,
     Error,
     FilePathPayload,
     FileSettings,
@@ -32,6 +34,7 @@ from application_state import ApplicationState
 from database_manager import DatabaseManager
 from clusterer import Clusterer
 from app_cache import EmbeddingCache
+from downloader import DownloadManager
 
 
 class Controller:
@@ -39,6 +42,7 @@ class Controller:
         print_progress("init", "start")
         self.app_state = ApplicationState()
         self.database_manager = DatabaseManager()
+        self.download_manager = DownloadManager()
         self.embedding_cache = EmbeddingCache()
         self.embedding_cache.clear_expired_caches()
 
@@ -338,6 +342,44 @@ class Controller:
                     "selection_statistics",
                     result.k_selection_statistics,
                 )
+        elif command.action == "get_download_status":
+            if not command.data or not isinstance(command.data, DownloadStatusPayload):
+                print_message("error", Error(error="Model name cannot be empty"))
+                return
+            status = self.download_manager.get_download_status(command.data.model_name)
+            print_message(
+                "download_status",
+                DownloadStatusMessage(
+                    status=status, model_name=command.data.model_name
+                ),
+            )
+        elif command.action == "download_model":
+            if not command.data or not isinstance(command.data, DownloadStatusPayload):
+                print_message("error", Error(error="Model name cannot be empty"))
+                return
+
+            def callback(model_name, success):
+                if success:
+                    status = "downloaded"
+                    print_message(
+                        "download_status",
+                        DownloadStatusMessage(status=status, model_name=model_name),
+                    )
+                else:
+                    status = "error"
+                    print_message(
+                        "error", Error(error=f"Error downloading {model_name}")
+                    )
+
+            self.download_manager.download_model(
+                command.data.model_name, callback=callback
+            )
+            print_message(
+                "download_status",
+                DownloadStatusMessage(
+                    status="downloading", model_name=command.data.model_name
+                ),
+            )
 
         else:
             logger.error(f"Invalid action: {command.action}")
@@ -365,32 +407,37 @@ if __name__ == "__main__":
         print("Running in debug mode")
         initialize_logger()
         controller = Controller()
-        controller.handle_command(
-            Command(
-                action="set_file_path",
-                data=FilePathPayload(file_path="./example_data/example_short.csv"),
-            )
-        )
-        controller.handle_command(
-            Command(
-                action="set_file_settings",
-                data=FileSettings(
-                    delimiter=";",
-                    has_header=True,
-                    selected_columns=[1, 2, 3],
-                ),
-            )
-        )
-        controller.handle_command(
-            Command(
-                action="set_algorithm_settings",
-                data=AlgorithmSettings(
-                    method=ManualClusterCount(cluster_count=38),
-                    advanced_settings=AdvancedSettings(),
-                ),
-            )
-        )
-        controller.handle_command(Command(action="run_clustering"))
+        # controller.handle_command(
+        #     Command(
+        #         action="set_file_path",
+        #         data=FilePathPayload(file_path="./example_data/example_short.csv"),
+        #     )
+        # )
+        # controller.handle_command(
+        #     Command(
+        #         action="set_file_settings",
+        #         data=FileSettings(
+        #             delimiter=";",
+        #             has_header=True,
+        #             selected_columns=[1, 2, 3],
+        #         ),
+        #     )
+        # )
+        # controller.handle_command(
+        #     Command(
+        #         action="set_algorithm_settings",
+        #         data=AlgorithmSettings(
+        #             method=ManualClusterCount(cluster_count=38),
+        #             advanced_settings=AdvancedSettings(),
+        #         ),
+        #     )
+        # )
+        # controller.handle_command(Command(action="run_clustering"))
         # controller.handle_command(Command(action="get_mergers"))
+        status_command = Command(
+            action="get_download_status",
+            data=DownloadStatusPayload(model_name="BAAI/bge-base-en-v1.5"),
+        )
+        controller.handle_command(status_command)
     else:
         main()

@@ -34,6 +34,8 @@ ActionType = Literal[
     "get_selection_statistics",
     "update_cluster_name",
     "delete_run",
+    "get_download_status",
+    "download_model",
 ]
 StatusType = Literal["todo", "start", "complete", "error"]
 ClusteringStepType = Literal[
@@ -72,6 +74,10 @@ class RunIdPayload(CamelModel):
     run_id: uuid.UUID
 
 
+class DownloadStatusPayload(CamelModel):
+    model_name: str
+
+
 class Command(CamelModel):
     action: ActionType
     data: Optional[
@@ -82,6 +88,7 @@ class Command(CamelModel):
             RunNamePayload,
             ClusterNamePayload,
             RunIdPayload,
+            DownloadStatusPayload,
         ]
     ] = None
 
@@ -193,6 +200,11 @@ class Error(BaseModel):
     error: str
 
 
+class DownloadStatusMessage(BaseModel):
+    model_name: str
+    status: "DownloadStatusType"
+
+
 MessageType = Literal[
     "progress",
     "file_path",
@@ -205,6 +217,7 @@ MessageType = Literal[
     "mergers",
     "cluster_positions",
     "selection_statistics",
+    "download_status",
 ]
 MessageDataType = Union[
     ProgressMessage,
@@ -217,6 +230,7 @@ MessageDataType = Union[
     MergersMessage,
     ClusterPositionsMessage,
     list["KSelectionStatistic"],
+    DownloadStatusMessage,
     str,
     None,
 ]
@@ -573,3 +587,8 @@ class Run(SQLModel, table=True):
         os.makedirs(results_dir, exist_ok=True)
         assignments_file_path = f"{results_dir}/assignments.csv"
         return assignments_file_path
+
+
+DownloadStatusType = Literal[
+    "not_downloaded", "partially_downloaded", "downloading", "downloaded"
+]

@@ -21,7 +21,9 @@ type Action =
   | "get_outliers"
   | "get_mergers"
   | "get_cluster_positions"
-  | "get_selection_statistics";
+  | "get_selection_statistics"
+  | "get_download_status"
+  | "download_model";
 
 export interface ClusterNamePayload {
   clusterId: UUID;
@@ -37,7 +39,8 @@ export interface Command {
     | null
     | { runId: UUID }
     | { runId: UUID; name: string }
-    | ClusterNamePayload;
+    | ClusterNamePayload
+    | { modelName: string };
 }
 
 export type ClusteringStep =
@@ -154,6 +157,17 @@ export interface Error {
   error: string;
 }
 
+export type DownloadStatusType =
+  | "not_downloaded"
+  | "partially_downloaded"
+  | "downloading"
+  | "downloaded";
+
+export interface DownloadStatusMessage {
+  model_name: string;
+  status: DownloadStatusType;
+}
+
 export interface Message {
   type:
     | "progress"
@@ -166,7 +180,8 @@ export interface Message {
     | "outliers"
     | "mergers"
     | "cluster_positions"
-    | "selection_statistics";
+    | "selection_statistics"
+    | "download_status";
   data:
     | ProgressMessage
     | Error
@@ -179,7 +194,8 @@ export interface Message {
     | OutliersMessage
     | MergersMessage
     | ClusterPositionsMessage
-    | KSelectionStatistic[];
+    | KSelectionStatistic[]
+    | DownloadStatusMessage;
 }
 
 export interface FileSettings {
@@ -391,6 +407,7 @@ export const progressionMessages: Record<ClusteringStep, string> = {
 export interface AppSettings {
   darkMode: boolean;
   tutorialMode: boolean;
+  defaultModel: string;
 }
 
 declare global {
@@ -470,6 +487,16 @@ declare global {
         callback: (selectionStats: KSelectionStatistic[]) => void
       ) => () => void;
     };
+    models: {
+      onDownloadStatus: (
+        callback: (status: DownloadStatusMessage) => void
+      ) => () => void;
+      onDefaultModelStatus: (
+        callback: (status: DownloadStatusMessage) => void
+      ) => () => void;
+      requestModelStatus: (modelName: string) => void;
+      downloadModel(modelName: string): void;
+    };
   }
 }
 
@@ -482,6 +509,7 @@ export const CHANNEL_TYPES = {
   DATABASE: "database",
   STATE: "state",
   PLOTS: "plots",
+  MODELS: "models",
 };
 export const CHANNELS = {
   ELECTRON: {
@@ -541,6 +569,12 @@ export const CHANNELS = {
     SELECTION_STATS_REQUEST: "plots:get-selection-stats",
     SELECTION_STATS_RESPONSE: "plots:receive-selection-stats",
   },
+  MODELS: {
+    DOWNLOAD_STATUS: "model:download-status",
+    MODEL_STATUS_REQUEST: "model:model-status-request",
+    DEFAULT_MODEL_STATUS: "model:default-model-status",
+    DOWNLOAD_MODEL: "model:download-model",
+  },
 };
 
 export const PYTHON_SERVICE_EVENTS = {
@@ -559,6 +593,9 @@ export const PYTHON_SERVICE_EVENTS = {
   PLOTS: {
     CLUSTER_POSITIONS: "plots-cluster-positions",
     SELECTION_STATS: "plots-selection-stats",
+  },
+  MODELS: {
+    DOWNLOAD_STATUS: "model:download-status",
   },
 };
 
