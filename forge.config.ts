@@ -21,6 +21,7 @@ const config: ForgeConfig = {
     asar: true,
     extraResource: ["./dist", "./example_data"],
     icon: "./assets/icons/icon",
+    executableName: "scores",
   },
   rebuildConfig: {},
   makers: [

@@ -751,8 +751,7 @@ function AdvancedSettingsDialog({
               />
             </div>
             <p className="text-sm text-gray-500">
-              Use traditional K-Means instead of Spherical K-Means Clustering
-              (default).
+              Use traditional K-Means instead of Spherical K-Means Clustering.
             </p>
           </div>
           <DialogClose asChild>
