@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   Check,
   Download,
   ExternalLink,
@@ -20,6 +21,7 @@ import { CachedModel, DownloadStatusType, EmbeddingModel } from "../lib/models";
 import { Badge } from "../components/ui/badge";
 import { formatBytes, formatDate } from "../lib/utils";
 import { TitleBar } from "./TitleBarDownloadManager";
+import ProgressIndicator from "../components/IndeterminateProgressIndicator";
 
 const StatusRecord: Record<DownloadStatusType, string> = {
   downloading: "Downloading...",
@@ -34,6 +36,18 @@ export function DownloadManager() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sliceAmount, setSliceAmount] = useState(10);
   const [locale, setLocale] = useState("en-US");
+  const [defaultModel, setDefaultModel] = useState<EmbeddingModel | null>(null);
+  const [defaultModelName, setDefaultModelName] = useState("");
+
+  console.log("Default model name:", defaultModelName);
+  console.log("Default model:", defaultModel);
+
+  useEffect(() => {
+    window.settings.getAll().then((settings) => {
+      setDefaultModelName(settings.defaultModel);
+      window.models.requestModelStatus(settings.defaultModel);
+    });
+  }, []);
 
   useEffect(() => {
     window.electron.getLocale().then((locale) => {
@@ -48,6 +62,7 @@ export function DownloadManager() {
         !downloadedModels.map((model) => model.id).includes(model.id)
     );
   }, [availableModels, searchQuery, downloadedModels]);
+
   const slicedModels = useMemo(() => {
     return filteredModels.slice(0, sliceAmount);
   }, [filteredModels, sliceAmount]);
@@ -55,6 +70,12 @@ export function DownloadManager() {
   useEffect(() => {
     const unsubscribe = window.models.onDownloadStatus((message) => {
       console.log("Download status:", message);
+      if (message.model_name === defaultModelName) {
+        setDefaultModel((prev) => ({
+          ...prev,
+          status: message.status,
+        }));
+      }
       setDownloadedModels((prev) =>
         prev.map((model) => {
           if (model.id === message.model_name) {
@@ -73,7 +94,7 @@ export function DownloadManager() {
       );
     });
     return () => unsubscribe();
-  }, []);
+  }, [defaultModelName]);
 
   useEffect(() => {
     console.log("Requesting cached models");
@@ -97,9 +118,12 @@ export function DownloadManager() {
     const unsubscribe = window.models.onReceiveAvailableModels((message) => {
       console.log("Received available models:", message.models);
       setAvailableModels(message.models);
+      setDefaultModel(
+        message.models.find((model) => model.id === defaultModelName)
+      );
     });
     return () => unsubscribe();
-  }, []);
+  }, [defaultModelName]);
 
   const handleDownload = (model: EmbeddingModel) => {
     if (model.tags.includes("custom_code")) {
@@ -127,13 +151,57 @@ export function DownloadManager() {
     }
   };
 
+  if (!defaultModel) {
+    return (
+      <div className="h-full w-full bg-background">
+        <TitleBar />
+        <div className="flex flex-col gap-8 pr-8 py-8 px-12" id="mainContent">
+          <Card>
+            <CardHeader>
+              <CardTitle>Loading...</CardTitle>
+              <CardDescription>
+                Please wait while the app loads the available models.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProgressIndicator />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full w-full bg-blue-500 overflow-y-scroll">
+    <div className="h-full w-full overflow-y-scroll">
       <TitleBar />
       <div
         id="mainContent"
         className="flex flex-col gap-8 bg-background pr-8 py-8 px-12"
       >
+        {defaultModel && defaultModel.status !== "downloaded" && (
+          <Card className="border-red-500 border-dashed border-2">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <span className="text-red-500 mr-2">
+                  <AlertTriangle />
+                </span>
+                Default Model
+              </CardTitle>
+              <CardDescription>
+                Before using the app for the first time, you need to download
+                the default embedding model.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AvailableModel
+                model={defaultModel}
+                locale={locale}
+                handleDownload={handleDownload}
+              />
+            </CardContent>
+          </Card>
+        )}
         <Card>
           <CardHeader>
             <CardTitle>Installed Models</CardTitle>
@@ -233,73 +301,12 @@ export function DownloadManager() {
                 <div className="flex flex-col gap-2">
                   {slicedModels.map((model, index) => {
                     return (
-                      <div
+                      <AvailableModel
                         key={index}
-                        className="flex items-center justify-between p-4 py-2 border rounded-lg"
-                      >
-                        <div className="flex flex-col gap-2">
-                          <div>{model.id}</div>
-                          <div className="flex gap-2 flex-wrap h-full">
-                            <Badge variant="secondary">
-                              {StatusRecord[model.status]}
-                            </Badge>
-                            <Badge variant="secondary">
-                              {model.downloads?.toLocaleString(locale) ?? 0}{" "}
-                              downloads
-                            </Badge>
-                            <Badge variant="secondary">
-                              {model.likes} likes
-                            </Badge>
-                            <Badge variant="secondary">
-                              Created on {formatDate(model.created_at, locale)}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="link"
-                            onClick={() =>
-                              window.electron.openUrl(
-                                "https://huggingface.co/" + model.id
-                              )
-                            }
-                            className="flex items-center text-sm text-primary"
-                          >
-                            <ExternalLink className="h-4 w-4 mr-1" />
-                            View
-                          </Button>
-                          <Button
-                            variant={
-                              model.status === "downloaded"
-                                ? "secondary"
-                                : "default"
-                            }
-                            size="sm"
-                            disabled={
-                              model.status === "downloaded" ||
-                              model.status === "downloading"
-                            }
-                            onClick={() => handleDownload(model)}
-                          >
-                            {model.status === "downloaded" ? (
-                              <>
-                                <Check className="h-4 w-4 mr-1" />
-                                Installed
-                              </>
-                            ) : model.status === "downloading" ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                                Downloading...
-                              </>
-                            ) : (
-                              <>
-                                <Download className="h-4 w-4 mr-1" />
-                                Download
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </div>
+                        model={model}
+                        locale={locale}
+                        handleDownload={handleDownload}
+                      />
                     );
                   })}
                 </div>
@@ -318,6 +325,74 @@ export function DownloadManager() {
             )}
           </CardContent>
         </Card>
+      </div>
+    </div>
+  );
+}
+
+function AvailableModel({
+  model,
+  locale,
+  handleDownload,
+}: {
+  model: EmbeddingModel;
+  locale: string;
+  handleDownload: (model: EmbeddingModel) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between p-4 py-2 border rounded-lg">
+      <div className="flex flex-col gap-2 w-full">
+        <div>{model.id}</div>
+        <div className="flex gap-2 flex-wrap h-full">
+          <Badge variant="secondary">{StatusRecord[model.status]}</Badge>
+          <Badge variant="secondary">
+            {model.downloads?.toLocaleString(locale) ?? 0} downloads
+          </Badge>
+          <Badge variant="secondary">{model.likes} likes</Badge>
+          <Badge variant="secondary">
+            Created on {formatDate(model.created_at, locale)}
+          </Badge>
+        </div>
+        {model.status === "downloading" && (
+          <div className="w-full">
+            <ProgressIndicator />
+          </div>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="link"
+          onClick={() =>
+            window.electron.openUrl("https://huggingface.co/" + model.id)
+          }
+          className="flex items-center text-sm text-primary"
+        >
+          <ExternalLink className="h-4 w-4 mr-1" />
+          View
+        </Button>
+        <Button
+          variant="default"
+          size="sm"
+          disabled={model.status === "downloading"}
+          onClick={() => handleDownload(model)}
+        >
+          {model.status === "downloading" ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              Downloading...
+            </>
+          ) : model.status === "downloaded" ? (
+            <>
+              <Check className="h-4 w-4 mr-1" />
+              Installed
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4 mr-1" />
+              Download
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );

@@ -99,7 +99,7 @@ export class WindowManager {
   }
 
   sendMainWindowMessage(channel: string, data?: unknown) {
-    if (this.mainWindow) {
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       this.mainWindow.webContents.send(channel, data);
     }
   }
@@ -153,7 +153,10 @@ export class WindowManager {
   }
 
   sendDownloadWindowMessage(channel: string, data?: unknown) {
-    if (this.downloadManagerWindow) {
+    if (
+      this.downloadManagerWindow &&
+      !this.downloadManagerWindow.isDestroyed()
+    ) {
       this.downloadManagerWindow.webContents.send(channel, data);
     }
   }
