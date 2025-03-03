@@ -17,6 +17,9 @@ class DownloadManager:
         self.compatible_models = list(
             self.api.list_models(
                 library="sentence-transformers",
+                sort="downloads",
+                direction=-1,
+                limit=1000,
             )
         )
         self.active_downloads = {}  # Track active download threads
@@ -56,6 +59,7 @@ class DownloadManager:
         models = []
         for model in self.compatible_models:
             if model.tags and "custom_code" in model.tags:
+                logger.info(f"Skipping model {model.id} due to custom code tag")
                 continue
             models.append(
                 EmbeddingModel(

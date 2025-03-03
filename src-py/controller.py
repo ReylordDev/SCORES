@@ -4,6 +4,7 @@ import uuid
 from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
+    AdvancedSettings,
     AvailableModelsMessage,
     CachedModelsMessage,
     ClusterPositionDetail,
@@ -17,6 +18,7 @@ from models import (
     FilePathPayload,
     FileSettings,
     AlgorithmSettings,
+    ManualClusterCount,
     OutliersMessage,
     Pos2d,
     Pos3d,
@@ -420,37 +422,31 @@ if __name__ == "__main__":
         print("Running in debug mode")
         initialize_logger()
         controller = Controller()
-        # controller.handle_command(
-        #     Command(
-        #         action="set_file_path",
-        #         data=FilePathPayload(file_path="./example_data/example_short.csv"),
-        #     )
-        # )
-        # controller.handle_command(
-        #     Command(
-        #         action="set_file_settings",
-        #         data=FileSettings(
-        #             delimiter=";",
-        #             has_header=True,
-        #             selected_columns=[1, 2, 3],
-        #         ),
-        #     )
-        # )
-        # controller.handle_command(
-        #     Command(
-        #         action="set_algorithm_settings",
-        #         data=AlgorithmSettings(
-        #             method=ManualClusterCount(cluster_count=38),
-        #             advanced_settings=AdvancedSettings(),
-        #         ),
-        #     )
-        # )
-        # controller.handle_command(Command(action="run_clustering"))
-        # controller.handle_command(Command(action="get_mergers"))
-        status_command = Command(
-            action="get_download_status",
-            data=DownloadStatusPayload(model_name="BAAI/bge-base-en-v1.5"),
+        controller.handle_command(
+            Command(
+                action="set_file_path",
+                data=FilePathPayload(file_path="./example_data/example_short.csv"),
+            )
         )
-        controller.handle_command(status_command)
+        controller.handle_command(
+            Command(
+                action="set_file_settings",
+                data=FileSettings(
+                    delimiter=";",
+                    has_header=True,
+                    selected_columns=[1, 2, 3],
+                ),
+            )
+        )
+        controller.handle_command(
+            Command(
+                action="set_algorithm_settings",
+                data=AlgorithmSettings(
+                    method=ManualClusterCount(cluster_count=38),
+                    advanced_settings=AdvancedSettings(),
+                ),
+            )
+        )
+        controller.handle_command(Command(action="run_clustering"))
     else:
         main()

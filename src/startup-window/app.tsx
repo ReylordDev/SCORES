@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 
 const App = () => {
   return (
-    <div className="h-screen w-screen flex items-center justify-center bg-background">
+    <div className="h-screen w-screen flex items-center justify-center bg-background draggable">
       <div className="flex flex-col items-center gap-4">
         <div className="animate-spin-slow size-44">
           <svg

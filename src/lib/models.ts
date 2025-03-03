@@ -266,6 +266,7 @@ export interface AgglomerativeClusteringSettings {
 
 export interface AdvancedSettings {
   embedding_model: string | null;
+  kmeans_method: "spherical_kmeans" | "kmeans";
 }
 
 export interface AlgorithmSettings {

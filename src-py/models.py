@@ -285,6 +285,7 @@ class AgglomerativeClusteringSettings(CamelModel):
 
 class AdvancedSettings(CamelModel):
     embedding_model: Optional[str] = None
+    kmeans_method: Literal["kmeans", "spherical_kmeans"] = "spherical_kmeans"
 
 
 class AlgorithmSettings(CamelModel):

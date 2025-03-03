@@ -4,6 +4,7 @@ import time
 import numpy as np
 
 
+from alt_clustering.spherical_k_means import SphericalKMeans
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
@@ -289,9 +290,15 @@ class Clusterer:
         k_values = [k for k in range(min_clusters, max_clusters + 1)]
         for k in k_values:
             # Fit K-means with sample weights
-            kmeans = KMeans(
-                n_clusters=k, n_init="auto", random_state=self._random_state
-            )
+            if (
+                self.algorithm_settings.advanced_settings.kmeans_method
+                == "spherical_kmeans"
+            ):
+                kmeans = SphericalKMeans(n_clusters=k, random_state=self._random_state)
+            else:
+                kmeans = KMeans(
+                    n_clusters=k, n_init="auto", random_state=self._random_state
+                )
             kmeans.fit(embeddings, sample_weight=weights)
             labels = kmeans.labels_
 
@@ -378,9 +385,18 @@ class Clusterer:
             )
             K = len(embeddings)
         # Side Effect: Assigns cluster IDs to responses
-        clustering = KMeans(
-            n_clusters=K, n_init="auto", random_state=self._random_state
-        ).fit(embeddings, sample_weight=response_weights)
+        if (
+            self.algorithm_settings.advanced_settings.kmeans_method
+            == "spherical_kmeans"
+        ):
+            kmeans = SphericalKMeans(n_clusters=K, random_state=self._random_state).fit(
+                embeddings, sample_weight=response_weights
+            )
+        else:
+            kmeans = KMeans(
+                n_clusters=K, n_init="auto", random_state=self._random_state
+            )
+        clustering = kmeans.fit(embeddings, sample_weight=response_weights)
         cluster_indices = np.copy(clustering.labels_)
         valid_clusters = [i for i in range(K) if np.sum(cluster_indices == i) > 0]
         K = len(valid_clusters)
