@@ -2,6 +2,12 @@
 // These have to match the models in models.py
 
 import { UUID } from "crypto";
+import {
+  MessageBoxOptions,
+  MessageBoxReturnValue,
+  OpenDialogOptions,
+  OpenDialogReturnValue,
+} from "electron";
 
 type Action =
   | "set_file_path"
@@ -23,7 +29,9 @@ type Action =
   | "get_cluster_positions"
   | "get_selection_statistics"
   | "get_download_status"
-  | "download_model";
+  | "download_model"
+  | "get_cached_models"
+  | "get_available_models";
 
 export interface ClusterNamePayload {
   clusterId: UUID;
@@ -168,6 +176,31 @@ export interface DownloadStatusMessage {
   status: DownloadStatusType;
 }
 
+export interface EmbeddingModel {
+  id: string;
+  author: string | null;
+  created_at: number | null;
+  downloads: number | null;
+  likes: number | null;
+  trending_score: number | null;
+  tags: string[] | null;
+  status: DownloadStatusType;
+}
+
+export interface CachedModel extends EmbeddingModel {
+  path: string;
+  size_on_disk: number;
+  last_accessed: number;
+}
+
+export interface CachedModelsMessage {
+  models: CachedModel[];
+}
+
+export interface AvailableModelsMessage {
+  models: EmbeddingModel[];
+}
+
 export interface Message {
   type:
     | "progress"
@@ -181,7 +214,9 @@ export interface Message {
     | "mergers"
     | "cluster_positions"
     | "selection_statistics"
-    | "download_status";
+    | "download_status"
+    | "cached_models"
+    | "available_models";
   data:
     | ProgressMessage
     | Error
@@ -195,7 +230,9 @@ export interface Message {
     | MergersMessage
     | ClusterPositionsMessage
     | KSelectionStatistic[]
-    | DownloadStatusMessage;
+    | DownloadStatusMessage
+    | CachedModelsMessage
+    | AvailableModelsMessage;
 }
 
 export interface FileSettings {
@@ -420,6 +457,10 @@ declare global {
       getLocale: () => Promise<string>;
       openUrl: (url: string) => void;
       setTitleBarMask: (mask: boolean) => void;
+      openDownloadManager: () => void;
+      showMessageBox: (
+        options: MessageBoxOptions
+      ) => Promise<MessageBoxReturnValue>;
     };
     settings: {
       getAll: () => Promise<AppSettings>;
@@ -496,6 +537,14 @@ declare global {
       ) => () => void;
       requestModelStatus: (modelName: string) => void;
       downloadModel(modelName: string): void;
+      requestCachedModels: () => void;
+      onReceiveCachedModels: (
+        callback: (models: CachedModelsMessage) => void
+      ) => () => void;
+      requestAvailableModels: () => void;
+      onReceiveAvailableModels: (
+        callback: (models: AvailableModelsMessage) => void
+      ) => () => void;
     };
   }
 }
@@ -519,6 +568,8 @@ export const CHANNELS = {
     GET_LOCALE: "electron:get-locale",
     OPEN_URL: "electron:open-url",
     SET_TITLE_BAR_MASK: "electron:set-title-bar-mask",
+    OPEN_DOWNLOAD_MANAGER: "electron:open-download-manager",
+    SHOW_MESSAGE_BOX: "electron:show-message-box",
   },
   SETTINGS: {
     GET_ALL: "settings:get-all",
@@ -574,6 +625,10 @@ export const CHANNELS = {
     MODEL_STATUS_REQUEST: "model:model-status-request",
     DEFAULT_MODEL_STATUS: "model:default-model-status",
     DOWNLOAD_MODEL: "model:download-model",
+    CACHED_MODELS_REQUEST: "model:cached-models-request",
+    CACHED_MODELS_RESPONSE: "model:cached-models-response",
+    AVAILABLE_MODELS_REQUEST: "model:available-models-request",
+    AVAILABLE_MODELS_RESPONSE: "model:available-models-response",
   },
 };
 
@@ -596,6 +651,8 @@ export const PYTHON_SERVICE_EVENTS = {
   },
   MODELS: {
     DOWNLOAD_STATUS: "model:download-status",
+    CACHED_MODELS: "model:cached-models",
+    AVAILABLE_MODELS: "model:available-models",
   },
 };
 

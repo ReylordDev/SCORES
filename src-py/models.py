@@ -1,3 +1,4 @@
+from datetime import datetime
 import os
 from typing import Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, computed_field
@@ -36,6 +37,8 @@ ActionType = Literal[
     "delete_run",
     "get_download_status",
     "download_model",
+    "get_cached_models",
+    "get_available_models",
 ]
 StatusType = Literal["todo", "start", "complete", "error"]
 ClusteringStepType = Literal[
@@ -205,6 +208,14 @@ class DownloadStatusMessage(BaseModel):
     status: "DownloadStatusType"
 
 
+class CachedModelsMessage(BaseModel):
+    models: list["CachedModel"]
+
+
+class AvailableModelsMessage(BaseModel):
+    models: list["EmbeddingModel"]
+
+
 MessageType = Literal[
     "progress",
     "file_path",
@@ -218,6 +229,8 @@ MessageType = Literal[
     "cluster_positions",
     "selection_statistics",
     "download_status",
+    "cached_models",
+    "available_models",
 ]
 MessageDataType = Union[
     ProgressMessage,
@@ -231,6 +244,8 @@ MessageDataType = Union[
     ClusterPositionsMessage,
     list["KSelectionStatistic"],
     DownloadStatusMessage,
+    CachedModelsMessage,
+    AvailableModelsMessage,
     str,
     None,
 ]
@@ -592,3 +607,20 @@ class Run(SQLModel, table=True):
 DownloadStatusType = Literal[
     "not_downloaded", "partially_downloaded", "downloading", "downloaded"
 ]
+
+
+class EmbeddingModel(CamelModel):
+    id: str
+    author: str | None
+    created_at: float | None
+    downloads: int | None
+    likes: int | None
+    trending_score: int | None
+    tags: list[str] | None
+    status: DownloadStatusType
+
+
+class CachedModel(EmbeddingModel):
+    path: str
+    size_on_disk: int
+    last_accessed: float

@@ -1,7 +1,15 @@
 import { SettingsService } from "../services/settings-service";
 import { PythonService } from "../services/python-service";
 import { registerSettingsHandlers } from "./settings";
-import { app, ipcMain, shell } from "electron";
+import {
+  app,
+  BaseWindow,
+  dialog,
+  ipcMain,
+  MessageBoxOptions,
+  OpenDialogOptions,
+  shell,
+} from "electron";
 import {
   CHANNELS,
   FileSettings,
@@ -93,6 +101,23 @@ export function registerIpcHandlers(
   ipcMain.on(CHANNELS.ELECTRON.SET_TITLE_BAR_MASK, (_, mask: boolean) => {
     windowManager.setMainWindowTitleBarMask(mask);
   });
+
+  ipcMain.on(CHANNELS.ELECTRON.OPEN_DOWNLOAD_MANAGER, () => {
+    windowManager.createDownloadManagerWindow();
+  });
+
+  ipcMain.handle(
+    CHANNELS.ELECTRON.SHOW_MESSAGE_BOX,
+    (_, options: MessageBoxOptions, windowString: "main" | "download") => {
+      let window: BaseWindow;
+      if (windowString === "main") {
+        window = windowManager.getMainWindow();
+      } else if (windowString === "download") {
+        window = windowManager.getDownloadWindow();
+      }
+      return dialog.showMessageBox(window, options);
+    }
+  );
 
   ipcMain.on(CHANNELS.DATABASE.ALL_RUNS_REQUEST, () => {
     pythonService.sendCommand({
@@ -204,6 +229,18 @@ export function registerIpcHandlers(
       data: {
         modelName,
       },
+    });
+  });
+
+  ipcMain.on(CHANNELS.MODELS.CACHED_MODELS_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "get_cached_models",
+    });
+  });
+
+  ipcMain.on(CHANNELS.MODELS.AVAILABLE_MODELS_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "get_available_models",
     });
   });
 }

@@ -4,7 +4,8 @@ import uuid
 from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
-    AdvancedSettings,
+    AvailableModelsMessage,
+    CachedModelsMessage,
     ClusterPositionDetail,
     ClusterPositionsMessage,
     ClusterSimilaritiesMessage,
@@ -16,7 +17,6 @@ from models import (
     FilePathPayload,
     FileSettings,
     AlgorithmSettings,
-    ManualClusterCount,
     OutliersMessage,
     Pos2d,
     Pos3d,
@@ -379,6 +379,19 @@ class Controller:
                 DownloadStatusMessage(
                     status="downloading", model_name=command.data.model_name
                 ),
+            )
+        elif command.action == "get_cached_models":
+            models = self.download_manager.get_cached_models()
+            print_message(
+                "cached_models",
+                CachedModelsMessage(models=[model for model in models]),
+            )
+
+        elif command.action == "get_available_models":
+            models = self.download_manager.get_compatible_models()
+            print_message(
+                "available_models",
+                AvailableModelsMessage(models=[model for model in models]),
             )
 
         else:

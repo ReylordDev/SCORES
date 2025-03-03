@@ -1,5 +1,7 @@
 import {
   AppSettings,
+  AvailableModelsMessage,
+  CachedModelsMessage,
   CHANNEL_TYPES,
   CHANNELS,
   DownloadStatusMessage,
@@ -48,6 +50,30 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.MODELS, {
   downloadModel(modelName) {
     ipcRenderer.send(CHANNELS.MODELS.DOWNLOAD_MODEL, modelName);
   },
+  requestCachedModels: () => {
+    ipcRenderer.send(CHANNELS.MODELS.CACHED_MODELS_REQUEST);
+  },
+  onReceiveCachedModels: (callback) => {
+    const listener = (
+      _: Electron.IpcRendererEvent,
+      models: CachedModelsMessage
+    ) => callback(models);
+    ipcRenderer.on(CHANNELS.MODELS.CACHED_MODELS_RESPONSE, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.MODELS.CACHED_MODELS_RESPONSE, listener);
+  },
+  onReceiveAvailableModels(callback) {
+    const listener = (
+      _: Electron.IpcRendererEvent,
+      models: AvailableModelsMessage
+    ) => callback(models);
+    ipcRenderer.on(CHANNELS.MODELS.AVAILABLE_MODELS_RESPONSE, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.MODELS.AVAILABLE_MODELS_RESPONSE, listener);
+  },
+  requestAvailableModels() {
+    ipcRenderer.send(CHANNELS.MODELS.AVAILABLE_MODELS_REQUEST);
+  },
 } satisfies Window["models"]);
 
 contextBridge.exposeInMainWorld(CHANNEL_TYPES.ELECTRON, {
@@ -71,5 +97,15 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.ELECTRON, {
   },
   showItemInFolder(path) {
     ipcRenderer.send(CHANNELS.ELECTRON.SHOW_ITEM_IN_FOLDER, path);
+  },
+  openDownloadManager() {
+    ipcRenderer.send(CHANNELS.ELECTRON.OPEN_DOWNLOAD_MANAGER);
+  },
+  showMessageBox(options) {
+    return ipcRenderer.invoke(
+      CHANNELS.ELECTRON.SHOW_MESSAGE_BOX,
+      options,
+      "download"
+    );
   },
 } satisfies Window["electron"]);

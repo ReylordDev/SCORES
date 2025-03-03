@@ -3,13 +3,22 @@ import { TitleBar } from "../../components/TitleBar";
 import { useState, useEffect, useMemo } from "react";
 import { Switch } from "../../components/ui/switch";
 import { Button } from "../../components/ui/button";
-import { SquarePen, ChartScatter, X, Settings2 } from "lucide-react";
+import {
+  SquarePen,
+  ChartScatter,
+  X,
+  Settings2,
+  Check,
+  ChevronsUpDown,
+  SquareArrowOutUpRight,
+} from "lucide-react";
 import { TooltipWrapper } from "../../components/Tooltip";
 import { Input } from "../../components/ui/input";
 import {
   ClusterCount,
   AlgorithmSettings as AlgorithmSettingsType,
   AdvancedSettings,
+  CachedModel,
 } from "../../lib/models";
 import {
   Dialog,
@@ -21,6 +30,19 @@ import {
 } from "../../components/ui/dialog";
 import { cn } from "../../lib/utils";
 import { DialogClose } from "@radix-ui/react-dialog";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../../components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "../../components/ui/popover";
 
 export default function AlgorithmSettings() {
   const [autoChooseClusters, setAutoChooseClusters] = useState(true);
@@ -597,14 +619,29 @@ function AdvancedSettingsDialog({
   settings: AdvancedSettings;
   setSettings: (settings: AdvancedSettings) => void;
 }) {
-  const [modelName, setModelName] = useState(settings.embedding_model || null);
+  const [modelComboboxOpen, setModelComboboxOpen] = useState(false);
+  const [modelComboboxValue, setModelComboboxValue] = useState("");
+  const [cachedModels, setCachedModels] = useState<CachedModel[]>([]);
 
   const handleSave = () => {
     setSettings({
       ...settings,
-      embedding_model: modelName,
+      embedding_model: modelComboboxValue,
     });
   };
+
+  useEffect(() => {
+    window.models.requestCachedModels();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = window.models.onReceiveCachedModels((message) => {
+      console.log("Received cached models", message.models);
+      setCachedModels(message.models);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   console.log("Advanced settings", settings);
 
@@ -626,17 +663,74 @@ function AdvancedSettingsDialog({
         </DialogHeader>
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-2">
-            <label htmlFor="modelName">Embedding Model Name</label>
-            <Input
-              id="modelName"
-              type="text"
-              defaultValue={settings.embedding_model}
-              onChange={(e) => setModelName(e.target.value.trim())}
-              placeholder="Enter HuggingFace model name"
-            />
+            <div className="flex justify-between items-center">
+              <label htmlFor="modelName">Embedding Model Name</label>
+              <Button
+                variant="ghost"
+                className="text-sm text-gray-500 flex gap-1"
+                onClick={() => window.electron.openDownloadManager()}
+              >
+                <SquareArrowOutUpRight className="size-4" />
+                get more models
+              </Button>
+            </div>
+            <Popover
+              open={modelComboboxOpen}
+              onOpenChange={setModelComboboxOpen}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  id="modelName"
+                  role="combobox"
+                  aria-expanded={modelComboboxOpen}
+                  className="w-[450px] justify-between"
+                >
+                  {modelComboboxValue
+                    ? cachedModels.find(
+                        (model) => model.id === modelComboboxValue
+                      ).id
+                    : "Select Embedding Model..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[450px] p-0">
+                <Command>
+                  <CommandInput placeholder="Search Downloaded Models..." />
+                  <CommandList>
+                    <CommandEmpty>No model found.</CommandEmpty>
+                    <CommandGroup>
+                      {cachedModels.map((model, index) => (
+                        <CommandItem
+                          key={index}
+                          value={model.id}
+                          onSelect={(currentValue) => {
+                            setModelComboboxValue(
+                              currentValue === modelComboboxValue
+                                ? ""
+                                : currentValue
+                            );
+                            setModelComboboxOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              modelComboboxValue === model.id
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                          {model.id}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
             <p className="text-sm text-gray-500">
-              The name of the HuggingFace model to use for generating
-              embeddings. Leave empty to use the default model.
+              Leave empty to use the default model.
             </p>
           </div>
           <DialogClose asChild>

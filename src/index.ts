@@ -178,6 +178,30 @@ app.whenReady().then(async () => {
     }
   );
 
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.MODELS.CACHED_MODELS,
+    (data: DownloadStatusMessage) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.MODELS.CACHED_MODELS_RESPONSE,
+        data
+      );
+      windowManager.sendDownloadWindowMessage(
+        CHANNELS.MODELS.CACHED_MODELS_RESPONSE,
+        data
+      );
+    }
+  );
+
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.MODELS.AVAILABLE_MODELS,
+    (data: DownloadStatusMessage) => {
+      windowManager.sendDownloadWindowMessage(
+        CHANNELS.MODELS.AVAILABLE_MODELS_RESPONSE,
+        data
+      );
+    }
+  );
+
   settingsService.on(
     SETTINGS_SERVICE_EVENTS.SETTINGS_CHANGED,
     (settings: AppSettings) => {

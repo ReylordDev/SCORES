@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import ProgressIndicator from "../components/IndeterminateProgressIndicator";
 import { LoaderCircle } from "lucide-react";
+import { DownloadManager } from "../download-window/DownloadManager";
+import { scan } from "react-scan";
+
+scan({
+  enabled: true,
+});
 
 const App = () => {
   const [defaultModel, setDefaultModel] = useState("");
@@ -38,9 +44,9 @@ const App = () => {
   };
 
   return (
-    <div className="h-screen w-screen bg-background text-text px-12 py-8 select-none">
+    <div className="h-screen w-screen bg-blue-500 text-text select-none">
       {defaultModelStatus !== "downloaded" && (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-8 px-12 py-8">
           <div className="flex justify-center flex-col gap-2">
             <h1 className="text-3xl">Download Manager</h1>
             <p>
@@ -95,6 +101,7 @@ const App = () => {
           <p>You can cancel the download at any time to resume later.</p>
         </div>
       )}
+      {defaultModelStatus === "downloaded" && <DownloadManager />}
     </div>
   );
 };

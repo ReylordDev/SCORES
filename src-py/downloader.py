@@ -1,13 +1,12 @@
 import os
+from pprint import pprint
 import threading
 from loguru import logger
-from utils.logging import initialize_logger
-import argparse
 from huggingface_hub import scan_cache_dir, HfApi
 from sentence_transformers import SentenceTransformer
 from huggingface_hub.utils.tqdm import disable_progress_bars
 import huggingface_hub.constants as hfconstants
-from models import DownloadStatusType
+from models import CachedModel, DownloadStatusType, EmbeddingModel
 
 
 class DownloadManager:
@@ -23,9 +22,57 @@ class DownloadManager:
         )
         self.active_downloads = {}  # Track active download threads
 
-    def get_cached_models(self):
+    def get_cached_models(self) -> list[CachedModel]:
         hf_cache_info = scan_cache_dir()
-        return hf_cache_info.repos
+        valid_repos: list[CachedModel] = []
+        for repo in hf_cache_info.repos:
+            if (
+                repo.repo_id in [model.id for model in self.compatible_models]
+                and self.get_download_status(repo.repo_id) == "downloaded"
+            ):
+                api_repo = [
+                    model
+                    for model in self.compatible_models
+                    if model.id == repo.repo_id
+                ][0]
+                cached_repo = CachedModel(
+                    id=repo.repo_id,
+                    author=api_repo.author,
+                    created_at=api_repo.created_at.timestamp()
+                    if api_repo.created_at
+                    else None,
+                    downloads=api_repo.downloads,
+                    likes=api_repo.likes,
+                    trending_score=api_repo.trending_score,
+                    tags=api_repo.tags,
+                    status="downloaded",
+                    path=str(repo.repo_path),
+                    size_on_disk=repo.size_on_disk,
+                    last_accessed=repo.last_accessed,
+                )
+                valid_repos.append(cached_repo)
+        return valid_repos
+
+    def get_compatible_models(self) -> list[EmbeddingModel]:
+        models = []
+        for model in self.compatible_models:
+            if model.tags and "custom_code" in model.tags:
+                continue
+            models.append(
+                EmbeddingModel(
+                    id=model.id,
+                    author=model.author,
+                    created_at=model.created_at.timestamp()
+                    if model.created_at
+                    else None,
+                    downloads=model.downloads,
+                    likes=model.likes,
+                    trending_score=model.trending_score,
+                    tags=model.tags,
+                    status="not_downloaded",
+                )
+            )
+        return models
 
     def get_download_status(self, model_name) -> DownloadStatusType:
         # Check if there's an active download thread
@@ -38,10 +85,13 @@ class DownloadManager:
                 del self.active_downloads[model_name]
 
         # Check the regular download status
-        if model_name not in [model.repo_id for model in self.get_cached_models()]:
+        if model_name not in [model.repo_id for model in scan_cache_dir().repos]:
             return "not_downloaded"
         try:
-            model = SentenceTransformer(model_name, local_files_only=True)
+            logger.info(f"Checking download status of {model_name}...")
+            model = SentenceTransformer(
+                model_name, local_files_only=True, trust_remote_code=True
+            )
             del model
             return "downloaded"
         except OSError as _e:
@@ -56,7 +106,7 @@ class DownloadManager:
         """Background thread function to download a model"""
         try:
             logger.info(f"Background download of {model_name} started...")
-            model = SentenceTransformer(model_name)
+            model = SentenceTransformer(model_name, trust_remote_code=True)
             del model
             logger.info(f"Background download of {model_name} completed successfully")
             if callback:
@@ -90,32 +140,9 @@ class DownloadManager:
 
 
 def main():
-    initialize_logger()
-    parser = argparse.ArgumentParser(
-        description="Download models from Hugging Face Hub"
-    )
-    parser.add_argument(
-        "-m",
-        "--model",
-        type=str,
-        required=True,
-        help="The model name to download from Hugging Face Hub.",
-    )
-    args = parser.parse_args()
-
-    def download_callback(model_name, success):
-        if success:
-            logger.info(f"Download of {model_name} completed!")
-        else:
-            logger.error(f"Download of {model_name} failed!")
-
     dm = DownloadManager()
-    dm.download_model(args.model, callback=download_callback)
-
-    logger.info(
-        f"Download of {args.model} started in background. You can continue using the application."
-    )
-    input()
+    for model in dm.get_cached_models():
+        print(model.id, dm.get_download_status(model.id))
 
 
 if __name__ == "__main__":

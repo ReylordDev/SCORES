@@ -16,6 +16,9 @@ import {
   AppSettings,
   ClusterPositionsMessage,
   KSelectionStatistic,
+  CachedModelsMessage,
+  DownloadStatusMessage,
+  AvailableModelsMessage,
 } from "../lib/models";
 import {
   contextBridge,
@@ -67,6 +70,16 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.ELECTRON, {
   },
   setTitleBarMask(mask) {
     ipcRenderer.send(CHANNELS.ELECTRON.SET_TITLE_BAR_MASK, mask);
+  },
+  openDownloadManager() {
+    ipcRenderer.send(CHANNELS.ELECTRON.OPEN_DOWNLOAD_MANAGER);
+  },
+  showMessageBox(options) {
+    return ipcRenderer.invoke(
+      CHANNELS.ELECTRON.SHOW_MESSAGE_BOX,
+      options,
+      "main"
+    );
   },
 } satisfies Window["electron"]);
 
@@ -227,3 +240,53 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.PLOTS, {
     ipcRenderer.send(CHANNELS.PLOTS.SELECTION_STATS_REQUEST);
   },
 } satisfies Window["plots"]);
+
+contextBridge.exposeInMainWorld(CHANNEL_TYPES.MODELS, {
+  onDownloadStatus: (callback) => {
+    const listener = (
+      _: Electron.IpcRendererEvent,
+      status: DownloadStatusMessage
+    ) => callback(status);
+    ipcRenderer.on(CHANNELS.MODELS.DOWNLOAD_STATUS, listener);
+    return () => ipcRenderer.off(CHANNELS.MODELS.DOWNLOAD_STATUS, listener);
+  },
+  onDefaultModelStatus: (callback) => {
+    const listener = (
+      _: Electron.IpcRendererEvent,
+      status: DownloadStatusMessage
+    ) => callback(status);
+    ipcRenderer.on(CHANNELS.MODELS.DEFAULT_MODEL_STATUS, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.MODELS.DEFAULT_MODEL_STATUS, listener);
+  },
+  requestModelStatus: (modelName) => {
+    ipcRenderer.send(CHANNELS.MODELS.MODEL_STATUS_REQUEST, modelName);
+  },
+  downloadModel(modelName) {
+    ipcRenderer.send(CHANNELS.MODELS.DOWNLOAD_MODEL, modelName);
+  },
+  requestCachedModels: () => {
+    ipcRenderer.send(CHANNELS.MODELS.CACHED_MODELS_REQUEST);
+  },
+  onReceiveCachedModels: (callback) => {
+    const listener = (
+      _: Electron.IpcRendererEvent,
+      models: CachedModelsMessage
+    ) => callback(models);
+    ipcRenderer.on(CHANNELS.MODELS.CACHED_MODELS_RESPONSE, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.MODELS.CACHED_MODELS_RESPONSE, listener);
+  },
+  onReceiveAvailableModels(callback) {
+    const listener = (
+      _: Electron.IpcRendererEvent,
+      models: AvailableModelsMessage
+    ) => callback(models);
+    ipcRenderer.on(CHANNELS.MODELS.AVAILABLE_MODELS_RESPONSE, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.MODELS.AVAILABLE_MODELS_RESPONSE, listener);
+  },
+  requestAvailableModels() {
+    ipcRenderer.send(CHANNELS.MODELS.AVAILABLE_MODELS_REQUEST);
+  },
+} satisfies Window["models"]);

@@ -18,6 +18,7 @@ import {
   ClusterPositionsMessage,
   KSelectionStatistic,
   DownloadStatusMessage,
+  CachedModelsMessage,
 } from "../../lib/models";
 import { SettingsService } from "./settings-service";
 import { spawn, ChildProcess } from "child_process";
@@ -176,6 +177,18 @@ export class PythonService extends EventEmitter {
         this.emit(
           PYTHON_SERVICE_EVENTS.MODELS.DOWNLOAD_STATUS,
           message.data as DownloadStatusMessage
+        );
+        break;
+      case "cached_models":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.MODELS.CACHED_MODELS,
+          message.data as CachedModelsMessage
+        );
+        break;
+      case "available_models":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.MODELS.AVAILABLE_MODELS,
+          message.data as CachedModelsMessage
         );
         break;
       default:

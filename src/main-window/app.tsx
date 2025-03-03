@@ -51,7 +51,8 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<FileSelection />} />
+        <Route path="/" element={<AlgorithmSettings />} />
+        {/* <Route path="/" element={<FileSelection />} /> */}
         <Route path="/file_preview" element={<FilePreview />} />
         <Route path="/algorithm_settings" element={<AlgorithmSettings />} />
         <Route path="/progress" element={<Progress />} />

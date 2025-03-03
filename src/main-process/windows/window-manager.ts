@@ -104,6 +104,16 @@ export class WindowManager {
     }
   }
 
+  getMainWindow() {
+    return this.mainWindow;
+  }
+  getStartupWindow() {
+    return this.startupWindow;
+  }
+  getDownloadWindow() {
+    return this.downloadManagerWindow;
+  }
+
   closeStartupWindow() {
     if (this.startupWindow) {
       this.startupWindow.close();
@@ -118,10 +128,21 @@ export class WindowManager {
 
   createDownloadManagerWindow() {
     const downloadManagerWindow = new BrowserWindow({
-      width: 800,
-      height: 600,
+      width: 1440,
+      height: 1024,
+      titleBarStyle: "hidden",
+      titleBarOverlay: {
+        color: nativeTheme.shouldUseDarkColors
+          ? this.darkModeHex
+          : this.lightModeHex,
+        symbolColor: nativeTheme.shouldUseDarkColors
+          ? this.lightModeHex
+          : this.darkModeHex,
+        height: this.titleBarHeight,
+      },
       title: "Download Manager",
       icon: path.join(this.config.rootDir, "assets", "icons", "icon.png"),
+      useContentSize: true,
       webPreferences: {
         preload: DOWNLOAD_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },

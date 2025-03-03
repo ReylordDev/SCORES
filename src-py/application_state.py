@@ -6,7 +6,7 @@ from loguru import logger
 from models import FileSettings, AlgorithmSettings
 from utils.utils import get_user_data_path, is_production_environment
 
-DEBUG_RUN_ID = ""
+DEBUG_RUN_ID = "074b4288c7c84ee4827c4975cb04a7d5"
 
 
 class ApplicationState:
