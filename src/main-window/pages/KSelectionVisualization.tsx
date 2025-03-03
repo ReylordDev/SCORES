@@ -98,7 +98,7 @@ export default function KSelectionVisualization() {
           data={traces as Data[]}
           layout={{
             title: "Cluster Evaluation Metrics vs. Number of Clusters (k)",
-            xaxis: { title: "Number of Clusters (k)", dtick: 1 },
+            xaxis: { title: "Number of Clusters (k)", dtick: 5 },
             yaxis: {
               title: "Score",
               dtick: 0.1,
