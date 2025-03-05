@@ -150,7 +150,6 @@ export default function ClusterVisualization() {
           y: cluster.responses.map((r) => r.pos_2d.y),
           mode: "markers",
           type: "scatter",
-          name: `${cluster.index}: ${cluster.name.slice(0, 50)}`,
           marker: { color, opacity: 0.7, size: 8 },
           hoverinfo: "text",
           text: cluster.responses.map((r) => r.text),
@@ -167,8 +166,18 @@ export default function ClusterVisualization() {
           textposition: "top center",
           textfont: { size: 16, weight: 400, family: "Poppins" },
           showlegend: false,
-          name: `${cluster.index}: ${cluster.name.slice(0, 50)}`,
           hoverinfo: "name",
+          name: `${cluster.index}: ${cluster.name.slice(0, 50)}`,
+          hoverlabel: {
+            align: "left",
+            namelength: -1,
+            font: {
+              family: "Poppins",
+              size: 16,
+            },
+            bgcolor: "white",
+            bordercolor: "black",
+          },
         };
 
         return [responsesTrace, centerTrace];
@@ -206,8 +215,18 @@ export default function ClusterVisualization() {
           textposition: "top center",
           textfont: { size: 16, weight: 400, family: "Poppins" },
           showlegend: false,
-          name: `${cluster.index}: ${cluster.name.slice(0, 50)}`,
           hoverinfo: "name",
+          name: `${cluster.index}: ${cluster.name.slice(0, 50)}`,
+          hoverlabel: {
+            align: "left",
+            namelength: -1,
+            font: {
+              family: "Poppins",
+              size: 16,
+            },
+            bgcolor: "white",
+            bordercolor: "black",
+          },
         };
 
         return [responsesTrace, centerTrace];
