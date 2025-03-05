@@ -11,6 +11,7 @@ import {
   Check,
   ChevronsUpDown,
   SquareArrowOutUpRight,
+  AlertTriangle,
 } from "lucide-react";
 import { TooltipWrapper } from "../../components/Tooltip";
 import { Input } from "../../components/ui/input";
@@ -139,6 +140,10 @@ export default function AlgorithmSettings() {
       return false;
     }
 
+    if (minClusters && minClusters < 2) {
+      return false;
+    }
+
     if (useOutlierDetection && (!nearestNeighbors || !zScoreThreshold)) {
       return false;
     }
@@ -240,16 +245,24 @@ export default function AlgorithmSettings() {
                     <label htmlFor="minClusterCount">
                       <p>Minimum number of clusters to consider</p>
                     </label>
-                    <Input
-                      type="number"
-                      min={2}
-                      step={1}
-                      value={minClusters || ""}
-                      onChange={(e) => setMinClusters(e.target.valueAsNumber)}
-                      id="minClusterCount"
-                      className="w-24"
-                      disabled={!autoChooseClusters}
-                    />
+                    <div className="flex items-center gap-2">
+                      {minClusters !== null && minClusters < 2 && (
+                        <AlertTriangle className="text-red-600" size={28} />
+                      )}
+                      <Input
+                        type="number"
+                        min={2}
+                        step={1}
+                        value={minClusters || ""}
+                        onChange={(e) => setMinClusters(e.target.valueAsNumber)}
+                        id="minClusterCount"
+                        className={cn(
+                          "w-24",
+                          minClusters && minClusters < 2 && "text-red-600"
+                        )}
+                        disabled={!autoChooseClusters}
+                      />
+                    </div>
                   </div>
                   <div
                     className={cn(
@@ -260,16 +273,26 @@ export default function AlgorithmSettings() {
                     <label htmlFor="maxClusterCount">
                       <p>Maximum number of clusters to consider</p>
                     </label>
-                    <Input
-                      type="number"
-                      min={2}
-                      step={1}
-                      value={maxClusters || ""}
-                      onChange={(e) => setMaxClusters(e.target.valueAsNumber)}
-                      id="maxClusterCount"
-                      className="w-24 "
-                      disabled={!autoChooseClusters}
-                    />
+                    <div className="flex items-center gap-2">
+                      {maxClusters !== null && minClusters > maxClusters && (
+                        <AlertTriangle className="text-red-600" size={28} />
+                      )}
+                      <Input
+                        type="number"
+                        min={2}
+                        step={1}
+                        value={maxClusters || ""}
+                        onChange={(e) => setMaxClusters(e.target.valueAsNumber)}
+                        id="maxClusterCount"
+                        className={cn(
+                          "w-24",
+                          maxClusters &&
+                            minClusters > maxClusters &&
+                            "text-red-600"
+                        )}
+                        disabled={!autoChooseClusters}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
