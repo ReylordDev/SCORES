@@ -19,9 +19,12 @@ import {
   KSelectionStatistic,
   DownloadStatusMessage,
 } from "./lib/models";
+import { updateElectronApp } from "update-electron-app";
 
 // Handle setup events
 if (require("electron-squirrel-startup")) app.quit();
+
+updateElectronApp();
 
 // Initialize core services
 const config = new AppConfig();
