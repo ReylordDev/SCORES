@@ -128,43 +128,40 @@ export default function AlgorithmSettings() {
         }
       : { cluster_count_method: "manual", cluster_count: clusterCount };
 
-    if (method.cluster_count_method === "manual" && clusterCount === null) {
-      return false;
-    } else if (
-      method.cluster_count_method === "auto" &&
-      (maxClusters === null || minClusters === null)
-    ) {
-      return false;
-    }
-    if (method.cluster_count_method === "auto" && minClusters > maxClusters) {
-      return false;
-    }
-
-    if (minClusters && minClusters < 2) {
-      return false;
-    }
-
-    if (useOutlierDetection && (!nearestNeighbors || !zScoreThreshold)) {
-      return false;
+    if (method.cluster_count_method === "manual") {
+      if (clusterCount === null) {
+        return false;
+      }
+    } else if (method.cluster_count_method === "auto") {
+      if (
+        maxClusters === null ||
+        minClusters === null ||
+        minClusters < 2 ||
+        maxClusters < minClusters
+      ) {
+        return false;
+      }
     }
 
-    if (nearestNeighbors < 1) {
-      return false;
+    if (useOutlierDetection) {
+      if (
+        nearestNeighbors === null ||
+        zScoreThreshold === null ||
+        zScoreThreshold < 0 ||
+        nearestNeighbors < 1
+      ) {
+        return false;
+      }
     }
 
-    if (zScoreThreshold < 0) {
-      return false;
-    }
-
-    if (useAgglomerativeClustering && !similarityThreshold) {
-      return false;
-    }
-
-    if (
-      similarityThreshold &&
-      (similarityThreshold < 0 || similarityThreshold > 1)
-    ) {
-      return false;
+    if (useAgglomerativeClustering) {
+      if (
+        similarityThreshold === null ||
+        similarityThreshold < 0 ||
+        similarityThreshold > 1
+      ) {
+        return false;
+      }
     }
 
     return true;
