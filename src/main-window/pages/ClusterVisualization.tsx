@@ -2,7 +2,7 @@ import { ClusterPositionDetail } from "../../lib/models";
 import { TitleBar } from "../../components/TitleBar";
 import { useEffect, useMemo, useState } from "react";
 import Plot from "react-plotly.js";
-import { Data, ScatterData } from "plotly.js";
+import { Data } from "plotly.js";
 import { Input } from "../../components/ui/input";
 import {
   Dialog,
@@ -21,6 +21,8 @@ import {
 } from "../../components/ui/card";
 import { Label } from "../../components/ui/label";
 import { Switch } from "../../components/ui/switch";
+import { Separator } from "../../components/ui/separator";
+import { cn } from "../../lib/utils";
 
 const getClusterColor = (index: number, totalClusters: number) => {
   if (totalClusters === 0) return "#cccccc";
@@ -242,35 +244,76 @@ export default function ClusterVisualization() {
       >
         <div className="flex justify-between items-center">
           <h1 className="text-4xl">Cluster Visualization</h1>
-          <div className="flex items-center gap-2">
-            2D
-            <Switch checked={use3d} onCheckedChange={setUse3d}></Switch>
-            3D
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100 px-4 py-2">
+              2D
+              <Switch checked={use3d} onCheckedChange={setUse3d}></Switch>
+              3D
+            </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="default">Show Interaction Instructions</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Interaction</DialogTitle>
+                  <DialogDescription>
+                    How to interact with the plot.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className={cn("flex flex-col items-start gap-2")}>
+                  <h2 className="text-lg font-semibold">2D Instructions</h2>
+                  <ul className="list-disc list-inside">
+                    <li>Click and drag to select an area to zoom into.</li>
+                    <li>Double-click to reset the zoom.</li>
+                  </ul>
+                </div>
+                <Separator className="my-2" />
+                <div className={cn("flex flex-col items-start gap-2")}>
+                  <h2 className="text-lg font-semibold">3D Instructions</h2>
+                  <ul className="list-disc list-inside">
+                    <li>Click and drag to rotate the plot.</li>
+                    <li>Scroll to zoom in/out.</li>
+                    <li>Right-click and drag to pan.</li>
+                  </ul>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="default">Show Legend</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Cluster Legend</DialogTitle>
+                  <DialogDescription>
+                    Toggle the visibility of clusters in the plot.
+                  </DialogDescription>
+                </DialogHeader>
+                <ClusterLegend
+                  clusters={clusters}
+                  selectedClusters={selectedClusters}
+                  onToggleCluster={toggleCluster}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="default">Show Legend</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Cluster Legend</DialogTitle>
-                <DialogDescription>
-                  Toggle the visibility of clusters in the plot.
-                </DialogDescription>
-              </DialogHeader>
-              <ClusterLegend
-                clusters={clusters}
-                selectedClusters={selectedClusters}
-                onToggleCluster={toggleCluster}
-              />
-            </DialogContent>
-          </Dialog>
         </div>
-        {use3d ? (
-          <Plot3d plotData={plotData3d as Data[]} range3d={range3d} />
-        ) : (
-          <Plot2d plotData={plotData2d as Data[]} range2d={range2d} />
-        )}
+        <Card>
+          <CardContent>
+            <div className="w-full h-[70vh]">
+              {use3d ? (
+                <Plot3d plotData={plotData3d as Data[]} range3d={range3d} />
+              ) : (
+                <Plot2d
+                  plotData={plotData2d as Data[]}
+                  range2d={range2d}
+                  setRange2d={setRange2d}
+                />
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
@@ -279,17 +322,16 @@ export default function ClusterVisualization() {
 const Plot2d = ({
   plotData,
   range2d,
+  setRange2d,
 }: {
   plotData: Data[];
   range2d: Range2d;
+  setRange2d: (range: Range2d) => void;
 }) => {
   return (
     <Plot
       data={plotData as Data[]}
       layout={{
-        title: "Cluster Positions with Response Points",
-        paper_bgcolor: "#f9f4fd",
-        plot_bgcolor: "#f9f4fd",
         showlegend: false,
         hoverlabel: {
           bgcolor: "white",
@@ -327,10 +369,10 @@ const Plot2d = ({
           range: [range2d.minY, range2d.maxY],
         },
         margin: {
-          l: 50,
-          r: 0,
-          b: 50,
-          t: 0,
+          l: 25,
+          r: 25,
+          b: 25,
+          t: 25,
           pad: 0,
         },
       }}
@@ -338,18 +380,36 @@ const Plot2d = ({
         displayModeBar: false,
         staticPlot: false,
         showAxisDragHandles: false,
+        showTips: false,
+        doubleClick: false,
       }}
       style={{
         width: "100%",
         height: "100%",
       }}
-      onClick={(event) => {
-        const points = event.points;
-        if (points[0]?.curveNumber % 2 === 1) {
-          // Center traces are odd indices
-          const clusterIndex = points[0].data.text[0];
-          // Not doing anything with this yet.
-          // toggleCluster(Number(clusterIndex));
+      onDoubleClick={() => {
+        console.log("Double click detected");
+        // This is strange but functional
+        setRange2d({
+          minX: range2d.minX,
+          maxX: range2d.maxX,
+          minY: range2d.minY,
+          maxY: range2d.maxY,
+        });
+      }}
+      onRelayout={(eventData) => {
+        console.log("Re Layout eventData", eventData);
+        const xaxisRange = eventData["xaxis.range"];
+        const yaxisRange = eventData["yaxis.range"];
+        if (xaxisRange && yaxisRange) {
+          const [minX, maxX] = xaxisRange;
+          const [minY, maxY] = yaxisRange;
+          setRange2d({
+            minX: minX as number,
+            maxX: maxX as number,
+            minY: minY as number,
+            maxY: maxY as number,
+          });
         }
       }}
     />
@@ -367,9 +427,6 @@ const Plot3d = ({
     <Plot
       data={plotData}
       layout={{
-        title: "Cluster Positions with Response Points (3D)",
-        paper_bgcolor: "#f9f4fd",
-        plot_bgcolor: "#f9f4fd",
         showlegend: false,
         hoverlabel: {
           bgcolor: "white",
@@ -385,7 +442,13 @@ const Plot3d = ({
           yaxis: { title: "Y", range: [range3d.minY, range3d.maxY] },
           zaxis: { title: "Z", range: [range3d.minZ, range3d.maxZ] },
         },
-        margin: { l: 50, r: 0, b: 50, t: 0, pad: 0 },
+        margin: {
+          l: 25,
+          r: 25,
+          b: 25,
+          t: 25,
+          pad: 0,
+        },
       }}
       config={{
         displayModeBar: false,
@@ -393,13 +456,6 @@ const Plot3d = ({
         showAxisDragHandles: false,
       }}
       style={{ width: "100%", height: "100%" }}
-      onClick={(event) => {
-        const points = event.points;
-        if (points[0]?.curveNumber % 2 === 1) {
-          const clusterIndex = points[0].data.text[0];
-          // toggleCluster(Number(clusterIndex)); // Uncomment if needed
-        }
-      }}
     />
   );
 };
