@@ -222,10 +222,6 @@ export default function Progress() {
         <div className="w-full px-24">
           <ProgressIndicator />
         </div>
-        <p className="text-md px-24 text-center opacity-75">
-          Hint: Before using a model for the first time, a time-intensive
-          download has to be completed during the model-loading step.
-        </p>
       </div>
     </>
   );
