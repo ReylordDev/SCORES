@@ -275,6 +275,7 @@ export default function AlgorithmSettings() {
                           "w-24",
                           minClusters && minClusters < 2 && "text-red-600"
                         )}
+                        placeholder="5"
                         disabled={!autoChooseClusters}
                       />
                     </div>
@@ -305,6 +306,7 @@ export default function AlgorithmSettings() {
                             minClusters > maxClusters &&
                             "text-red-600"
                         )}
+                        placeholder="100"
                         disabled={!autoChooseClusters}
                       />
                     </div>
@@ -425,6 +427,7 @@ export default function AlgorithmSettings() {
                       }
                       className="w-24"
                       disabled={!useOutlierDetection}
+                      placeholder="3"
                     />
                   </div>
                   <div
@@ -444,6 +447,7 @@ export default function AlgorithmSettings() {
                       }
                       className="w-24"
                       disabled={!useOutlierDetection}
+                      placeholder="2.5"
                     />
                   </div>
                 </div>
@@ -506,6 +510,7 @@ export default function AlgorithmSettings() {
                       }
                       className="w-24"
                       disabled={!useAgglomerativeClustering}
+                      placeholder="0.9"
                     />
                   </div>
                   <div
