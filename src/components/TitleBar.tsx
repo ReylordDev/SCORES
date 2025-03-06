@@ -13,6 +13,8 @@ import { Switch } from "./ui/switch";
 import { AppSettings } from "../lib/models";
 import { useEffect, useState } from "react";
 import { TooltipWrapper } from "../components/Tooltip";
+import { Toaster } from "../components/ui/sonner";
+import { toast } from "sonner";
 
 const routes = [
   "",
@@ -32,6 +34,25 @@ export function TitleBar({ index }: { index: number }) {
       setSettings(settings);
     });
   }, []);
+
+  if (settings !== null && settings.tutorialMode && index === 0) {
+    toast(
+      <div className="flex items-center gap-2">Tutorial mode is enabled.</div>,
+      {
+        icon: <GraduationCap size={24} />,
+        description: (
+          <div className="flex items-center gap-2">
+            You can disable it in the settings.
+            <div className="flex items-center gap-0">
+              (<Settings size={16} />)
+            </div>
+          </div>
+        ),
+        closeButton: true,
+        duration: 8000,
+      }
+    );
+  }
 
   return (
     <div
@@ -226,6 +247,22 @@ export function TitleBar({ index }: { index: number }) {
           </Dialog>
         </div>
         <div></div>
+        <Toaster
+          position="top-right"
+          offset={{
+            top: "70px",
+          }}
+          toastOptions={{
+            style: {
+              background: "var(--background)",
+              color: "var(--text)",
+              border: "2px solid var(--accent)",
+              borderRadius: "1rem",
+              padding: "1rem",
+            },
+          }}
+          visibleToasts={1}
+        />
       </div>
     </div>
   );
