@@ -2,7 +2,7 @@ import { KSelectionStatistic } from "../../lib/models";
 import { TitleBar } from "../../components/TitleBar";
 import { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
-import { Data } from "plotly.js";
+import { Data, ScatterData } from "plotly.js";
 
 export default function KSelectionVisualization() {
   const [stats, setStats] = useState<KSelectionStatistic[]>([]);
@@ -40,6 +40,7 @@ export default function KSelectionVisualization() {
       type: "scatter",
       mode: "lines+markers",
       name: "Silhouette Score",
+      opacity: 0.5,
     },
     {
       x: stats.filter((s) => s.davies_bouldin !== null).map((s) => s.k),
@@ -49,6 +50,7 @@ export default function KSelectionVisualization() {
       type: "scatter",
       mode: "lines+markers",
       name: "Davies-Bouldin Index",
+      opacity: 0.5,
     },
     {
       x: stats.filter((s) => s.calinski_harabasz !== null).map((s) => s.k),
@@ -58,6 +60,7 @@ export default function KSelectionVisualization() {
       type: "scatter",
       mode: "lines+markers",
       name: "Calinski-Harabasz Score",
+      opacity: 0.5,
     },
     {
       x: stats.filter((s) => s.combined !== null).map((s) => s.k),
@@ -65,6 +68,11 @@ export default function KSelectionVisualization() {
       type: "scatter",
       mode: "lines+markers",
       name: "Combined Score",
+      opacity: 1,
+      line: {
+        color: "rgb(137, 44, 211)",
+        width: 2,
+      },
     },
     {
       x: [optimalK, optimalK],
@@ -127,6 +135,7 @@ export default function KSelectionVisualization() {
             staticPlot: false,
             scrollZoom: false,
             showAxisDragHandles: false,
+            showTips: false,
           }}
           style={{ width: "100%", height: "600px" }}
         />
