@@ -70,10 +70,16 @@ export default function Results() {
     (action: "new_file" | "change_settings") => {
       if (action === "new_file") {
         window.state.resetRunId();
+        localStorage.removeItem("runId");
         navigate("/");
       } else {
         window.state.setRunId(run.id);
-        navigate("/algorithm_settings");
+        localStorage.setItem("runId", run.id);
+        navigate("/algorithm_settings", {
+          state: {
+            runId: run.id,
+          },
+        });
       }
     },
     [navigate, run?.id]

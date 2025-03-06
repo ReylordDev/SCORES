@@ -44,6 +44,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../components/ui/popover";
+import { toast } from "sonner";
 
 export default function AlgorithmSettings() {
   const [autoChooseClusters, setAutoChooseClusters] = useState(true);
@@ -67,6 +68,13 @@ export default function AlgorithmSettings() {
   const [randomState, setRandomState] = useState<number | null>(null);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const storedRunId = localStorage.getItem("runId");
+    if (storedRunId) {
+      toast.info("Loading previous run settings. Please wait...");
+    }
+  }, []); // Show toast when the component mounts
 
   useEffect(() => {
     const unsubscribe = window.database.onReceiveCurrentRun(({ run }) => {

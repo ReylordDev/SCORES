@@ -37,9 +37,11 @@ export function TitleBar({ index }: { index: number }) {
 
   if (settings !== null && settings.tutorialMode && index === 0) {
     toast(
-      <div className="flex items-center gap-2">Tutorial mode is enabled.</div>,
+      <div className="flex items-center gap-2">
+        <GraduationCap size={20} />
+        Tutorial mode is enabled.
+      </div>,
       {
-        icon: <GraduationCap size={24} />,
         description: (
           <div className="flex items-center gap-2">
             You can disable it in the settings.
@@ -69,6 +71,7 @@ export function TitleBar({ index }: { index: number }) {
               variant="ghost"
               onClick={() => {
                 window.state.resetRunId();
+                localStorage.removeItem("runId");
                 navigate("/");
               }}
               className="no-drag flex"
@@ -259,6 +262,7 @@ export function TitleBar({ index }: { index: number }) {
               border: "2px solid var(--accent)",
               borderRadius: "1rem",
               padding: "1rem",
+              width: "auto",
             },
           }}
           visibleToasts={1}

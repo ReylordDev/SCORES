@@ -840,6 +840,10 @@ video {
   margin-top: 1rem;
 }
 
+.ml-4 {
+  margin-left: 1rem;
+}
+
 .line-clamp-1 {
   overflow: hidden;
   display: -webkit-box;
@@ -901,6 +905,11 @@ video {
 .size-6 {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+.size-8 {
+  width: 2rem;
+  height: 2rem;
 }
 
 .h-1 {
@@ -1107,6 +1116,10 @@ video {
 
 .w-screen {
   width: 100vw;
+}
+
+.w-auto {
+  width: auto;
 }
 
 .min-w-28 {

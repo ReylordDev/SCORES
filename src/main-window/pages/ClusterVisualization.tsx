@@ -23,6 +23,7 @@ import { Label } from "../../components/ui/label";
 import { Switch } from "../../components/ui/switch";
 import { Separator } from "../../components/ui/separator";
 import { cn } from "../../lib/utils";
+import { toast } from "sonner";
 
 const getClusterColor = (index: number, totalClusters: number) => {
   if (totalClusters === 0) return "#cccccc";
@@ -247,7 +248,24 @@ export default function ClusterVisualization() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100 px-4 py-2">
               2D
-              <Switch checked={use3d} onCheckedChange={setUse3d}></Switch>
+              <Switch
+                checked={use3d}
+                onCheckedChange={() => {
+                  toast.promise(
+                    new Promise((resolve) => {
+                      setTimeout(() => {
+                        setUse3d((prev) => !prev);
+                        resolve(true);
+                      }, 100);
+                    }),
+                    {
+                      loading: `Switching to ${use3d ? "2D" : "3D"}...`,
+                      success: `Switched to ${use3d ? "2D" : "3D"}!`,
+                      error: `Failed to switch to ${use3d ? "2D" : "3D"}.`,
+                    }
+                  );
+                }}
+              ></Switch>
               3D
             </div>
             <Dialog>
@@ -256,7 +274,7 @@ export default function ClusterVisualization() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Interaction</DialogTitle>
+                  <DialogTitle className="text-xl">Interaction</DialogTitle>
                   <DialogDescription>
                     How to interact with the plot.
                   </DialogDescription>
