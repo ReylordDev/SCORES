@@ -148,7 +148,22 @@ export default function AlgorithmSettings() {
       return false;
     }
 
+    if (nearestNeighbors < 1) {
+      return false;
+    }
+
+    if (zScoreThreshold < 0) {
+      return false;
+    }
+
     if (useAgglomerativeClustering && !similarityThreshold) {
+      return false;
+    }
+
+    if (
+      similarityThreshold &&
+      (similarityThreshold < 0 || similarityThreshold > 1)
+    ) {
       return false;
     }
 
@@ -479,6 +494,7 @@ export default function AlgorithmSettings() {
                     <Input
                       type="number"
                       min={0}
+                      max={1}
                       step={0.01}
                       value={
                         similarityThreshold === 0
