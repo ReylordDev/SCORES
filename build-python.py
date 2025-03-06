@@ -4,12 +4,7 @@ controller_path = "./src-py/controller.py"
 
 
 def main():
-    pyinstaller.run(
-        [
-            controller_path,
-            "--noconfirm",
-        ]
-    )
+    pyinstaller.run([controller_path, "--noconfirm", "--python-option", "X utf8"])
 
 
 if __name__ == "__main__":

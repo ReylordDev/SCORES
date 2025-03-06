@@ -23,8 +23,9 @@ def initialize_logger():
     logger.info(
         f"\nLogger initialized in {'PRODUCTION' if is_production_environment() else 'DEVELOPMENT'} mode, log level: {log_level}",
     )
-    logger.debug(f"Python default encoding: {sys.getdefaultencoding()}")
-    logger.debug(f"Stdout encoding: {sys.stdout.encoding}")
-    logger.debug(f"File system encoding: {sys.getfilesystemencoding()}")
-    logger.debug(f"Locale preferred encoding: {locale.getpreferredencoding()}")
-    logger.debug(f"Locale settings: {locale.getlocale()}")
+    logger.info(f"Python default encoding: {sys.getdefaultencoding()}")
+    logger.info(f"Python utf-8 mode: {sys.flags.utf8_mode}")
+    logger.info(f"Stdout encoding: {sys.stdout.encoding}")
+    logger.info(f"File system encoding: {sys.getfilesystemencoding()}")
+    logger.info(f"Locale preferred encoding: {locale.getpreferredencoding()}")
+    logger.info(f"Locale settings: {locale.getlocale()}")

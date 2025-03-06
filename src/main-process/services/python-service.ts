@@ -38,6 +38,7 @@ export class PythonService extends EventEmitter {
 
   async initialize() {
     if (this.config.isPackaged) {
+      consoleLog("Python service is running in packaged mode");
       this.childProcess = spawn(this.config.scriptPath, [], {
         cwd: this.config.dataDir,
         env: {
@@ -45,7 +46,6 @@ export class PythonService extends EventEmitter {
           PRODUCTION: String(!this.config.isDev),
           USER_DATA_PATH: this.config.dataDir,
           LOG_LEVEL: "INFO",
-          PYTHONIOENCODING: "utf-8",
         },
       });
 
@@ -105,7 +105,7 @@ export class PythonService extends EventEmitter {
           PRODUCTION: String(!this.config.isDev),
           USER_DATA_PATH: this.config.dataDir,
           LOG_LEVEL: "DEBUG",
-          PYTHONIOENCODING: "utf-8",
+          PYTHONUTF8: "1",
         },
       });
       this.shell.on("message", this.handleMessage.bind(this));
