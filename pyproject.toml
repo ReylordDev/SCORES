@@ -1,6 +1,6 @@
 [project]
 name = "scores"
-version = "1.1.0"
+version = "1.1.1"
 description = "Desktop interface for clustering free-text survey response data, using large language model embeddings and clustering algorithms. Includes functionality to determine the optimal number of clusters automatically and visualize the results."
 readme = "README.md"
 requires-python = ">=3.11.9"
