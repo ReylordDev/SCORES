@@ -107,6 +107,7 @@ class Controller:
                 self.database_manager.create_output_file(run)
                 self.database_manager.create_assignments_file(run)
                 self.database_manager.save_run(session, run, result.timesteps)
+                print_progress("save", "complete")
 
         elif command.action == "set_run_id":
             if not command.data or not isinstance(command.data, RunIdPayload):

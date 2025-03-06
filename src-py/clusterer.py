@@ -609,6 +609,7 @@ class Clusterer:
         else:
             merger_stats = None
 
+        print_progress("save", "start")  # continues in the controller
         for cluster in clusters:
             cluster.normalize_center()
             for response in cluster.responses:
