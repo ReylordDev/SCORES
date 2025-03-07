@@ -23,7 +23,7 @@ const OutlierCard = ({
       <CardHeader>
         <div className="flex items-center gap-4">
           <AlertCircle className="text-accent" size={24} />
-          <CardTitle className="text-lg text-text font-semibold">
+          <CardTitle className="text-lg text-text font-semibold select-text">
             "{outlier.response.text}"
           </CardTitle>
         </div>
@@ -110,7 +110,7 @@ export default function Outliers() {
       <TitleBar index={5} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 text-text gap-4"
+        className="dark:dark flex flex-col bg-background px-32 pt-6 text-text gap-4 select-none"
       >
         <div className="flex items-center justify-start">
           <h1 className="text-4xl">Response Outliers</h1>

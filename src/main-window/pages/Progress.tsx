@@ -85,7 +85,7 @@ export default function Progress() {
         <TitleBar index={3} />
         <div
           id="mainContent"
-          className="dark:dark flex flex-col items-center justify-start gap-4 bg-background px-24 text-text"
+          className="dark:dark flex flex-col items-center justify-start gap-4 bg-background px-24 text-text select-none"
         >
           <div className="flex w-full items-center justify-between p-8">
             <h1 className="text-4xl">No Clustering in Progress</h1>

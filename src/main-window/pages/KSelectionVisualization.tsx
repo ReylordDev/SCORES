@@ -92,7 +92,7 @@ export default function KSelectionVisualization() {
       <TitleBar index={5} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"
+        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text select-none"
       >
         <div className="flex flex-col gap-2">
           <h1 className="text-4xl">Cluster Count Visualization</h1>

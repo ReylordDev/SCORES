@@ -840,10 +840,6 @@ video {
   margin-top: 1rem;
 }
 
-.ml-4 {
-  margin-left: 1rem;
-}
-
 .line-clamp-1 {
   overflow: hidden;
   display: -webkit-box;
@@ -905,11 +901,6 @@ video {
 .size-6 {
   width: 1.5rem;
   height: 1.5rem;
-}
-
-.size-8 {
-  width: 2rem;
-  height: 2rem;
 }
 
 .h-1 {
@@ -1118,10 +1109,6 @@ video {
   width: 100vw;
 }
 
-.w-auto {
-  width: auto;
-}
-
 .min-w-28 {
   min-width: 7rem;
 }
@@ -1219,6 +1206,12 @@ video {
   -webkit-user-select: none;
      -moz-user-select: none;
           user-select: none;
+}
+
+.select-text {
+  -webkit-user-select: text;
+     -moz-user-select: text;
+          user-select: text;
 }
 
 .list-inside {

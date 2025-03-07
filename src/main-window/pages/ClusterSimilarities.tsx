@@ -118,7 +118,7 @@ export default function ClusterSimilarities() {
       <TitleBar index={5} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"
+        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text select-none"
       >
         <div className="flex flex-col gap-2">
           <h1 className="text-4xl">Cluster Similarities</h1>
@@ -302,7 +302,7 @@ const ClusterDetails: React.FC<{
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between w-full">
-                <p className="line-clamp-2 bg-background px-2">
+                <p className="line-clamp-2 bg-background px-2 select-text">
                   "{response.text}"
                 </p>
                 {response.count > 1 && (

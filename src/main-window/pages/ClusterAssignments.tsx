@@ -120,7 +120,7 @@ function ClusterAssignment({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between w-full">
-                <p className="line-clamp-2 bg-background px-2">
+                <p className="line-clamp-2 bg-background px-2 select-text">
                   "
                   {response.text
                     .toLowerCase()
@@ -263,7 +263,7 @@ export default function ClusterAssignments() {
       <TitleBar index={5} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"
+        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text select-none"
       >
         <div className="flex items-center justify-between">
           <h1 className="text-4xl">Cluster Assignments</h1>

@@ -241,7 +241,7 @@ export default function ClusterVisualization() {
       <TitleBar index={5} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col px-32 pt-6 pb-8 gap-8"
+        className="dark:dark flex flex-col px-32 pt-6 pb-8 gap-8 select-none"
       >
         <div className="flex justify-between items-center">
           <h1 className="text-4xl">Cluster Visualization</h1>

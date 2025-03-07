@@ -170,7 +170,7 @@ export default function FilePreview() {
         <TitleBar index={1} />
         <div
           id="mainContent"
-          className="dark:dark flex flex-col items-center text-text justify-start gap-4 bg-background px-24"
+          className="dark:dark flex flex-col items-center text-text select-none justify-start gap-4 bg-background px-24"
         >
           <div className="mt-24 flex w-full justify-center p-8">
             <h1 className="text-4xl">
@@ -187,7 +187,7 @@ export default function FilePreview() {
       <TitleBar index={1} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col justify-start gap-8 bg-background px-32 pb-8 pt-8 text-text"
+        className="dark:dark flex flex-col justify-start gap-8 select-none bg-background px-32 pb-8 pt-8 text-text"
       >
         <h1 className="flex w-full flex-col text-5xl">File Preview</h1>
         <div className="flex flex-col gap-2 border-b pb-4">

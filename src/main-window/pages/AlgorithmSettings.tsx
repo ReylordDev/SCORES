@@ -223,7 +223,7 @@ export default function AlgorithmSettings() {
       <TitleBar index={2} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"
+        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text select-none"
       >
         <div className="flex items-center justify-between">
           <h1 className="text-5xl">Algorithm Settings</h1>

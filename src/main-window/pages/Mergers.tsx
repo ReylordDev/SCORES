@@ -58,7 +58,7 @@ function MergedCluster({
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center justify-between w-full">
-                  <p className="line-clamp-2 bg-background px-2">
+                  <p className="line-clamp-2 bg-background px-2 select-text">
                     "{response.text}"
                   </p>
                   {response.count > 1 && (
@@ -133,7 +133,7 @@ export default function Mergers() {
       <TitleBar index={5} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 text-text gap-4"
+        className="dark:dark flex flex-col bg-background px-32 pt-6 text-text gap-4 select-none"
       >
         <div className="flex flex-col gap-2">
           <h1 className="text-4xl">Merged Clusters</h1>

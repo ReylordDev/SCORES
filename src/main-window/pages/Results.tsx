@@ -126,7 +126,7 @@ export default function Results() {
       <TitleBar index={4} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text"
+        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text select-none"
       >
         <div className="flex flex-col gap-8">
           <div className="flex w-full justify-between gap-2">
