@@ -27,8 +27,10 @@ function MergedCluster({
     <Card
       onClick={() => handleClusterClick(cluster.id)}
       className={cn(
-        "cursor-pointer",
-        isExpanded ? "h-full border-accent border-dashed" : "h-fit"
+        "cursor-default",
+        isExpanded
+          ? "h-full border-accent border-2 border-dashed"
+          : "h-fit hover:bg-background-50 dark:hover:bg-background-100"
       )}
     >
       <CardHeader>
@@ -39,9 +41,13 @@ function MergedCluster({
             </CardTitle>
           </div>
           {isExpanded ? (
-            <ChevronUp className="text-accent" size={32} />
+            <Button variant="ghost" size="icon">
+              <ChevronUp className="text-accent" size={32} />
+            </Button>
           ) : (
-            <ChevronDown className="text-accent" size={32} />
+            <Button variant="ghost" size="icon">
+              <ChevronDown className="text-accent" size={32} />
+            </Button>
           )}
         </div>
       </CardHeader>

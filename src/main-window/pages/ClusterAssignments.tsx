@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
+import { cn } from "../../lib/utils";
 
 function ClusterAssignment({
   cluster,
@@ -52,7 +53,11 @@ function ClusterAssignment({
   return (
     <Card
       onClick={() => handleClusterClick(cluster.id)}
-      className="cursor-pointer"
+      className={cn(
+        "cursor-default",
+        isExpanded && "border-accent border-2 border-dashed",
+        !isExpanded && "hover:bg-background-50 dark:hover:bg-background-100"
+      )}
     >
       <CardHeader>
         <div className="flex justify-between items-center w-full">
@@ -105,9 +110,13 @@ function ClusterAssignment({
             </CardDescription>
           </div>
           {isExpanded ? (
-            <ChevronUp className="text-primary" size={32} />
+            <Button variant="ghost" size="icon">
+              <ChevronUp className="text-primary" size={32} />
+            </Button>
           ) : (
-            <ChevronDown className="text-primary" size={32} />
+            <Button variant="ghost" size="icon">
+              <ChevronDown className="text-primary" size={32} />
+            </Button>
           )}
         </div>
       </CardHeader>

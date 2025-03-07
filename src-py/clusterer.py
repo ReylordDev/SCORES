@@ -64,6 +64,11 @@ class Clusterer:
 
         # Initialize the embedding cache
         self.embedding_cache = EmbeddingCache()
+        self.use_cache = True
+        if not self.use_cache:
+            logger.warning(
+                "Embedding cache is disabled. This may slow down the clustering process."
+            )
 
         print_progress("process_input_file", "todo")
         print_progress("load_model", "todo")
@@ -153,7 +158,10 @@ class Clusterer:
         )
 
         # Convert to a mutable dictionary since Mapping doesn't support __setitem__
-        cached_embeddings_dict = dict(cached_embeddings)
+        if self.use_cache:
+            cached_embeddings_dict = dict(cached_embeddings)
+        else:
+            cached_embeddings_dict = {text: None for text in texts}
 
         # Identify which texts need to be embedded
         texts_to_embed = [
@@ -166,7 +174,9 @@ class Clusterer:
             )
             # Embed only the texts that weren't in the cache
             new_embeddings = embedding_model.encode(
-                texts_to_embed, normalize_embeddings=True
+                # [f"query: {text}" for text in texts_to_embed], normalize_embeddings=True
+                texts_to_embed,
+                normalize_embeddings=True,
             )
 
             # Create a dictionary of new embeddings
@@ -175,9 +185,10 @@ class Clusterer:
             }
 
             # Save the new embeddings to the cache
-            self.embedding_cache.save_embeddings(
-                self.embedding_model_name, new_embeddings_dict
-            )
+            if self.use_cache:
+                self.embedding_cache.save_embeddings(
+                    self.embedding_model_name, new_embeddings_dict
+                )
 
             # Update the cached embeddings with the new ones
             # TODO: This is a hack to get the embeddings map to work

@@ -5,6 +5,7 @@ from pydantic import ValidationError
 from utils.logging import initialize_logger
 from models import (
     AdvancedSettings,
+    AutomaticClusterCount,
     AvailableModelsMessage,
     CachedModelsMessage,
     ClusterPositionDetail,
@@ -426,7 +427,7 @@ if __name__ == "__main__":
         controller.handle_command(
             Command(
                 action="set_file_path",
-                data=FilePathPayload(file_path="./example_data/example_short.csv"),
+                data=FilePathPayload(file_path="./example_data/example.csv"),
             )
         )
         controller.handle_command(
@@ -435,7 +436,7 @@ if __name__ == "__main__":
                 data=FileSettings(
                     delimiter=";",
                     has_header=True,
-                    selected_columns=[1, 2, 3],
+                    selected_columns=[7, 8, 9],
                 ),
             )
         )
@@ -443,8 +444,10 @@ if __name__ == "__main__":
             Command(
                 action="set_algorithm_settings",
                 data=AlgorithmSettings(
-                    method=ManualClusterCount(cluster_count=38),
-                    advanced_settings=AdvancedSettings(),
+                    method=AutomaticClusterCount(max_clusters=100, min_clusters=10),
+                    advanced_settings=AdvancedSettings(
+                        embedding_model="intfloat/multilingual-e5-large-instruct"
+                    ),
                 ),
             )
         )

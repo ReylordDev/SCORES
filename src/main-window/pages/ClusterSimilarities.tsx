@@ -291,11 +291,11 @@ const ClusterDetails: React.FC<{
               <p className="text-xl">{(similarity * 100).toFixed(2)}%</p>
             )}
             {isExpanded ? (
-              <Button variant="ghost">
+              <Button variant="ghost" size="icon">
                 <ChevronUp className="text-accent" size={32} />
               </Button>
             ) : (
-              <Button variant="ghost">
+              <Button variant="ghost" size="icon">
                 <ChevronDown className="text-accent" size={32} />
               </Button>
             )}

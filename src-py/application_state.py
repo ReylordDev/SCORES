@@ -7,6 +7,7 @@ from models import FileSettings, AlgorithmSettings
 from utils.utils import get_user_data_path, is_production_environment
 
 DEBUG_RUN_ID = ""
+DETERMINISTIC = False
 
 
 class ApplicationState:
@@ -39,7 +40,12 @@ class ApplicationState:
 
     def set_algorithm_settings(self, algorithm_settings: AlgorithmSettings):
         self.algorithm_settings = algorithm_settings
-        self.random_state = algorithm_settings.random_state or random.randint(1, 1000)
+        if DETERMINISTIC and not is_production_environment():
+            self.random_state = 42
+        else:
+            self.random_state = algorithm_settings.random_state or random.randint(
+                1, 1000
+            )
         logger.debug(f"Random state: {self.random_state}")
 
     def get_algorithm_settings(self):

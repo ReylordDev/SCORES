@@ -20,7 +20,7 @@ class DownloadManager:
                 library="sentence-transformers",
                 sort="downloads",
                 direction=-1,
-                limit=500,
+                limit=1000,  # The number does not seem to affect the unusually long time it takes to load the models
             )
         )
         self.active_downloads = {}  # Track active download threads
