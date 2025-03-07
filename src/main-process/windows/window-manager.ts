@@ -42,8 +42,13 @@ export class WindowManager {
       webPreferences: {
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
+      show: false,
     });
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    mainWindow.once("ready-to-show", () => {
+      mainWindow.show();
+      mainWindow.focus();
+    });
 
     this.mainWindow = mainWindow;
   }
@@ -84,9 +89,13 @@ export class WindowManager {
       webPreferences: {
         preload: STARTUP_WINDOW_PRELOAD_WEBPACK_ENTRY,
       },
+      show: false,
     });
 
     startupWindow.loadURL(STARTUP_WINDOW_WEBPACK_ENTRY);
+    startupWindow.once("ready-to-show", () => {
+      startupWindow.show();
+    });
     this.startupWindow = startupWindow;
   }
 
