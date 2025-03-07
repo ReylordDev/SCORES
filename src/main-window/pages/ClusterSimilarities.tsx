@@ -255,14 +255,19 @@ const ClusterDetails: React.FC<{
     <Card
       onClick={() => handleClusterClick(cluster.id)}
       className={cn(
-        "cursor-pointer",
+        "cursor-default",
         isExpanded && "border-accent border-2 border-dashed",
         !isExpanded && "hover:bg-background-50 dark:hover:bg-background-100"
       )}
     >
       <CardHeader>
         <div className="flex justify-between items-center w-full gap-4">
-          <div className="flex flex-col gap-1 w-1/3">
+          <div
+            className={cn(
+              "flex flex-col gap-1",
+              similarity ? "w-1/3" : "w-full"
+            )}
+          >
             <div className="flex items-center gap-2">
               <CardTitle>{cluster.name}</CardTitle>
             </div>
@@ -276,7 +281,7 @@ const ClusterDetails: React.FC<{
               )}
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2 w-3/5">
+          <div className={cn("flex items-center gap-2", similarity && "w-3/5")}>
             {similarity && (
               <SimilarityVisualizer similarity={similarity} primary={true} />
             )}
@@ -286,9 +291,13 @@ const ClusterDetails: React.FC<{
               <p className="text-xl">{(similarity * 100).toFixed(2)}%</p>
             )}
             {isExpanded ? (
-              <ChevronUp className="text-accent" size={32} />
+              <Button variant="ghost">
+                <ChevronUp className="text-accent" size={32} />
+              </Button>
             ) : (
-              <ChevronDown className="text-accent" size={32} />
+              <Button variant="ghost">
+                <ChevronDown className="text-accent" size={32} />
+              </Button>
             )}
           </div>
         </div>
@@ -302,7 +311,7 @@ const ClusterDetails: React.FC<{
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between w-full">
-                <p className="line-clamp-2 bg-background px-2 select-text">
+                <p className="line-clamp-2 bg-background px-2 select-text cursor-text">
                   "{response.text}"
                 </p>
                 {response.count > 1 && (

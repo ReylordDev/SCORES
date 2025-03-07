@@ -216,7 +216,7 @@ function PreviousRunsDialog() {
               .map((run, index) => (
                 <TableRow
                   key={index}
-                  className="cursor-pointer"
+                  className="cursor-default"
                   onClick={() => handleRunSelection(run)}
                 >
                   <TableCell className="max-w-0">

@@ -120,7 +120,7 @@ function ClusterAssignment({
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between w-full">
-                <p className="line-clamp-2 bg-background px-2 select-text">
+                <p className="line-clamp-2 bg-background px-2 select-text cursor-text">
                   "
                   {response.text
                     .toLowerCase()

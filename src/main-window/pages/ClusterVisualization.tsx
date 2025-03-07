@@ -510,13 +510,13 @@ const ClusterLegend = ({
         {clusters.map((cluster) => (
           <Label
             key={cluster.id}
-            className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded py-2 px-4 w-full"
+            className="flex items-center gap-2  hover:bg-gray-100 dark:hover:bg-gray-700 rounded py-2 px-4 w-full"
           >
             <Input
               type="checkbox"
               checked={selectedClusters.includes(cluster.index)}
               onChange={() => onToggleCluster(cluster.index)}
-              className="cursor-pointer size-4"
+              className="size-4"
             />
             <span
               className="size-4 rounded-full"

@@ -132,12 +132,14 @@ export function TitleBar({ index }: { index: number }) {
         {index > 0 && index !== 4 ? (
           <Link
             to={`/${routes[index - 1] === "progress" ? routes[index - 2] : routes[index - 1]}`}
-            className="no-drag rounded p-1 hover:bg-background-50"
+            className="no-drag cursor-default"
           >
-            <Undo size={24} />
+            <Button variant="ghost">
+              <Undo size={24} />
+            </Button>
           </Link>
         ) : (
-          <div className="rounded p-1 opacity-25">
+          <div className="opacity-25 cursor-default px-4 py-2">
             <Undo size={24} />
           </div>
         )}
@@ -234,7 +236,7 @@ export function TitleBar({ index }: { index: number }) {
                 <div className="mt-4 flex items-center justify-between border-t pt-4 text-sm text-muted-foreground">
                   <span>Made by Luis Klocke</span>
                   <Button
-                    className="hover:text-text"
+                    className="hover:text-text cursor-pointer"
                     variant="ghost"
                     onClick={() => {
                       window.electron.openUrl(

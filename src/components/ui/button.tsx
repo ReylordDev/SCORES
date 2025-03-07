@@ -6,7 +6,7 @@ import { cn } from "../../lib/utils";
 
 // TODO: dark variants
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 dark:ring-offset-primary-950 dark:focus-visible:ring-primary-300",
+  "inline-flex items-center justify-center gap-2 cursor-default whitespace-nowrap rounded-md font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 dark:ring-offset-primary-950 dark:focus-visible:ring-primary-300",
   {
     variants: {
       variant: {
@@ -17,7 +17,7 @@ const buttonVariants = cva(
         outline:
           "border border-primary-200 bg-white hover:bg-primary-100 hover:text-primary-900 dark:border-primary-800 dark:bg-primary-50 dark:hover:bg-primary-100 dark:hover:text-primary-900",
         secondary:
-          "bg-secondary text-text hover:bg-secondary-600 dark:bg-secondary dark:text-text dark:hover:bg-secondary-200",
+          "bg-secondary text-text hover:bg-secondary-600 dark:bg-secondary dark:text-secondary-900 dark:hover:bg-secondary-200",
         accent:
           "bg-accent text-text hover:bg-accent-600 dark:bg-accent dark:text-text dark:hover:bg-accent-200",
         ghost: "hover:bg-primary-100 hover:text-primary-900",

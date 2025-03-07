@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { useNavigate } from "react-router";
 import { TitleBar } from "../../components/TitleBar";
 import { useEffect, useState } from "react";
 import { ArrowRightCircle, Check, Square } from "lucide-react";
@@ -28,7 +28,7 @@ const ColumnHeader = ({
 }) => {
   return (
     <div
-      className={`flex cursor-pointer items-center justify-center gap-2 rounded-md p-2 h-full ${
+      className={`flex items-center justify-center gap-2 rounded-md p-2 h-full ${
         isOn ? "bg-accent text-background" : "hover:bg-accent-200 text-text"
       }`}
       onClick={() => onChange(!isOn)}
@@ -52,6 +52,7 @@ export default function FilePreview() {
   const [delimiter, setDelimiter] = useState<string | null>(null);
   const [selectedColumns, setSelectedColumns] = useState<number[]>([]);
   const [previewData, setPreviewData] = useState<string[][]>([]);
+  const navigate = useNavigate();
 
   const exampleLineCount = 10;
 
@@ -337,22 +338,22 @@ export default function FilePreview() {
           ) : (
             <p>{selectedColumns.length} column selected</p>
           )}
-          <Link to="/algorithm_settings">
-            <Button
-              onClick={() => {
-                window.file.setSettings({
-                  delimiter: delimiter || ",",
-                  has_header: hasHeader,
-                  selected_columns: selectedColumns,
-                });
-              }}
-              disabled={selectedColumns.length <= 0}
-              size="lg"
-            >
-              Continue
-              <ArrowRightCircle />
-            </Button>
-          </Link>
+
+          <Button
+            onClick={() => {
+              window.file.setSettings({
+                delimiter: delimiter || ",",
+                has_header: hasHeader,
+                selected_columns: selectedColumns,
+              });
+              navigate("/algorithm_settings");
+            }}
+            disabled={selectedColumns.length <= 0}
+            size="lg"
+          >
+            Continue
+            <ArrowRightCircle />
+          </Button>
         </div>
       </div>
     </div>

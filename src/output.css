@@ -1198,6 +1198,10 @@ video {
   cursor: pointer;
 }
 
+.cursor-text {
+  cursor: text;
+}
+
 .touch-none {
   touch-action: none;
 }
@@ -1679,6 +1683,11 @@ video {
   padding-bottom: 2rem;
 }
 
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
 .pb-1 {
   padding-bottom: 0.25rem;
 }
@@ -1919,6 +1928,18 @@ video {
 .text-zinc-950 {
   --tw-text-opacity: 1;
   color: rgb(9 9 11 / var(--tw-text-opacity));
+}
+
+.text-text-100 {
+  color: var(--text-100);
+}
+
+.text-text-200 {
+  color: var(--text-200);
+}
+
+.text-text-500 {
+  color: var(--text-500);
 }
 
 .line-through {
@@ -2396,6 +2417,19 @@ body {
   color: rgb(113 113 122 / var(--tw-text-opacity));
 }
 
+.hover\:size-6:hover {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.hover\:cursor-pointer:hover {
+  cursor: pointer;
+}
+
+.hover\:border-accent:hover {
+  border-color: var(--accent);
+}
+
 .hover\:bg-accent-200:hover {
   background-color: var(--accent-200);
 }
@@ -2457,6 +2491,11 @@ body {
   background-color: rgb(24 24 27 / 0.8);
 }
 
+.hover\:bg-white:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
+}
+
 .hover\:text-destructive-foreground:hover {
   color: hsl(var(--destructive-foreground));
 }
@@ -2475,6 +2514,17 @@ body {
 
 .hover\:opacity-100:hover {
   opacity: 1;
+}
+
+.hover\:ring-2:hover {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
+.hover\:ring-zinc-950:hover {
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(9 9 11 / var(--tw-ring-opacity));
 }
 
 .focus\:bg-zinc-100:focus {
@@ -2772,6 +2822,14 @@ body {
   color: rgb(24 24 27 / var(--tw-text-opacity));
 }
 
+.dark\:text-accent-900:is(.dark *) {
+  color: var(--accent-900);
+}
+
+.dark\:text-secondary-900:is(.dark *) {
+  color: var(--secondary-900);
+}
+
 .dark\:ring-offset-primary-50:is(.dark *) {
   --tw-ring-offset-color: var(--primary-50);
 }
@@ -2845,6 +2903,12 @@ body {
 
 .dark\:hover\:text-primary-900:hover:is(.dark *) {
   color: var(--primary-900);
+}
+
+.dark\:hover\:ring-2:hover:is(.dark *) {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
 }
 
 .dark\:focus\:bg-background-100:focus:is(.dark *) {
