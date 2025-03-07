@@ -1,6 +1,7 @@
 import csv
 import time
 import uuid
+from loguru import logger
 from sqlmodel import create_engine, SQLModel, Session, select
 from models import (
     AlgorithmSettings,
@@ -19,12 +20,14 @@ from utils.ipc import print_progress
 
 class DatabaseManager:
     def __init__(self, echo=False):
+        logger.debug("Initializing DatabaseManager")
         sql_file_name = get_user_data_path() + "/database.db"
         if not os.path.exists(sql_file_name):
             with open(sql_file_name, "w") as f:
                 f.write("")
         self.engine = create_engine(f"sqlite:///{sql_file_name}", echo=echo)
         SQLModel.metadata.create_all(self.engine)
+        logger.debug("DatabaseManager initialized")
 
     def get_engine(self):
         return self.engine

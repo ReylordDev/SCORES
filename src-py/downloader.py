@@ -10,6 +10,7 @@ from models import CachedModel, DownloadStatusType, EmbeddingModel
 
 class DownloadManager:
     def __init__(self):
+        logger.debug("Initializing DownloadManager")
         disable_progress_bars()
         os.makedirs(hfconstants.HF_HUB_CACHE, exist_ok=True)
 
@@ -19,10 +20,12 @@ class DownloadManager:
                 library="sentence-transformers",
                 sort="downloads",
                 direction=-1,
-                limit=1000,
+                limit=500,
             )
         )
         self.active_downloads = {}  # Track active download threads
+        logger.debug("DownloadManager initialized")
+        logger.debug(f"Found {len(self.compatible_models)} compatible models")
 
     def get_cached_models(self) -> list[CachedModel]:
         hf_cache_info = scan_cache_dir()

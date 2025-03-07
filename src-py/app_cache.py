@@ -16,10 +16,12 @@ class EmbeddingCache:
     """
 
     def __init__(self):
+        logger.debug("Initializing EmbeddingCache")
         self.cache_dir = os.path.join(get_user_data_path(), "cache", "embeddings")
         os.makedirs(self.cache_dir, exist_ok=True)
         self.metadata_file = os.path.join(self.cache_dir, "metadata.json")
         self.metadata = self._load_metadata()
+        logger.debug(f"Loaded embedding cache metadata: {self.metadata}")
 
     def _load_metadata(self) -> Dict[str, Any]:
         """Load metadata from disk or create a new metadata dict"""

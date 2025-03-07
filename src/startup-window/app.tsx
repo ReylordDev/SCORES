@@ -10,9 +10,9 @@ const App = () => {
             viewBox="0 0 24 24"
             fill="none"
             stroke="#f9f4fd"
-            stroke-width="1"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="1"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           >
             <circle cx="7.2" cy="14.4" r="6" fill="#e15a84" />
             <circle cx="16.8" cy="14.4" r="6" fill="#e986c6" />

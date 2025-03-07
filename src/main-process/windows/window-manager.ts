@@ -9,6 +9,8 @@ declare const STARTUP_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 declare const DOWNLOAD_WINDOW_WEBPACK_ENTRY: string;
 declare const DOWNLOAD_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
 
+nativeTheme.themeSource = "light";
+
 export class WindowManager {
   private mainWindow: BrowserWindow;
   private startupWindow: BrowserWindow;
@@ -28,6 +30,9 @@ export class WindowManager {
       width: 1440,
       height: 1024,
       titleBarStyle: "hidden",
+      backgroundColor: nativeTheme.shouldUseDarkColors
+        ? this.darkModeHex
+        : this.lightModeHex,
       titleBarOverlay: {
         color: nativeTheme.shouldUseDarkColors
           ? this.darkModeHex
@@ -54,6 +59,7 @@ export class WindowManager {
   }
 
   private styleMainWindowTitleBar() {
+    // Todo: clean up
     if (this.titleBarMask) {
       this.mainWindow.setTitleBarOverlay({
         color: this.darkMode ? this.maskedDarkModeHex : this.maskedLightModeHex,
@@ -61,16 +67,23 @@ export class WindowManager {
           ? this.maskedLightModeHex
           : this.maskedDarkModeHex,
       });
+      this.mainWindow.setBackgroundColor(
+        this.darkMode ? this.maskedDarkModeHex : this.maskedLightModeHex
+      );
     } else {
       this.mainWindow.setTitleBarOverlay({
         color: this.darkMode ? this.darkModeHex : this.lightModeHex,
         symbolColor: this.darkMode ? this.lightModeHex : this.darkModeHex,
       });
+      this.mainWindow.setBackgroundColor(
+        this.darkMode ? this.darkModeHex : this.lightModeHex
+      );
     }
   }
 
   setMainWindowTitleBarTheme(darkMode: boolean) {
     this.darkMode = darkMode;
+    nativeTheme.themeSource = darkMode ? "dark" : "light";
     this.styleMainWindowTitleBar();
   }
 
