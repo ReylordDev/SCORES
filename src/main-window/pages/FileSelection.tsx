@@ -6,13 +6,12 @@ import {
   Upload,
   Trash2,
   Search,
-  Info,
+  Bookmark,
 } from "lucide-react";
 import { TitleBar } from "../../components/TitleBar";
 import { Button } from "../../components/ui/button";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, forwardRef } from "react";
 import { useNavigate } from "react-router";
-import { TooltipWrapper } from "../../components/TooltipOld";
 import {
   Dialog,
   DialogContent,
@@ -88,11 +87,7 @@ function FileSelector({
   };
 
   return (
-    <div
-      className="flex flex-col items-center justify-evenly gap-4 rounded-3xl border-4 p-4 h-full w-1/2 border-dashed border-accent cursor-default"
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
-    >
+    <div onDrop={handleDrop} onDragOver={handleDragOver}>
       <div className="flex flex-col items-center justify-start gap-8 p-4">
         <Upload size={72} className="text-primary" />
         <p className="w-full text-nowrap">Drag and drop your CSV file here</p>
@@ -102,7 +97,7 @@ function FileSelector({
         <BrowseButton
           onChange={handleFileChange}
           onClick={handleBrowseClick}
-          fileInputRef={fileInputRef}
+          ref={fileInputRef}
         />
       </div>
     </div>
@@ -121,7 +116,7 @@ function PreviousRunsDialog() {
     return previousRuns.filter(
       (run) =>
         run.name.toLowerCase().includes(lowerSearchTerm) ||
-        run.file_path.toLowerCase().includes(lowerSearchTerm)
+        run.file_path.toLowerCase().includes(lowerSearchTerm),
     );
   }, [previousRuns, searchTerm]);
 
@@ -157,7 +152,7 @@ function PreviousRunsDialog() {
   console.log(locale);
 
   return (
-    <DialogContent className="max-w-full w-4/5 h-4/5 select-none flex flex-col">
+    <DialogContent className="flex h-4/5 w-4/5 max-w-full select-none flex-col">
       <DialogHeader className="w-full">
         <DialogTitle className="text-4xl">
           Review Previous Run Result
@@ -267,11 +262,11 @@ export default function FileSelection() {
       <TitleBar index={0} />
       <div
         id="mainContent"
-        className="dark:dark select-none flex flex-col bg-background text-text px-32 py-8 gap-8"
+        className="dark:dark flex select-none flex-col gap-8 bg-background px-32 py-8 text-text"
       >
         <div className="flex flex-col gap-2">
           <h1 className="text-5xl">
-            <span className="bg-gradient-to-r from-primary-600 to-accent via-secondary-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary-600 via-secondary-500 to-accent bg-clip-text text-transparent">
               Semantic Clustering of Open Responses <br></br>
               via Embedding Similarity
             </span>
@@ -280,14 +275,16 @@ export default function FileSelection() {
         </div>
         <div className="mb-8 mt-16 flex h-full items-center justify-between">
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger className="flex h-5/6 w-1/2 cursor-default flex-col items-center justify-evenly gap-4 rounded-3xl border-4 border-dashed border-accent p-4">
               <FileSelector handleFileSelection={handleFileSelection} />
             </TooltipTrigger>
-            <TooltipContent className="flex items-center gap-4">
-              <Info className="text-accent" />
-              <div className="flex flex-col gap-1">
+            <TooltipContent className="w-[640px]">
+              <div className="flex flex-col gap-2 text-start">
+                <p className="text-lg font-semibold">Input File Selection</p>
                 <p>
-                  SCORES requires comma-separated values (CSV) files as input.
+                  SCORES requires a{" "}
+                  <span className="italic">comma-separated values</span> (CSV)
+                  files as input.
                 </p>
                 <p>
                   Most survey or statisics tools provide an option to export the
@@ -296,19 +293,19 @@ export default function FileSelection() {
               </div>
             </TooltipContent>
           </Tooltip>
-          <div className="flex h-full flex-col items-center justify-start gap-8 p-4 text-center xl:p-12 w-1/2">
+          <div className="flex h-full w-1/2 flex-col items-center justify-start gap-8 p-4 text-center xl:p-12">
             <div className="flex flex-col items-center justify-center gap-2">
               <h5>Start by selecting an input file.</h5>
               <CornerDownLeft size={36} className="text-accent" />
             </div>
-            <div className="flex flex-col gap-2 justify-evenly h-full">
+            <div className="flex h-full flex-col justify-evenly gap-2">
               <div className="flex flex-col items-center justify-center gap-2">
                 <p className="line-clamp-2 max-w-sm">
                   You can also start with the example file if you just want to
                   try the application out.
                 </p>
-                <TooltipWrapper
-                  wrappedContent={
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <Button
                       variant="secondary"
                       size="lg"
@@ -316,40 +313,78 @@ export default function FileSelection() {
                     >
                       <FileText /> Select Example File
                     </Button>
-                  }
-                  tooltipContent={
-                    <p className="text-left">
-                      The example file contains the response data of a study
-                      regarding self-generated motives of social casino gamers.
-                      <br></br>
-                      Full citation: Kim, H.S., Coelho, S., Wohl, M.J. et al.
-                      Self-Generated Motives of Social Casino Gamers. J Gambl
-                      Stud 39, 299–320 (2023).
-                    </p>
-                  }
-                />
+                  </TooltipTrigger>
+                  <TooltipContent className="w-[640px]" side="bottom">
+                    <div className="flex flex-col gap-2 text-start">
+                      <p className="text-lg font-semibold">
+                        Self-Generated Motives of Social Casino Gamers
+                      </p>
+                      <p>
+                        The example file contains the response data of a study
+                        regarding self-generated motives of social casino
+                        gamers. Check the citation for more information.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Bookmark className="size-6 flex-shrink-0 text-accent" />
+                        <p className="select-text text-left">
+                          Citation:{" "}
+                          <span
+                            className="cursor-pointer text-accent underline"
+                            onClick={() => {
+                              window.electron.openUrl(
+                                "https://link.springer.com/article/10.1007/s10899-022-10135-5",
+                              );
+                            }}
+                          >
+                            Kim, H.S., Coelho, S., Wohl, M.J. et al.
+                            Self-Generated Motives of Social Casino Gamers. J
+                            Gambl Stud 39, 299–320 (2023).
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
             <div className="flex flex-col items-center gap-2">
               <p>Or you could review a previous result</p>
               <Dialog>
-                <TooltipWrapper
-                  wrappedContent={
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <DialogTrigger asChild>
                       <Button variant="secondary" size="lg">
                         <Database />
                         Review Previous Result
                       </Button>
                     </DialogTrigger>
-                  }
-                  tooltipContent={
-                    <p className="text-left">
-                      Reviewing a previous result will load the settings from
-                      the previous run.<br></br>This is especially useful if you
-                      want to fine-tune the settings or compare the results.
-                    </p>
-                  }
-                />
+                  </TooltipTrigger>
+                  <TooltipContent
+                    align="center"
+                    side="top"
+                    className="mr-2 w-[640px]"
+                  >
+                    <div className="flex flex-col gap-2 text-start">
+                      <p className="text-lg font-semibold">Previous Result</p>
+                      <p>
+                        A core part of SCORES is the ability to load previous
+                        results. You can load a previous result and use it as a
+                        starting point for a new analysis with different
+                        algorithm settings.
+                      </p>
+                      <p>
+                        This is especially useful if you want to fine-tune the
+                        settings or compare results.
+                      </p>
+                      <p>
+                        Loading a previous result will also load its random
+                        state, meaning that the clustering will be
+                        deterministic. If you wish to do a re-run with a
+                        different random state, just select the file again.
+                      </p>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
                 <PreviousRunsDialog />
               </Dialog>
             </div>
@@ -360,23 +395,27 @@ export default function FileSelection() {
   );
 }
 
-function BrowseButton({
-  onChange,
-  onClick,
-  fileInputRef,
-}: {
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onClick?: () => void;
-  fileInputRef?: React.RefObject<HTMLInputElement>;
-}) {
+const BrowseButton = forwardRef(function BrowseButton(
+  {
+    onChange,
+    onClick,
+  }: {
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onClick?: () => void;
+  },
+  ref: React.Ref<HTMLInputElement>,
+) {
   return (
     <>
-      <Button size="lg" onClick={onClick}>
+      <div
+        onClick={onClick}
+        className="flex h-11 items-center justify-center gap-2 rounded-md bg-primary px-8 text-lg text-text-50 hover:bg-primary-600 dark:bg-primary-200 dark:text-primary-900 dark:hover:bg-primary-100"
+      >
         <FileSearch />
         Browse Files
-      </Button>
+      </div>
       <input
-        ref={fileInputRef}
+        ref={ref}
         type="file"
         accept=".csv"
         className="hidden"
@@ -384,4 +423,5 @@ function BrowseButton({
       />
     </>
   );
-}
+});
+BrowseButton.displayName = "BrowseButton";

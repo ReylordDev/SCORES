@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { GraduationCap, Moon, Settings, Undo } from "lucide-react";
+import { GraduationCap, Info, Moon, Settings, Undo } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import {
   Dialog,
@@ -12,9 +12,13 @@ import {
 import { Switch } from "./ui/switch";
 import { AppSettings } from "../lib/models";
 import { useEffect, useState } from "react";
-import { TooltipWrapper } from "./TooltipOld";
 import { Toaster } from "../components/ui/sonner";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "../components/ui/tooltip";
 
 const routes = [
   "",
@@ -38,7 +42,7 @@ export function TitleBar({ index }: { index: number }) {
   if (settings !== null && settings.tutorialMode && index === 0) {
     toast(
       <div className="flex items-center gap-2">
-        <GraduationCap size={20} />
+        <GraduationCap size={20} className="text-accent" />
         Tutorial mode is enabled.
       </div>,
       {
@@ -52,7 +56,7 @@ export function TitleBar({ index }: { index: number }) {
         ),
         closeButton: true,
         duration: 8000,
-      }
+      },
     );
   }
 
@@ -65,8 +69,8 @@ export function TitleBar({ index }: { index: number }) {
         id="titleBar"
         className="draggable absolute top-0 flex h-full select-none items-center justify-between border-accent pl-8"
       >
-        <TooltipWrapper
-          wrappedContent={
+        <Tooltip>
+          <TooltipTrigger asChild>
             <Button
               variant="ghost"
               onClick={() => {
@@ -124,11 +128,12 @@ export function TitleBar({ index }: { index: number }) {
                 />
               </svg>
             </Button>
-          }
-          tooltipContent={<p>Return to the file selection</p>}
-          placement="bottom"
-          small={true}
-        />
+          </TooltipTrigger>
+          <TooltipContent className="ml-2 flex items-center gap-4">
+            <Info className="size-6 shrink-0 text-accent" />
+            <p>Return to the starting point (file selection)</p>
+          </TooltipContent>
+        </Tooltip>
         {index > 0 && index !== 4 ? (
           <Link
             to={`/${routes[index - 1] === "progress" ? routes[index - 2] : routes[index - 1]}`}
@@ -139,7 +144,7 @@ export function TitleBar({ index }: { index: number }) {
             </Button>
           </Link>
         ) : (
-          <div className="opacity-25 cursor-default px-4 py-2">
+          <div className="cursor-default px-4 py-2 opacity-25">
             <Undo size={24} />
           </div>
         )}
@@ -187,28 +192,29 @@ export function TitleBar({ index }: { index: number }) {
         </div>
         <div id="settings" className="flex items-center">
           <Dialog>
-            <TooltipWrapper
-              wrappedContent={
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <DialogTrigger asChild>
                   <Button variant="ghost">
                     <Settings size={28} className="text-text" />
                   </Button>
                 </DialogTrigger>
-              }
-              tooltipContent={<p>Click to open the settings menu</p>}
-              placement="bottom"
-              small={true}
-            />
+              </TooltipTrigger>
+              <TooltipContent className="flex items-center gap-4">
+                <Info className="size-6 shrink-0 text-accent" />
+                <p>Open the settings menu</p>
+              </TooltipContent>
+            </Tooltip>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle className="text-text text-3xl">
+                <DialogTitle className="text-3xl text-text">
                   Settings
                 </DialogTitle>
                 <DialogDescription></DialogDescription>
               </DialogHeader>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
-                  <p className="text-text flex items-center gap-2 text-lg">
+                  <p className="flex items-center gap-2 text-lg text-text">
                     <Moon size={24} />
                     Dark Mode
                   </p>
@@ -221,7 +227,7 @@ export function TitleBar({ index }: { index: number }) {
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <p className="text-text flex items-center gap-2 text-lg">
+                  <p className="flex items-center gap-2 text-lg text-text">
                     <GraduationCap size={24} />
                     Tutorial Mode
                   </p>
@@ -236,11 +242,11 @@ export function TitleBar({ index }: { index: number }) {
                 <div className="mt-4 flex items-center justify-between border-t pt-4 text-sm text-muted-foreground">
                   <span>Made by Luis Klocke</span>
                   <Button
-                    className="hover:text-text cursor-pointer"
+                    className="cursor-pointer hover:text-text"
                     variant="ghost"
                     onClick={() => {
                       window.electron.openUrl(
-                        "https://github.com/ReylordDev/SCORES"
+                        "https://github.com/ReylordDev/SCORES",
                       );
                     }}
                   >
@@ -259,7 +265,7 @@ export function TitleBar({ index }: { index: number }) {
           }}
           toastOptions={{
             style: {
-              background: "var(--background)",
+              background: "white",
               color: "var(--text)",
               border: "2px solid var(--accent)",
               borderRadius: "1rem",

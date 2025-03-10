@@ -32,7 +32,11 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 
-import { TooltipWrapper } from "../../components/TooltipOld";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "../../components/ui/tooltip";
 import {
   AlgorithmSettings,
   progressionMessages,
@@ -82,7 +86,7 @@ export default function Results() {
         });
       }
     },
-    [navigate, run?.id]
+    [navigate, run?.id],
   );
 
   useEffect(() => {
@@ -98,7 +102,7 @@ export default function Results() {
 
         const algorithm_settings = JSON.parse(run.algorithm_settings);
         setAlgorithmSettings(algorithm_settings);
-      }
+      },
     );
     return () => {
       unsubscribe(); // Assuming the subscription returns a cleanup function
@@ -112,9 +116,9 @@ export default function Results() {
 
   if (!run) {
     return (
-      <div className="w-screen h-screen bg-background text-text">
+      <div className="h-screen w-screen bg-background text-text">
         <TitleBar index={4} />
-        <div className="flex flex-col items-center justify-center h-full">
+        <div className="flex h-full flex-col items-center justify-center">
           <Loader className="animate-spin" size={64} />
         </div>
       </div>
@@ -122,11 +126,11 @@ export default function Results() {
   }
 
   return (
-    <div className="w-screen h-screen">
+    <div className="h-screen w-screen">
       <TitleBar index={4} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text select-none"
+        className="dark:dark flex select-none flex-col gap-8 bg-background px-32 pb-8 pt-6 text-text"
       >
         <div className="flex flex-col gap-8">
           <div className="flex w-full justify-between gap-2">
@@ -135,7 +139,7 @@ export default function Results() {
                 {isEditing ? (
                   <div
                     onClick={(e) => e.stopPropagation()}
-                    className="flex gap-4 items-center"
+                    className="flex items-center gap-4"
                   >
                     <Input
                       value={runNameInput}
@@ -143,7 +147,7 @@ export default function Results() {
                         setRunNameInput(e.target.value);
                         setIsValidRunName(validateRunName(e.target.value));
                       }}
-                      className="text-3xl min-w-[500px]"
+                      className="min-w-[500px] text-3xl"
                       autoFocus
                       onKeyDown={(e) => {
                         if (e.key === "Enter") updateRunName(runNameInput);
@@ -183,8 +187,8 @@ export default function Results() {
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <TooltipWrapper
-                wrappedContent={
+              <Tooltip>
+                <TooltipTrigger asChild>
                   <Button
                     onClick={() =>
                       window.electron.showItemInFolder(run.output_file_path)
@@ -193,41 +197,81 @@ export default function Results() {
                     <FolderOpen />
                     Open Output Location
                   </Button>
-                }
-                tooltipContent={
-                  <p className="text-left">
-                    Click to show the results directory in the file explorer.
-                  </p>
-                }
-              />
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <div className="flex flex-col gap-2 text-start">
+                    <p>
+                      Click to show the results directory in the file explorer.
+                    </p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button>
-                    <Play />
-                    New Run
-                    <ChevronDown />
-                  </Button>
-                </DropdownMenuTrigger>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button>
+                        <Play />
+                        New Run
+                        <ChevronDown />
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="left">
+                    <p>Click to show the options for starting a new run.</p>
+                  </TooltipContent>
+                </Tooltip>
                 <DropdownMenuContent>
-                  <DropdownMenuItem
-                    className="text-lg"
-                    onClick={() => handleNewRun("new_file")}
-                  >
-                    Select New File
-                  </DropdownMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuItem
+                        className="w-full text-lg"
+                        onClick={() => handleNewRun("new_file")}
+                      >
+                        Select New File
+                      </DropdownMenuItem>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      <div className="flex flex-col gap-2 text-start">
+                        <p>Start a new run with a different file.</p>
+                        <p>
+                          This will reset the current run and all its settings.
+                        </p>
+                        <p>Returns to the file selection screen.</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className="text-lg"
-                    onClick={() => handleNewRun("change_settings")}
-                  >
-                    Change Algorithm Settings
-                  </DropdownMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuItem
+                        className="text-lg"
+                        onClick={() => handleNewRun("change_settings")}
+                      >
+                        Change Algorithm Settings
+                      </DropdownMenuItem>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="w-[440px]">
+                      <div className="flex flex-col gap-2 text-start">
+                        <p>
+                          Do a re-run of the current file with different
+                          algorithm settings.
+                        </p>
+                        <p>
+                          Because the embeddings are already calculated, this
+                          will be much faster (Unless you change the embedding
+                          model).
+                        </p>
+                        <p>Returns to the algorithm settings.</p>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
-          <div className="flex justify-between gap-8 h-full w-full">
-            <div className="grid gap-8 grid-cols-2">
+          <div className="flex h-full w-full justify-between gap-8">
+            <div className="grid grid-cols-2 gap-8">
               <ResultsCard
                 title="Cluster Assignments"
                 description="See which responses were grouped together"
@@ -290,7 +334,7 @@ export default function Results() {
                               {formatTime(
                                 timestamp -
                                   iterateRecord(timesteps.steps)[index - 1][1],
-                                true
+                                true,
                               )}
                             </p>
                           </div>
@@ -305,7 +349,7 @@ export default function Results() {
                           />
                         </div>
                       );
-                  }
+                  },
                 )}
               </CardContent>
             </Card>
@@ -333,7 +377,7 @@ function ResultsCard({
         <CardTitle>{title}</CardTitle>
         <CardDescription className="h-8">{description}</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col justify-end items-center h-full">
+      <CardContent className="flex h-full flex-col items-center justify-end">
         <Button onClick={onClick}>
           {icon}
           {title}

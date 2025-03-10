@@ -13,7 +13,11 @@ import {
   SquareArrowOutUpRight,
   AlertTriangle,
 } from "lucide-react";
-import { TooltipWrapper } from "../../components/TooltipOld";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "../../components/ui/tooltip";
 import { Input } from "../../components/ui/input";
 import {
   ClusterCount,
@@ -58,7 +62,7 @@ export default function AlgorithmSettings() {
   const [useAgglomerativeClustering, setUseAgglomerativeClustering] =
     useState(false);
   const [similarityThreshold, setSimilarityThreshold] = useState<number | null>(
-    null
+    null,
   );
   const [iterativeAggClustering, setIterativeAggClustering] = useState(false);
   const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettings>({
@@ -81,7 +85,7 @@ export default function AlgorithmSettings() {
       if (run) {
         // Parse the stored algorithm settings
         const settings = JSON.parse(
-          run.algorithm_settings
+          run.algorithm_settings,
         ) as AlgorithmSettingsType;
 
         // Update state based on the loaded settings
@@ -104,14 +108,14 @@ export default function AlgorithmSettings() {
           setZScoreThreshold(settings.outlier_detection.z_score_threshold);
         }
         setUseAgglomerativeClustering(
-          settings.agglomerative_clustering !== null
+          settings.agglomerative_clustering !== null,
         );
         if (settings.agglomerative_clustering) {
           setSimilarityThreshold(
-            settings.agglomerative_clustering.similarity_threshold
+            settings.agglomerative_clustering.similarity_threshold,
           );
           setIterativeAggClustering(
-            settings.agglomerative_clustering.iterative
+            settings.agglomerative_clustering.iterative,
           );
         }
 
@@ -223,7 +227,7 @@ export default function AlgorithmSettings() {
       <TitleBar index={2} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text select-none"
+        className="dark:dark flex select-none flex-col gap-8 bg-background px-32 pb-8 pt-6 text-text"
       >
         <div className="flex items-center justify-between">
           <h1 className="text-5xl">Algorithm Settings</h1>
@@ -237,10 +241,10 @@ export default function AlgorithmSettings() {
             </Button>
           </div>
         </div>
-        <div className="scrollbar pr-4 flex flex-grow flex-col gap-4 overflow-y-auto pt-0 text-lg">
-          <TooltipWrapper
-            wrappedContent={
-              <div className="flex flex-col gap-2 p-4 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100">
+        <div className="scrollbar flex flex-grow flex-col gap-4 overflow-y-auto pr-4 pt-0 text-lg">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-4 text-text shadow-sm dark:border-background-200 dark:bg-background-100">
                 <div className="flex items-center justify-between">
                   <p>Automatically choose number of clusters</p>
                   <Switch
@@ -259,7 +263,7 @@ export default function AlgorithmSettings() {
                   <div
                     className={cn(
                       "flex items-center justify-between",
-                      !autoChooseClusters && "text-gray-400"
+                      !autoChooseClusters && "text-gray-400",
                     )}
                   >
                     <label htmlFor="minClusterCount">
@@ -278,7 +282,7 @@ export default function AlgorithmSettings() {
                         id="minClusterCount"
                         className={cn(
                           "w-24",
-                          minClusters && minClusters < 2 && "text-red-600"
+                          minClusters && minClusters < 2 && "text-red-600",
                         )}
                         placeholder="5"
                         disabled={!autoChooseClusters}
@@ -288,7 +292,7 @@ export default function AlgorithmSettings() {
                   <div
                     className={cn(
                       "flex items-center justify-between",
-                      !autoChooseClusters && "text-gray-400"
+                      !autoChooseClusters && "text-gray-400",
                     )}
                   >
                     <label htmlFor="maxClusterCount">
@@ -309,7 +313,7 @@ export default function AlgorithmSettings() {
                           "w-24",
                           maxClusters &&
                             minClusters > maxClusters &&
-                            "text-red-600"
+                            "text-red-600",
                         )}
                         placeholder="100"
                         disabled={!autoChooseClusters}
@@ -318,26 +322,47 @@ export default function AlgorithmSettings() {
                   </div>
                 </div>
               </div>
-            }
-            tooltipContent={
-              <p className="text-left">
-                With this setting enabled, the program will decide the number of
-                clusters by systematically testing different cluster counts and
-                evaluating them using internal cluster validation techniques.
-                <br></br>
-                This setting can increase the computation time, especially when
-                checking a large number of clusters. Therefore, it is
-                recommended to set a maximum number of clusters to consider.
-              </p>
-            }
-            placement="bottom-start"
-          />
-          <TooltipWrapper
-            wrappedContent={
+            </TooltipTrigger>
+            <TooltipContent className="w-[920px]" align="start" side="bottom">
+              <div className="flex flex-col gap-2">
+                <p className="text-lg font-semibold">
+                  Automatic Cluster Count Selection
+                </p>
+                <p>
+                  With this setting enabled, SCORES will decide the number of
+                  clusters by systematically testing different cluster counts
+                  and evaluating them using internal cluster validation
+                  techniques.
+                </p>
+                <p>
+                  To constrain the number of clusters, you need to set the
+                  minimum and maximum number of clusters to consider. SCORES
+                  will then choose the best number of clusters within this
+                  range.
+                </p>
+                <div className="flex gap-2">
+                  <AlertTriangle className="size-6 shrink-0 text-red-600" />
+                  <p>
+                    The minimum number of clusters must be at least 2, and the
+                    maximum number of clusters must be greater than or equal to
+                    the minimum number.
+                  </p>
+                </div>
+                <p>
+                  It is highly recommended to check the{" "}
+                  <span className="italic">cluster count selection plot</span>{" "}
+                  in the results to see which number was selected and which
+                  other cluster counts are potential candidates for a re-run.
+                </p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
               <div
                 className={cn(
-                  "flex items-center justify-between p-4 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100",
-                  autoChooseClusters && "text-gray-400"
+                  "flex items-center justify-between rounded-lg border border-zinc-200 bg-white p-4 text-text shadow-sm dark:border-background-200 dark:bg-background-100",
+                  autoChooseClusters && "text-gray-400",
                 )}
               >
                 <label htmlFor="clusterCount">
@@ -350,25 +375,33 @@ export default function AlgorithmSettings() {
                   min={1}
                   value={clusterCount || ""}
                   onChange={(e) => setClusterCount(e.target.valueAsNumber)}
-                  className="w-24 "
+                  className="w-24"
                   disabled={autoChooseClusters}
                 />
               </div>
-            }
-            tooltipContent={
-              <p className="text-left">
-                The specific number of clusters to use when not automatically
-                choosing the number of clusters.
-                <br></br>
-                This option is required when the automatic cluster count setting
-                is disabled.
-              </p>
-            }
-            placement="bottom-start"
-          />
-          <TooltipWrapper
-            wrappedContent={
-              <div className="flex items-center justify-between p-4 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100">
+            </TooltipTrigger>
+            <TooltipContent className="w-[920px]" align="start" side="bottom">
+              <div className="flex flex-col gap-2">
+                <p className="text-lg font-semibold">
+                  Manual Cluster Count Selection
+                </p>
+                <p>
+                  If you want to try a specific cluster count, you use this
+                  option instead of the automatic cluster count selection.
+                </p>
+                <div className="flex gap-2">
+                  <AlertTriangle className="text-red-600" size={24} />
+                  <p>
+                    This option is required when the automatic cluster count
+                    setting is disabled.
+                  </p>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-between rounded-lg border border-zinc-200 bg-white p-4 text-text shadow-sm dark:border-background-200 dark:bg-background-100">
                 <div className="flex flex-col">
                   <p>
                     Excluded Words{" "}
@@ -385,22 +418,29 @@ export default function AlgorithmSettings() {
                   setExcludedWords={setExcludedWords}
                 />
               </div>
-            }
-            tooltipContent={
-              <p className="text-left">
-                The excluded words list allows you to specify words that should
-                not be considered when clustering responses. This can be useful
-                for removing common words or phrases that are not relevant to
-                the clustering.
-                <br></br>
-                This setting is case-insensitive!
-              </p>
-            }
-            placement="bottom-start"
-          />
-          <TooltipWrapper
-            wrappedContent={
-              <div className="flex flex-col gap-2 p-4 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100">
+            </TooltipTrigger>
+            <TooltipContent className="w-[920px]" align="start" side="bottom">
+              <div className="flex flex-col gap-2">
+                <p className="text-lg font-semibold">Excluded Words List</p>
+                <p>
+                  The excluded words list allows you to specify words that
+                  should not be considered when clustering responses.
+                </p>
+                <p>
+                  This can be useful for example if the responses contain
+                  specific values for "Not Applicable" that would otherwise be
+                  included in the clustering.
+                </p>
+                <div className="flex gap-2">
+                  <AlertTriangle className="text-yellow-600" size={24} />
+                  <p>This setting is case-insensitive!</p>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-4 text-text shadow-sm dark:border-background-200 dark:bg-background-100">
                 <div className="flex items-center justify-between">
                   <p>Include Outlier Detection</p>
                   <Switch
@@ -418,7 +458,7 @@ export default function AlgorithmSettings() {
                   <div
                     className={cn(
                       "flex items-center justify-between",
-                      !useOutlierDetection && "text-gray-400"
+                      !useOutlierDetection && "text-gray-400",
                     )}
                   >
                     <p>Number of Nearest Neighbors</p>
@@ -438,7 +478,7 @@ export default function AlgorithmSettings() {
                   <div
                     className={cn(
                       "flex items-center justify-between",
-                      !useOutlierDetection && "text-gray-400"
+                      !useOutlierDetection && "text-gray-400",
                     )}
                   >
                     <p>Z-Score Threshold</p>
@@ -457,29 +497,84 @@ export default function AlgorithmSettings() {
                   </div>
                 </div>
               </div>
-            }
-            tooltipContent={
-              <p className="text-left w-full">
-                Outlier detection is a technique used to identify items or
-                events that deviate significantly from the norm.
-                <br></br>
-                By enabling this option, you can identify outliers in your data
-                which will then be excluded from the analysis. <br></br>
-                Outlier detection computes the average similarity to the{" "}
-                <span className="font-bold">{nearestNeighbors}</span> nearest
-                neighbors of each data point and flags data points that are more
-                than{" "}
-                <span className={cn(zScoreThreshold && "font-bold")}>
-                  {zScoreThreshold || "the z score threshold many"}
-                </span>{" "}
-                standard deviations away from the average.
-              </p>
-            }
-            placement="bottom-start"
-          />
-          <TooltipWrapper
-            wrappedContent={
-              <div className="flex flex-col gap-2 p-4 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100">
+            </TooltipTrigger>
+            <TooltipContent className="w-[920px]" align="start">
+              <div className="flex flex-col gap-2">
+                <p className="text-lg font-semibold">Outlier Detection</p>
+                <p>
+                  By enabling this option, SCORES will attempt to identify
+                  outlier responses in your data which will then be excluded
+                  from the analysis.
+                </p>
+                <div className="flex flex-col gap-2">
+                  <p>
+                    The nearest neighbors parameter determines the number of
+                    most similar responses to compare the response against.
+                  </p>
+                  <div className="flex flex-col gap-2 pl-2 text-sm">
+                    <p>
+                      A lower number of neighbors (e.g., 3 or 5) means that
+                      responses that are only similar to small part of a cluster
+                      can still avoid being flagged as outliers.
+                    </p>
+                    <p>
+                      A higher number of neighbors (e.g., 10 or more) means that
+                      responses must be similar to a larger part of the cluster
+                      to avoid being flagged as outliers.
+                    </p>
+                    <p>
+                      In general, a lower number of neighbors is recommended.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p>
+                    The z-score threshold determines how much a responses's
+                    similarity (compared to its neighbors) must deviate from the
+                    mean similarity to be considered an outlier.
+                  </p>
+                  <div className="flex flex-col gap-2 pl-2 text-sm">
+                    <p>
+                      A lower z-score threshold (e.g., close to 1 or 2) will
+                      result in more results being flagged as outliers. This can
+                      lead to false positives, where normal responses with
+                      slightly lower similarity are incorrectly flagged as
+                      outliers.
+                    </p>
+                    <p>
+                      A higher z-score threshold (e.g., 3 or above) will result
+                      in fewer results being flagged as outliers, but may miss
+                      more true outliers.
+                    </p>
+                    <p>
+                      If you are unsure, start with a lower z-score threshold
+                      and check the outlier view in the results. If you find
+                      that too many normal responses are flagged as outliers,
+                      you do a re-run with a higher threshold until you find a
+                      good balance.
+                    </p>
+                    <p>
+                      Learn more about the z-score on{" "}
+                      <span
+                        onClick={() =>
+                          window.electron.openUrl(
+                            "https://en.wikipedia.org/wiki/Standard_score",
+                          )
+                        }
+                        className="cursor-pointer text-accent underline"
+                      >
+                        Wikipedia
+                      </span>
+                      .
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex flex-col gap-2 rounded-lg border border-zinc-200 bg-white p-4 text-text shadow-sm dark:border-background-200 dark:bg-background-100">
                 <div className="flex items-center justify-between">
                   <p>Merge Similar Clusters</p>
                   <Switch
@@ -496,7 +591,7 @@ export default function AlgorithmSettings() {
                   <div
                     className={cn(
                       "flex items-center justify-between",
-                      !useAgglomerativeClustering && "text-gray-400"
+                      !useAgglomerativeClustering && "text-gray-400",
                     )}
                   >
                     <p>Minimum Similarity Threshold</p>
@@ -521,7 +616,7 @@ export default function AlgorithmSettings() {
                   <div
                     className={cn(
                       "flex items-center justify-between",
-                      !useAgglomerativeClustering && "text-gray-400"
+                      !useAgglomerativeClustering && "text-gray-400",
                     )}
                   >
                     <p>Repeat Merging</p>
@@ -535,26 +630,37 @@ export default function AlgorithmSettings() {
                   </div>
                 </div>
               </div>
-            }
-            tooltipContent={
-              <p className="text-left">
-                This option adds an additional step to the clustering process to
-                merge clusters that are similar to each other.
-                <br></br>
-                If enabled, merge all clusters that have a similarity value of{" "}
-                <span className={cn(similarityThreshold && "font-bold")}>
-                  {similarityThreshold || "the similarity threshold"}
-                </span>{" "}
-                (out of 1) or higher. With repeat merging enabled, the process
-                will be repeated until even the mergers are within the
-                similarity threshold.
-              </p>
-            }
-            placement="top-start"
-          />
-          <TooltipWrapper
-            wrappedContent={
-              <div className="flex items-center justify-between p-4 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100">
+            </TooltipTrigger>
+            <TooltipContent className="w-[920px]" align="start">
+              <div className="flex flex-col gap-2">
+                <p className="text-lg font-semibold">Merge Similar Clusters</p>
+                <p>
+                  This option adds a final additional step to the clustering
+                  process to merge clusters that are similar to each other.
+                </p>
+                <p>
+                  The minimum similarity threshold determines how similar two
+                  clusters must be to be merged. The value is between 0 and 1,
+                  where 0 means no similarity and 1 means identical clusters.
+                </p>
+                <p>
+                  The repeat merging option determines whether the merging
+                  process should be repeated until all clusters are outside of
+                  the similarity threshold. Otherwise, only one round of merging
+                  will be performed.
+                </p>
+                <p>
+                  It is recommended to use the mergers view in the results to
+                  make a judgement about the similarity threshold. If you find
+                  that too many clusters are merged, you can do a re-run with a
+                  higher threshold until you find a good balance.
+                </p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center justify-between rounded-lg border border-zinc-200 bg-white p-4 text-text shadow-sm dark:border-background-200 dark:bg-background-100">
                 <div className="flex flex-col">
                   <p>Advanced Settings</p>
                   <p className="text-base font-normal text-gray-500">
@@ -566,16 +672,22 @@ export default function AlgorithmSettings() {
                   setSettings={setAdvancedSettings}
                 />
               </div>
-            }
-            tooltipContent={
-              <p className="text-left">
-                Advanced settings for fine-tuning the clustering algorithm.
-                These settings should only be modified if you understand their
-                impact on the clustering process.
-              </p>
-            }
-            placement="top-start"
-          />
+            </TooltipTrigger>
+            <TooltipContent className="w-[920px]" align="start">
+              <div className="flex flex-col gap-2">
+                <p className="text-lg font-semibold">Advanced Settings</p>
+                <p>
+                  Advanced settings for fine-tuning the clustering algorithm.
+                  These settings should only be modified if you understand their
+                  impact on the clustering process.
+                </p>
+                <p>
+                  This is also where you can download and/or select a different
+                  embedding model.
+                </p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </div>
@@ -713,11 +825,11 @@ function AdvancedSettingsDialog({
         </DialogHeader>
         <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-2">
-            <div className="flex justify-between items-center">
+            <div className="flex items-center justify-between">
               <label htmlFor="modelName">Embedding Model Name</label>
               <Button
                 variant="ghost"
-                className="text-sm text-gray-500 flex gap-1"
+                className="flex gap-1 text-sm text-gray-500"
                 onClick={() => window.electron.openDownloadManager()}
               >
                 <SquareArrowOutUpRight className="size-4" />
@@ -738,7 +850,7 @@ function AdvancedSettingsDialog({
                 >
                   {modelComboboxValue
                     ? cachedModels.find(
-                        (model) => model.id === modelComboboxValue
+                        (model) => model.id === modelComboboxValue,
                       ).id
                     : "Select Embedding Model..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -758,7 +870,7 @@ function AdvancedSettingsDialog({
                             setModelComboboxValue(
                               currentValue === modelComboboxValue
                                 ? ""
-                                : currentValue
+                                : currentValue,
                             );
                             setModelComboboxOpen(false);
                           }}
@@ -768,7 +880,7 @@ function AdvancedSettingsDialog({
                               "mr-2 h-4 w-4",
                               modelComboboxValue === model.id
                                 ? "opacity-100"
-                                : "opacity-0"
+                                : "opacity-0",
                             )}
                           />
                           {model.id}
