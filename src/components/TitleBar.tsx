@@ -12,7 +12,7 @@ import {
 import { Switch } from "./ui/switch";
 import { AppSettings } from "../lib/models";
 import { useEffect, useState } from "react";
-import { TooltipWrapper } from "../components/Tooltip";
+import { TooltipWrapper } from "./TooltipOld";
 import { Toaster } from "../components/ui/sonner";
 import { toast } from "sonner";
 

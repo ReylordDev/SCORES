@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import { TooltipWrapper } from "../../components/Tooltip";
+import { TooltipWrapper } from "../../components/TooltipOld";
 
 const ColumnHeader = ({
   isOn,

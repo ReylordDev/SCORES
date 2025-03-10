@@ -1,4 +1,4 @@
-import { TooltipWrapper } from "../components/Tooltip";
+import { TooltipWrapper } from "../components/TooltipOld";
 import { Button } from "../components/ui/button";
 
 export function TitleBar() {

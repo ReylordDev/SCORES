@@ -6,12 +6,13 @@ import {
   Upload,
   Trash2,
   Search,
+  Info,
 } from "lucide-react";
 import { TitleBar } from "../../components/TitleBar";
 import { Button } from "../../components/ui/button";
 import { useEffect, useRef, useState, useMemo } from "react";
 import { useNavigate } from "react-router";
-import { TooltipWrapper } from "../../components/Tooltip";
+import { TooltipWrapper } from "../../components/TooltipOld";
 import {
   Dialog,
   DialogContent,
@@ -43,12 +44,23 @@ import {
 } from "../../components/ui/alert-dialog";
 import { UUID } from "crypto";
 import { Input } from "../../components/ui/input";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "../../components/ui/tooltip";
 
 function FileSelector({
   handleFileSelection,
 }: {
   handleFileSelection: (path: string) => void;
 }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const checkFiles = (files: FileList | null) => {
     if (files) {
       const file = files[0];
@@ -75,57 +87,23 @@ function FileSelector({
     event.preventDefault();
   };
 
-  function BrowseButton() {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const handleClick = () => {
-      fileInputRef.current?.click();
-    };
-
-    return (
-      <>
-        <Button size="lg" onClick={handleClick}>
-          <FileSearch />
-          Browse Files
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".csv"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-      </>
-    );
-  }
-
   return (
     <div
-      className="flex h-full w-fit flex-col items-center justify-evenly gap-4 rounded-3xl border-4 border-dashed border-accent xl:w-1/2"
+      className="flex flex-col items-center justify-evenly gap-4 rounded-3xl border-4 p-4 h-full w-1/2 border-dashed border-accent cursor-default"
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      <TooltipWrapper
-        wrappedContent={
-          <div className="flex flex-col items-center justify-start gap-8 p-4">
-            <Upload size={72} className="text-primary" />
-            <p className="w-full text-nowrap">
-              Drag and drop your CSV file here
-            </p>
-          </div>
-        }
-        tooltipContent={
-          <p className="text-left">
-            The program requires comma-separated values (CSV) files as input.
-            <br></br>
-            Most survey or statisics tools provide an option to export the data
-            as a CSV file.
-          </p>
-        }
-      />
+      <div className="flex flex-col items-center justify-start gap-8 p-4">
+        <Upload size={72} className="text-primary" />
+        <p className="w-full text-nowrap">Drag and drop your CSV file here</p>
+      </div>
       <div className="flex flex-col items-center justify-center gap-4">
         <p>or</p>
-        <BrowseButton />
+        <BrowseButton
+          onChange={handleFileChange}
+          onClick={handleBrowseClick}
+          fileInputRef={fileInputRef}
+        />
       </div>
     </div>
   );
@@ -301,7 +279,23 @@ export default function FileSelection() {
           <p>Analyze your free-text survey responses with ease.</p>
         </div>
         <div className="mb-8 mt-16 flex h-full items-center justify-between">
-          <FileSelector handleFileSelection={handleFileSelection} />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <FileSelector handleFileSelection={handleFileSelection} />
+            </TooltipTrigger>
+            <TooltipContent className="flex items-center gap-4">
+              <Info className="text-accent" />
+              <div className="flex flex-col gap-1">
+                <p>
+                  SCORES requires comma-separated values (CSV) files as input.
+                </p>
+                <p>
+                  Most survey or statisics tools provide an option to export the
+                  data as a CSV file.
+                </p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
           <div className="flex h-full flex-col items-center justify-start gap-8 p-4 text-center xl:p-12 w-1/2">
             <div className="flex flex-col items-center justify-center gap-2">
               <h5>Start by selecting an input file.</h5>
@@ -363,5 +357,31 @@ export default function FileSelection() {
         </div>
       </div>
     </div>
+  );
+}
+
+function BrowseButton({
+  onChange,
+  onClick,
+  fileInputRef,
+}: {
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onClick?: () => void;
+  fileInputRef?: React.RefObject<HTMLInputElement>;
+}) {
+  return (
+    <>
+      <Button size="lg" onClick={onClick}>
+        <FileSearch />
+        Browse Files
+      </Button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".csv"
+        className="hidden"
+        onChange={onChange}
+      />
+    </>
   );
 }

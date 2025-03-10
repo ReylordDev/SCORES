@@ -32,7 +32,7 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 
-import { TooltipWrapper } from "../../components/Tooltip";
+import { TooltipWrapper } from "../../components/TooltipOld";
 import {
   AlgorithmSettings,
   progressionMessages,

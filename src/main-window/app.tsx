@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { AppSettings } from "../lib/models";
 import ClusterVisualization from "./pages/ClusterVisualization";
 import KSelectionVisualization from "./pages/KSelectionVisualization";
+import { TooltipProvider } from "../components/ui/tooltip";
 
 scan({
   enabled: true,
@@ -49,24 +50,29 @@ const App = () => {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<FileSelection />} />
-        <Route path="/file_preview" element={<FilePreview />} />
-        <Route path="/algorithm_settings" element={<AlgorithmSettings />} />
-        <Route path="/progress" element={<Progress />} />
-        <Route path="/results" element={<Results />} />
-        <Route path="/cluster_assignments" element={<ClusterAssignments />} />
-        <Route path="/cluster_similarities" element={<ClusterSimilarities />} />
-        <Route path="/outliers" element={<Outliers />} />
-        <Route path="/mergers" element={<Mergers />} />
-        <Route
-          path="/cluster_visualization"
-          element={<ClusterVisualization />}
-        />
-        <Route path="/k_selection" element={<KSelectionVisualization />} />
-      </Routes>
-    </Router>
+    <TooltipProvider delayDuration={0}>
+      <Router>
+        <Routes>
+          <Route path="/" element={<FileSelection />} />
+          <Route path="/file_preview" element={<FilePreview />} />
+          <Route path="/algorithm_settings" element={<AlgorithmSettings />} />
+          <Route path="/progress" element={<Progress />} />
+          <Route path="/results" element={<Results />} />
+          <Route path="/cluster_assignments" element={<ClusterAssignments />} />
+          <Route
+            path="/cluster_similarities"
+            element={<ClusterSimilarities />}
+          />
+          <Route path="/outliers" element={<Outliers />} />
+          <Route path="/mergers" element={<Mergers />} />
+          <Route
+            path="/cluster_visualization"
+            element={<ClusterVisualization />}
+          />
+          <Route path="/k_selection" element={<KSelectionVisualization />} />
+        </Routes>
+      </Router>
+    </TooltipProvider>
   );
 };
 

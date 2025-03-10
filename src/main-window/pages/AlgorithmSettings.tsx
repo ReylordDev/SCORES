@@ -13,7 +13,7 @@ import {
   SquareArrowOutUpRight,
   AlertTriangle,
 } from "lucide-react";
-import { TooltipWrapper } from "../../components/Tooltip";
+import { TooltipWrapper } from "../../components/TooltipOld";
 import { Input } from "../../components/ui/input";
 import {
   ClusterCount,
