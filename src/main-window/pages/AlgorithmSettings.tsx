@@ -668,8 +668,8 @@ export default function AlgorithmSettings() {
                   </p>
                 </div>
                 <AdvancedSettingsDialog
-                  settings={advancedSettings}
-                  setSettings={setAdvancedSettings}
+                  advancedSettings={advancedSettings}
+                  setAdvancedSettings={setAdvancedSettings}
                 />
               </div>
             </TooltipTrigger>
@@ -775,19 +775,23 @@ function ExcludedWordsDialog({
 }
 
 function AdvancedSettingsDialog({
-  settings,
-  setSettings,
+  advancedSettings,
+  setAdvancedSettings,
 }: {
-  settings: AdvancedSettings;
-  setSettings: (settings: AdvancedSettings) => void;
+  advancedSettings: AdvancedSettings;
+  setAdvancedSettings: (settings: AdvancedSettings) => void;
 }) {
   const [modelComboboxOpen, setModelComboboxOpen] = useState(false);
   const [modelComboboxValue, setModelComboboxValue] = useState("");
   const [cachedModels, setCachedModels] = useState<CachedModel[]>([]);
 
+  useEffect(() => {
+    setModelComboboxValue(advancedSettings.embedding_model);
+  }, [advancedSettings.embedding_model]);
+
   const handleSave = () => {
-    setSettings({
-      ...settings,
+    setAdvancedSettings({
+      ...advancedSettings,
       embedding_model: modelComboboxValue,
     });
   };
@@ -805,7 +809,10 @@ function AdvancedSettingsDialog({
     return () => unsubscribe();
   }, []);
 
-  console.log("Advanced settings", settings);
+  console.log("Advanced settings", advancedSettings);
+  console.log(advancedSettings.embedding_model);
+  console.log("modelComboboxValue", modelComboboxValue);
+  console.log("cachedModels", cachedModels);
 
   return (
     <Dialog>
@@ -848,11 +855,7 @@ function AdvancedSettingsDialog({
                   aria-expanded={modelComboboxOpen}
                   className="w-[450px] justify-between"
                 >
-                  {modelComboboxValue
-                    ? cachedModels.find(
-                        (model) => model.id === modelComboboxValue,
-                      ).id
-                    : "Select Embedding Model..."}
+                  {modelComboboxValue || "Select Embedding Model..."}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -902,10 +905,10 @@ function AdvancedSettingsDialog({
               </label>
               <Switch
                 id="kmeansMethod"
-                checked={settings.kmeans_method === "kmeans"}
+                checked={advancedSettings.kmeans_method === "kmeans"}
                 onCheckedChange={(isOn) =>
-                  setSettings({
-                    ...settings,
+                  setAdvancedSettings({
+                    ...advancedSettings,
                     kmeans_method: isOn ? "kmeans" : "spherical_kmeans",
                   })
                 }

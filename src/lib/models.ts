@@ -2,12 +2,7 @@
 // These have to match the models in models.py
 
 import { UUID } from "crypto";
-import {
-  MessageBoxOptions,
-  MessageBoxReturnValue,
-  OpenDialogOptions,
-  OpenDialogReturnValue,
-} from "electron";
+import { MessageBoxOptions, MessageBoxReturnValue } from "electron";
 
 type Action =
   | "set_file_path"
@@ -265,7 +260,7 @@ export interface AgglomerativeClusteringSettings {
 }
 
 export interface AdvancedSettings {
-  embedding_model: string | null;
+  embedding_model?: string;
   kmeans_method: "spherical_kmeans" | "kmeans";
 }
 
@@ -460,7 +455,7 @@ declare global {
       setTitleBarMask: (mask: boolean) => void;
       openDownloadManager: () => void;
       showMessageBox: (
-        options: MessageBoxOptions
+        options: MessageBoxOptions,
       ) => Promise<MessageBoxReturnValue>;
     };
     settings: {
@@ -468,7 +463,7 @@ declare global {
       setDarkMode: (darkMode: boolean) => void;
       setTutorialMode: (tutorialMode: boolean) => void;
       onSettingsChanged: (
-        callback: (settings: AppSettings) => void
+        callback: (settings: AppSettings) => void,
       ) => () => void;
     };
     file: {
@@ -485,7 +480,7 @@ declare global {
     };
     progress: {
       onClusteringUpdate: (
-        callback: (progress: ClusteringProgressMessage) => void
+        callback: (progress: ClusteringProgressMessage) => void,
       ) => () => void;
     };
     database: {
@@ -493,26 +488,26 @@ declare global {
       onReceiveAllRuns: (callback: (runs: Run[]) => void) => () => void;
       requestCurrentRun: () => void;
       onReceiveCurrentRun: (
-        callback: (currentRun: CurrentRunMessage) => void
+        callback: (currentRun: CurrentRunMessage) => void,
       ) => () => void;
       updateRunName: (runId: UUID, name: string) => void;
       requestCurrentClusterAssignments: () => void;
       onReceiveCurrentClusterAssignments: (
-        callback: (clusterAssignemnts: ClusterAssignmentsMessage) => void
+        callback: (clusterAssignemnts: ClusterAssignmentsMessage) => void,
       ) => () => void;
       requestCurrentClusterSimilarities: () => void;
       onReceiveCurrentClusterSimilarities: (
-        callback: (clusterSimilarities: ClusterSimilaritiesMessage) => void
+        callback: (clusterSimilarities: ClusterSimilaritiesMessage) => void,
       ) => () => void;
       updateClusterName: (payload: ClusterNamePayload) => void;
       deleteRun: (runId: UUID) => void;
       requestCurrentOutliers: () => void;
       onReceiveCurrentOutliers: (
-        callback: (outliers: OutliersMessage) => void
+        callback: (outliers: OutliersMessage) => void,
       ) => () => void;
       requestCurrentMergers: () => void;
       onReceiveCurrentMergers: (
-        callback: (mergers: MergersMessage) => void
+        callback: (mergers: MergersMessage) => void,
       ) => () => void;
     };
     state: {
@@ -522,29 +517,29 @@ declare global {
     plots: {
       getClusterPositions: () => void;
       onReceiveClusterPositions: (
-        callback: (clusterPositions: ClusterPositionsMessage) => void
+        callback: (clusterPositions: ClusterPositionsMessage) => void,
       ) => () => void;
       requestSelectionStats: () => void;
       onReceiveSelectionStats: (
-        callback: (selectionStats: KSelectionStatistic[]) => void
+        callback: (selectionStats: KSelectionStatistic[]) => void,
       ) => () => void;
     };
     models: {
       onDownloadStatus: (
-        callback: (status: DownloadStatusMessage) => void
+        callback: (status: DownloadStatusMessage) => void,
       ) => () => void;
       onDefaultModelStatus: (
-        callback: (status: DownloadStatusMessage) => void
+        callback: (status: DownloadStatusMessage) => void,
       ) => () => void;
       requestModelStatus: (modelName: string) => void;
       downloadModel(modelName: string): void;
       requestCachedModels: () => void;
       onReceiveCachedModels: (
-        callback: (models: CachedModelsMessage) => void
+        callback: (models: CachedModelsMessage) => void,
       ) => () => void;
       requestAvailableModels: () => void;
       onReceiveAvailableModels: (
-        callback: (models: AvailableModelsMessage) => void
+        callback: (models: AvailableModelsMessage) => void,
       ) => () => void;
     };
   }
