@@ -95,10 +95,10 @@ export default function ClusterVisualization() {
     const margin = 2;
     if (clusters.length > 0) {
       const xValues2d = clusters.flatMap((c) =>
-        c.responses.map((r) => r.pos_2d.x)
+        c.responses.map((r) => r.pos_2d.x),
       );
       const yValues2d = clusters.flatMap((c) =>
-        c.responses.map((r) => r.pos_2d.y)
+        c.responses.map((r) => r.pos_2d.y),
       );
       setRange2d({
         minX: Math.min(...xValues2d) - margin,
@@ -107,13 +107,13 @@ export default function ClusterVisualization() {
         maxY: Math.max(...yValues2d) + margin,
       });
       const xValues3d = clusters.flatMap((c) =>
-        c.responses.map((r) => r.pos_3d.x)
+        c.responses.map((r) => r.pos_3d.x),
       );
       const yValues3d = clusters.flatMap((c) =>
-        c.responses.map((r) => r.pos_3d.y)
+        c.responses.map((r) => r.pos_3d.y),
       );
       const zValues3d = clusters.flatMap((c) =>
-        c.responses.map((r) => r.pos_3d.z)
+        c.responses.map((r) => r.pos_3d.z),
       );
       setRange3d({
         minX: Math.min(...xValues3d) - margin,
@@ -129,14 +129,14 @@ export default function ClusterVisualization() {
   const toggleCluster = (clusterIndex: number) => {
     if (clusterIndex === -1) {
       setSelectedClusters((prev) =>
-        prev.length === clusters.length ? [] : clusters.map((c) => c.index)
+        prev.length === clusters.length ? [] : clusters.map((c) => c.index),
       );
       return;
     }
     setSelectedClusters((prev) =>
       prev.includes(clusterIndex)
         ? prev.filter((i) => i !== clusterIndex)
-        : [...prev, clusterIndex]
+        : [...prev, clusterIndex],
     );
   };
 
@@ -237,16 +237,16 @@ export default function ClusterVisualization() {
   }, [clusters, selectedClusters]);
 
   return (
-    <div className="w-screen h-screen bg-background text-text">
+    <div className="h-screen w-screen bg-background text-text">
       <TitleBar index={5} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col px-32 pt-6 pb-8 gap-8 select-none"
+        className="dark:dark flex select-none flex-col gap-8 px-32 pb-8 pt-6"
       >
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <h1 className="text-4xl">Cluster Visualization</h1>
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white text-text shadow-sm dark:border-background-200 dark:bg-background-100 px-4 py-2">
+            <div className="flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-4 py-2 text-text shadow-sm dark:border-background-200 dark:bg-background-100">
               2D
               <Switch
                 checked={use3d}
@@ -262,7 +262,7 @@ export default function ClusterVisualization() {
                       loading: `Switching to ${use3d ? "2D" : "3D"}...`,
                       success: `Switched to ${use3d ? "2D" : "3D"}!`,
                       error: `Failed to switch to ${use3d ? "2D" : "3D"}.`,
-                    }
+                    },
                   );
                 }}
               ></Switch>
@@ -281,7 +281,7 @@ export default function ClusterVisualization() {
                 </DialogHeader>
                 <div className={cn("flex flex-col items-start gap-2")}>
                   <h2 className="text-lg font-semibold">2D Instructions</h2>
-                  <ul className="list-disc list-inside">
+                  <ul className="list-inside list-disc">
                     <li>Click and drag to select an area to zoom into.</li>
                     <li>Double-click to reset the zoom.</li>
                   </ul>
@@ -289,7 +289,7 @@ export default function ClusterVisualization() {
                 <Separator className="my-2" />
                 <div className={cn("flex flex-col items-start gap-2")}>
                   <h2 className="text-lg font-semibold">3D Instructions</h2>
-                  <ul className="list-disc list-inside">
+                  <ul className="list-inside list-disc">
                     <li>Click and drag to rotate the plot.</li>
                     <li>Scroll to zoom in/out.</li>
                     <li>Right-click and drag to pan.</li>
@@ -319,7 +319,7 @@ export default function ClusterVisualization() {
         </div>
         <Card>
           <CardContent>
-            <div className="w-full h-[70vh]">
+            <div className="h-[70vh] w-full">
               {use3d ? (
                 <Plot3d plotData={plotData3d as Data[]} range3d={range3d} />
               ) : (
@@ -492,7 +492,7 @@ const ClusterLegend = ({
   return (
     <Card className="flex flex-col gap-4 overflow-y-auto">
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <CardTitle>Visible Clusters</CardTitle>
           <Button
             variant="secondary"
@@ -506,11 +506,11 @@ const ClusterLegend = ({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-col justify-start items-start gap-1 overflow-y-auto max-h-96 pb-1">
+      <CardContent className="flex max-h-96 flex-col items-start justify-start gap-1 overflow-y-auto pb-1">
         {clusters.map((cluster) => (
           <Label
             key={cluster.id}
-            className="flex items-center gap-2  hover:bg-gray-100 dark:hover:bg-gray-700 rounded py-2 px-4 w-full"
+            className="flex w-full items-center gap-2 rounded px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <Input
               type="checkbox"
@@ -528,7 +528,7 @@ const ClusterLegend = ({
               {cluster.index}: {cluster.name.slice(0, maxLabelLength)}
               {cluster.name.length > maxLabelLength && "..."}
             </span>
-            <span className="text-xs text-gray-500 ml-1">
+            <span className="ml-1 text-xs text-gray-500">
               ({cluster.count})
             </span>
           </Label>

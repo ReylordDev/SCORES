@@ -3,6 +3,7 @@ import { TitleBar } from "../../components/TitleBar";
 import { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 import { Data, ScatterData } from "plotly.js";
+import { Card, CardContent } from "../../components/ui/card";
 
 export default function KSelectionVisualization() {
   const [stats, setStats] = useState<KSelectionStatistic[]>([]);
@@ -13,7 +14,7 @@ export default function KSelectionVisualization() {
       (stats: KSelectionStatistic[]) => {
         console.log("stats", stats);
         setStats(stats); // Update state with received stats
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -26,7 +27,7 @@ export default function KSelectionVisualization() {
   useEffect(() => {
     if (stats.length > 0) {
       const optimal = stats.reduce((prev, current) =>
-        prev.combined > current.combined ? prev : current
+        prev.combined > current.combined ? prev : current,
       );
       setOptimalK(optimal.k);
     }
@@ -88,11 +89,11 @@ export default function KSelectionVisualization() {
   ];
 
   return (
-    <div className="w-screen h-screen">
+    <div className="h-screen w-screen">
       <TitleBar index={5} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text select-none"
+        className="dark:dark flex select-none flex-col gap-8 bg-background px-32 pb-8 pt-6 text-text"
       >
         <div className="flex flex-col gap-2">
           <h1 className="text-4xl">Cluster Count Visualization</h1>
@@ -102,43 +103,46 @@ export default function KSelectionVisualization() {
             score of the evaluation metrics.
           </p>
         </div>
-        <Plot
-          data={traces as Data[]}
-          layout={{
-            title: "Cluster Evaluation Metrics vs. Number of Clusters (k)",
-            xaxis: { title: "Number of Clusters (k)", dtick: 5 },
-            yaxis: {
-              title: "Score",
-              dtick: 0.1,
-            },
-            legend: {
-              font: {
-                family: "Poppins",
-                size: 14,
-                weight: 100,
-              },
-            },
-            showlegend: true,
-            autosize: true,
-            paper_bgcolor: "#f9f4fd",
-            plot_bgcolor: "#f9f4fd",
-            margin: {
-              l: 50,
-              r: 0,
-              b: 50,
-              t: 50,
-              pad: 0,
-            },
-          }}
-          config={{
-            displayModeBar: false,
-            staticPlot: false,
-            scrollZoom: false,
-            showAxisDragHandles: false,
-            showTips: false,
-          }}
-          style={{ width: "100%", height: "600px" }}
-        />
+        <Card>
+          <CardContent>
+            <div className="h-[70vh] w-full">
+              <Plot
+                data={traces as Data[]}
+                layout={{
+                  xaxis: { title: "Number of Clusters (k)", dtick: 5 },
+                  yaxis: {
+                    title: "Score",
+                    dtick: 0.1,
+                  },
+                  legend: {
+                    font: {
+                      family: "Poppins",
+                      size: 14,
+                      weight: 100,
+                    },
+                  },
+                  showlegend: true,
+                  autosize: true,
+                  margin: {
+                    l: 25,
+                    r: 25,
+                    b: 25,
+                    t: 25,
+                    pad: 0,
+                  },
+                }}
+                config={{
+                  displayModeBar: false,
+                  staticPlot: false,
+                  scrollZoom: false,
+                  showAxisDragHandles: false,
+                  showTips: false,
+                }}
+                style={{ width: "100%", height: "100%" }}
+              />
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
