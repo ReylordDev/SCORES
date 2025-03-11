@@ -59,7 +59,7 @@ export function DownloadManager() {
     return availableModels.filter(
       (model) =>
         model.id.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !downloadedModels.map((model) => model.id).includes(model.id)
+        !downloadedModels.map((model) => model.id).includes(model.id),
     );
   }, [availableModels, searchQuery, downloadedModels]);
 
@@ -82,7 +82,7 @@ export function DownloadManager() {
             return { ...model, status: message.status };
           }
           return model;
-        })
+        }),
       );
       setAvailableModels((prev) =>
         prev.map((model) => {
@@ -90,7 +90,7 @@ export function DownloadManager() {
             return { ...model, status: message.status };
           }
           return model;
-        })
+        }),
       );
     });
     return () => unsubscribe();
@@ -119,7 +119,7 @@ export function DownloadManager() {
       console.log("Received available models:", message.models);
       setAvailableModels(message.models);
       setDefaultModel(
-        message.models.find((model) => model.id === defaultModelName)
+        message.models.find((model) => model.id === defaultModelName),
       );
     });
     return () => unsubscribe();
@@ -155,7 +155,7 @@ export function DownloadManager() {
     return (
       <div className="h-full w-full bg-background">
         <TitleBar />
-        <div className="flex flex-col gap-8 pr-8 py-8 px-12" id="mainContent">
+        <div className="flex flex-col gap-8 px-12 py-8 pr-8" id="mainContent">
           <Card>
             <CardHeader>
               <CardTitle>Loading...</CardTitle>
@@ -177,13 +177,13 @@ export function DownloadManager() {
       <TitleBar />
       <div
         id="mainContent"
-        className="flex flex-col gap-8 bg-background pr-8 py-8 px-12"
+        className="flex flex-col gap-8 bg-background px-12 py-8 pr-8"
       >
         {defaultModel && defaultModel.status !== "downloaded" && (
-          <Card className="border-red-500 border-dashed border-2">
+          <Card className="border-2 border-dashed border-red-500">
             <CardHeader>
               <CardTitle className="flex items-center">
-                <span className="text-red-500 mr-2">
+                <span className="mr-2 text-red-500">
                   <AlertTriangle />
                 </span>
                 Default Model
@@ -213,33 +213,39 @@ export function DownloadManager() {
             {downloadedModels.map((model, index) => (
               <div
                 key={index}
-                className="flex justify-between items-center p-4 py-2 border rounded-lg bg-white dark:bg-background-50"
+                className="flex items-center justify-between rounded-lg border bg-white p-4 py-2 dark:bg-background-50"
               >
                 <div className="flex flex-col gap-2">
                   <div>{model.id}</div>
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex flex-wrap gap-2">
                     <Badge variant="secondary">
                       {StatusRecord[model.status]}
                     </Badge>
                     <Badge variant="secondary">
                       {formatBytes(model.size_on_disk)}
                     </Badge>
-                    <Badge variant="secondary">
-                      {model.downloads?.toLocaleString(locale) ?? 0} downloads
-                    </Badge>
-                    <Badge variant="secondary">{model.likes} likes</Badge>
-                    <Badge variant="secondary">
-                      Created on {formatDate(model.created_at, locale)}
-                    </Badge>
+                    {model.downloads && (
+                      <Badge variant="secondary">
+                        {model.downloads?.toLocaleString(locale) ?? 0} downloads
+                      </Badge>
+                    )}
+                    {model.likes && (
+                      <Badge variant="secondary">{model.likes} likes</Badge>
+                    )}
+                    {model.created_at && (
+                      <Badge variant="secondary">
+                        Created on {formatDate(model.created_at, locale)}
+                      </Badge>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   <Button
                     variant="link"
-                    className="p-1 flex items-center gap-2 text-sm"
+                    className="flex items-center gap-2 p-1 text-sm"
                     onClick={() =>
                       window.electron.openUrl(
-                        "https://huggingface.co/" + model.id
+                        "https://huggingface.co/" + model.id,
                       )
                     }
                   >
@@ -268,7 +274,7 @@ export function DownloadManager() {
                 className="p-0"
                 onClick={() =>
                   window.electron.openUrl(
-                    "https://huggingface.co/spaces/mteb/leaderboard"
+                    "https://huggingface.co/spaces/mteb/leaderboard",
                   )
                 }
               >
@@ -293,11 +299,11 @@ export function DownloadManager() {
             </div>
 
             {filteredModels.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
+              <p className="py-8 text-center text-muted-foreground">
                 No models found matching your search
               </p>
             ) : (
-              <div className="flex-col gap-2 flex">
+              <div className="flex flex-col gap-2">
                 <div className="flex flex-col gap-2">
                   {slicedModels.map((model, index) => {
                     return (
@@ -311,7 +317,7 @@ export function DownloadManager() {
                   })}
                 </div>
                 {slicedModels.length < filteredModels.length && (
-                  <div className="flex justify-center items-center">
+                  <div className="flex items-center justify-center">
                     <Button
                       variant="secondary"
                       className="mt-4 w-[200px]"
@@ -340,10 +346,10 @@ function AvailableModel({
   handleDownload: (model: EmbeddingModel) => void;
 }) {
   return (
-    <div className="flex items-center justify-between p-4 py-2 border rounded-lg">
-      <div className="flex flex-col gap-2 w-full">
+    <div className="flex items-center justify-between rounded-lg border p-4 py-2">
+      <div className="flex w-full flex-col gap-2">
         <div>{model.id}</div>
-        <div className="flex gap-2 flex-wrap h-full">
+        <div className="flex h-full flex-wrap gap-2">
           <Badge variant="secondary">{StatusRecord[model.status]}</Badge>
           <Badge variant="secondary">
             {model.downloads?.toLocaleString(locale) ?? 0} downloads
@@ -367,7 +373,7 @@ function AvailableModel({
           }
           className="flex items-center text-sm text-primary"
         >
-          <ExternalLink className="h-4 w-4 mr-1" />
+          <ExternalLink className="mr-1 h-4 w-4" />
           View
         </Button>
         <Button
@@ -378,17 +384,17 @@ function AvailableModel({
         >
           {model.status === "downloading" ? (
             <>
-              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              <Loader2 className="mr-1 h-4 w-4 animate-spin" />
               Downloading...
             </>
           ) : model.status === "downloaded" ? (
             <>
-              <Check className="h-4 w-4 mr-1" />
+              <Check className="mr-1 h-4 w-4" />
               Installed
             </>
           ) : (
             <>
-              <Download className="h-4 w-4 mr-1" />
+              <Download className="mr-1 h-4 w-4" />
               Download
             </>
           )}

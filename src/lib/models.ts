@@ -173,12 +173,12 @@ export interface DownloadStatusMessage {
 
 export interface EmbeddingModel {
   id: string;
-  author: string | null;
-  created_at: number | null;
-  downloads: number | null;
-  likes: number | null;
-  trending_score: number | null;
-  tags: string[] | null;
+  author?: string;
+  created_at?: number;
+  downloads?: number;
+  likes?: number;
+  trending_score?: number;
+  tags?: string[];
   status: DownloadStatusType;
 }
 

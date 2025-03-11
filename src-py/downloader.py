@@ -13,16 +13,23 @@ class DownloadManager:
         logger.debug("Initializing DownloadManager")
         disable_progress_bars()
         os.makedirs(hfconstants.HF_HUB_CACHE, exist_ok=True)
+        self.offline_mode = os.getenv("HF_HUB_OFFLINE", "0") == "1"
 
         self.api = HfApi()
-        self.compatible_models = list(
-            self.api.list_models(
-                library="sentence-transformers",
-                sort="downloads",
-                direction=-1,
-                limit=1000,  # The number does not seem to affect the unusually long time it takes to load the models
+        try:
+            self.compatible_models = list(
+                self.api.list_models(
+                    library="sentence-transformers",
+                    sort="downloads",
+                    direction=-1,
+                    limit=1000,  # The number does not seem to affect the unusually long time it takes to load the models
+                )
             )
-        )
+        except Exception as e:
+            logger.error(f"Error fetching models from Hugging Face Hub: {e}")
+            self.compatible_models = []
+            self.offline_mode = True
+            logger.warning("Running in offline mode due to error fetching models")
         self.active_downloads = {}  # Track active download threads
         logger.debug("DownloadManager initialized")
         logger.debug(f"Found {len(self.compatible_models)} compatible models")
@@ -32,7 +39,8 @@ class DownloadManager:
         valid_repos: list[CachedModel] = []
         for repo in hf_cache_info.repos:
             if (
-                repo.repo_id in [model.id for model in self.compatible_models]
+                not self.offline_mode
+                and repo.repo_id in [model.id for model in self.compatible_models]
                 and self.get_download_status(repo.repo_id) == "downloaded"
             ):
                 api_repo = [
@@ -56,6 +64,25 @@ class DownloadManager:
                     last_accessed=repo.last_accessed,
                 )
                 valid_repos.append(cached_repo)
+            elif (
+                self.offline_mode
+                and self.get_download_status(repo.repo_id) == "downloaded"
+            ):
+                cached_repo = CachedModel(
+                    id=repo.repo_id,
+                    author=None,
+                    created_at=None,
+                    downloads=None,
+                    likes=None,
+                    trending_score=None,
+                    tags=[],
+                    status="downloaded",
+                    path=str(repo.repo_path),
+                    size_on_disk=repo.size_on_disk,
+                    last_accessed=repo.last_accessed,
+                )
+                valid_repos.append(cached_repo)
+
         return valid_repos
 
     def get_compatible_models(self) -> list[EmbeddingModel]:
@@ -104,6 +131,9 @@ class DownloadManager:
             return "partially_downloaded"
         except AttributeError as _e:
             return "partially_downloaded"
+        except Exception as e:
+            logger.error(f"Error checking download status: {e}")
+            return "not_downloaded"
 
     def get_model_info(self, model_name):
         return self.api.model_info(model_name)
