@@ -18,6 +18,7 @@ import {
   ClusterPositionsMessage,
   KSelectionStatistic,
   DownloadStatusMessage,
+  RawResonsesMessage,
 } from "./lib/models";
 import { updateElectronApp } from "update-electron-app";
 
@@ -58,14 +59,14 @@ app.whenReady().then(async () => {
           windowManager.createDownloadManagerWindow();
           windowManager.sendDownloadWindowMessage(
             CHANNELS.MODELS.DEFAULT_MODEL_STATUS,
-            message
+            message,
           );
         }
         initialized = true;
       } else {
         windowManager.sendDownloadWindowMessage(
           CHANNELS.MODELS.DOWNLOAD_STATUS,
-          message
+          message,
         );
         if (
           message.model_name === settingsService.getDefaultModel() &&
@@ -78,7 +79,7 @@ app.whenReady().then(async () => {
         }
         consoleLog("Download status:", message);
       }
-    }
+    },
   );
 
   pythonService.on(PYTHON_SERVICE_EVENTS.FILE_PATH, (filePath: string) => {
@@ -99,15 +100,15 @@ app.whenReady().then(async () => {
     (progress: ClusteringProgressMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.CLUSTERING_PROGRESS.UPDATE,
-        progress
+        progress,
       );
-    }
+    },
   );
 
   pythonService.on(PYTHON_SERVICE_EVENTS.DATABASE.ALL_RUNS, (data) => {
     windowManager.sendMainWindowMessage(
       CHANNELS.DATABASE.ALL_RUNS_RESPONSE,
-      data
+      data,
     );
   });
 
@@ -116,9 +117,19 @@ app.whenReady().then(async () => {
     (data: CurrentRunMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.DATABASE.CURRENT_RUN_RESPONSE,
-        data
+        data,
       );
-    }
+    },
+  );
+
+  pythonService.on(
+    PYTHON_SERVICE_EVENTS.FILE.RAW_RESPONSES,
+    (data: RawResonsesMessage) => {
+      windowManager.sendMainWindowMessage(
+        CHANNELS.FILE.RAW_RESPONSES_RESPONSE,
+        data,
+      );
+    },
   );
 
   pythonService.on(
@@ -126,9 +137,9 @@ app.whenReady().then(async () => {
     (data: ClusterAssignmentsMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS_RESPONSE,
-        data
+        data,
       );
-    }
+    },
   );
 
   pythonService.on(
@@ -136,9 +147,9 @@ app.whenReady().then(async () => {
     (data: ClusterSimilaritiesMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_RESPONSE,
-        data
+        data,
       );
-    }
+    },
   );
 
   pythonService.on(
@@ -146,9 +157,9 @@ app.whenReady().then(async () => {
     (data: OutliersMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.DATABASE.CURRENT_OUTLIERS_RESPONSE,
-        data
+        data,
       );
-    }
+    },
   );
 
   pythonService.on(
@@ -156,9 +167,9 @@ app.whenReady().then(async () => {
     (data: MergersMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.DATABASE.CURRENT_MERGERS_RESPONSE,
-        data
+        data,
       );
-    }
+    },
   );
 
   pythonService.on(
@@ -166,9 +177,9 @@ app.whenReady().then(async () => {
     (data: ClusterPositionsMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.PLOTS.CLUSTER_POSITIONS_RESPONSE,
-        data
+        data,
       );
-    }
+    },
   );
 
   pythonService.on(
@@ -176,9 +187,9 @@ app.whenReady().then(async () => {
     (data: KSelectionStatistic[]) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.PLOTS.SELECTION_STATS_RESPONSE,
-        data
+        data,
       );
-    }
+    },
   );
 
   pythonService.on(
@@ -186,13 +197,13 @@ app.whenReady().then(async () => {
     (data: DownloadStatusMessage) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.MODELS.CACHED_MODELS_RESPONSE,
-        data
+        data,
       );
       windowManager.sendDownloadWindowMessage(
         CHANNELS.MODELS.CACHED_MODELS_RESPONSE,
-        data
+        data,
       );
-    }
+    },
   );
 
   pythonService.on(
@@ -200,9 +211,9 @@ app.whenReady().then(async () => {
     (data: DownloadStatusMessage) => {
       windowManager.sendDownloadWindowMessage(
         CHANNELS.MODELS.AVAILABLE_MODELS_RESPONSE,
-        data
+        data,
       );
-    }
+    },
   );
 
   settingsService.on(
@@ -210,9 +221,9 @@ app.whenReady().then(async () => {
     (settings: AppSettings) => {
       windowManager.sendMainWindowMessage(
         CHANNELS.SETTINGS.SETTINGS_CHANGED,
-        settings
+        settings,
       );
-    }
+    },
   );
 
   registerIpcHandlers(settingsService, pythonService, windowManager, config);

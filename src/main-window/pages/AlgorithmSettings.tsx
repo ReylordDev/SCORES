@@ -13,6 +13,7 @@ import {
   SquareArrowOutUpRight,
   AlertTriangle,
 } from "lucide-react";
+import { Card, CardHeader, CardTitle } from "../../components/ui/card";
 import {
   Tooltip,
   TooltipTrigger,
@@ -702,6 +703,20 @@ function ExcludedWordsDialog({
   setExcludedWords: (words: string[]) => void;
 }) {
   const [newWord, setNewWord] = useState("");
+  const [rawResponses, setRawResponses] = useState<string[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = window.file.onReceiveRawResponses((message) => {
+      setRawResponses(message.responses);
+      console.log("Received raw responses", message.responses);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    window.file.requestRawResponses();
+  }, []);
 
   const handleAddWord = () => {
     if (
@@ -722,6 +737,15 @@ function ExcludedWordsDialog({
       handleAddWord();
     }
   };
+
+  function getMatchingResponseCount(word: string): number {
+    return rawResponses.filter(
+      (response) =>
+        response.toLowerCase() === word.toLowerCase() ||
+        response.includes(`${word} `) ||
+        response.includes(` ${word}`),
+    ).length;
+  }
 
   return (
     <Dialog>
@@ -753,19 +777,30 @@ function ExcludedWordsDialog({
           </div>
           <div className="flex flex-wrap gap-2">
             {excludedWords.map((word) => (
-              <div
-                key={word}
-                className="flex items-center gap-2 rounded-full bg-accent-100 px-4"
-              >
-                <span>{word}</span>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleRemoveWord(word)}
-                  className="p-0"
-                >
-                  <X size={16} />
-                </Button>
-              </div>
+              <Card key={word} className="p-1">
+                <CardHeader className="p-0">
+                  <CardTitle>
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col gap-1 p-2">
+                        <span className="text-base">{word}</span>
+                        <span className="text-xs text-gray-500">
+                          {getMatchingResponseCount(word) === 1
+                            ? "1 matching response"
+                            : `${getMatchingResponseCount(word)} matching responses`}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemoveWord(word)}
+                        className="p-0"
+                      >
+                        <X />
+                      </Button>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+              </Card>
             ))}
           </div>
         </div>

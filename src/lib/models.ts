@@ -26,7 +26,8 @@ type Action =
   | "get_download_status"
   | "download_model"
   | "get_cached_models"
-  | "get_available_models";
+  | "get_available_models"
+  | "fetch_raw_responses";
 
 export interface ClusterNamePayload {
   clusterId: UUID;
@@ -196,6 +197,10 @@ export interface AvailableModelsMessage {
   models: EmbeddingModel[];
 }
 
+export interface RawResonsesMessage {
+  responses: string[];
+}
+
 export interface Message {
   type:
     | "progress"
@@ -211,7 +216,8 @@ export interface Message {
     | "selection_statistics"
     | "download_status"
     | "cached_models"
-    | "available_models";
+    | "available_models"
+    | "raw_responses";
   data:
     | ProgressMessage
     | Error
@@ -227,7 +233,8 @@ export interface Message {
     | KSelectionStatistic[]
     | DownloadStatusMessage
     | CachedModelsMessage
-    | AvailableModelsMessage;
+    | AvailableModelsMessage
+    | RawResonsesMessage;
 }
 
 export interface FileSettings {
@@ -467,12 +474,15 @@ declare global {
       ) => () => void;
     };
     file: {
-      // Consider making this a promise-returning function
       setPath: (path: string) => void;
       requestPath: () => void;
       onReceivePath: (callback: (path: string) => void) => () => void;
       setSettings: (settings: FileSettings) => void;
       getExampleFilePath: () => Promise<string>;
+      requestRawResponses: () => void;
+      onReceiveRawResponses: (
+        callback: (responses: RawResonsesMessage) => void,
+      ) => () => void;
     };
     algorithm: {
       setSettings: (settings: AlgorithmSettings) => void;
@@ -579,6 +589,8 @@ export const CHANNELS = {
     PATH_RESPONSE: "file:path",
     SET_SETTINGS: "file:set-settings",
     EXAMPLE_FILE_PATH: "file:example-file-path",
+    RAW_RESPONSES_REQUEST: "file:raw-responses-request",
+    RAW_RESPONSES_RESPONSE: "file:raw-responses-response",
   },
   ALGORITHM: {
     SET_SETTINGS: "algorithm:set-settings",
@@ -632,6 +644,9 @@ export const PYTHON_SERVICE_EVENTS = {
   ERROR: "error",
   FILE_PATH: "file-path",
   ClUSTERING_PROGRESS: "cluster-progress",
+  FILE: {
+    RAW_RESPONSES: "file-raw-responses",
+  },
   DATABASE: {
     ALL_RUNS: "database-all-runs",
     CURRENT_RUN: "database-current-run",

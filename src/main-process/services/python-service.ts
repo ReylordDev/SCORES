@@ -19,6 +19,7 @@ import {
   KSelectionStatistic,
   DownloadStatusMessage,
   CachedModelsMessage,
+  RawResonsesMessage,
 } from "../../lib/models";
 import { SettingsService } from "./settings-service";
 import { spawn, ChildProcess } from "child_process";
@@ -30,7 +31,7 @@ export class PythonService extends EventEmitter {
 
   constructor(
     private config: AppConfig,
-    private settingsService: SettingsService
+    private settingsService: SettingsService,
   ) {
     super();
     this.buffer = "";
@@ -128,67 +129,73 @@ export class PythonService extends EventEmitter {
       case "runs":
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.ALL_RUNS,
-          message.data as Run[]
+          message.data as Run[],
         );
         break;
       case "run":
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_RUN,
-          message.data as CurrentRunMessage
+          message.data as CurrentRunMessage,
         );
         break;
       case "cluster_assignments":
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS,
-          message.data as ClusterAssignmentsMessage
+          message.data as ClusterAssignmentsMessage,
         );
         break;
       case "cluster_similarities":
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_CLUSTER_SIMILARITIES,
-          message.data as ClusterSimilaritiesMessage
+          message.data as ClusterSimilaritiesMessage,
         );
         break;
       case "outliers":
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_OUTLIERS,
-          message.data as OutliersMessage
+          message.data as OutliersMessage,
         );
         break;
       case "mergers":
         this.emit(
           PYTHON_SERVICE_EVENTS.DATABASE.CURRENT_MERGERS,
-          message.data as MergersMessage
+          message.data as MergersMessage,
         );
         break;
       case "cluster_positions":
         this.emit(
           PYTHON_SERVICE_EVENTS.PLOTS.CLUSTER_POSITIONS,
-          message.data as ClusterPositionsMessage
+          message.data as ClusterPositionsMessage,
         );
         break;
       case "selection_statistics":
         this.emit(
           PYTHON_SERVICE_EVENTS.PLOTS.SELECTION_STATS,
-          message.data as KSelectionStatistic[]
+          message.data as KSelectionStatistic[],
         );
         break;
       case "download_status":
         this.emit(
           PYTHON_SERVICE_EVENTS.MODELS.DOWNLOAD_STATUS,
-          message.data as DownloadStatusMessage
+          message.data as DownloadStatusMessage,
         );
         break;
       case "cached_models":
         this.emit(
           PYTHON_SERVICE_EVENTS.MODELS.CACHED_MODELS,
-          message.data as CachedModelsMessage
+          message.data as CachedModelsMessage,
         );
         break;
       case "available_models":
         this.emit(
           PYTHON_SERVICE_EVENTS.MODELS.AVAILABLE_MODELS,
-          message.data as CachedModelsMessage
+          message.data as CachedModelsMessage,
+        );
+        break;
+      case "raw_responses":
+        this.emit(
+          PYTHON_SERVICE_EVENTS.FILE.RAW_RESPONSES,
+          message.data as RawResonsesMessage,
         );
         break;
       default:
@@ -220,7 +227,7 @@ export class PythonService extends EventEmitter {
       case "save":
         this.emit(
           PYTHON_SERVICE_EVENTS.ClUSTERING_PROGRESS,
-          progress as ClusteringProgressMessage
+          progress as ClusteringProgressMessage,
         );
         break;
 

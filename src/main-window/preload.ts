@@ -19,6 +19,7 @@ import {
   CachedModelsMessage,
   DownloadStatusMessage,
   AvailableModelsMessage,
+  RawResonsesMessage,
 } from "../lib/models";
 import {
   contextBridge,
@@ -46,6 +47,16 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.FILE, {
   },
   getExampleFilePath: () => {
     return ipcRenderer.invoke(CHANNELS.FILE.EXAMPLE_FILE_PATH);
+  },
+  requestRawResponses: () => {
+    ipcRenderer.send(CHANNELS.FILE.RAW_RESPONSES_REQUEST);
+  },
+  onReceiveRawResponses: (callback) => {
+    const listener = (_: IpcRendererEvent, rawResponses: RawResonsesMessage) =>
+      callback(rawResponses);
+    ipcRenderer.on(CHANNELS.FILE.RAW_RESPONSES_RESPONSE, listener);
+    return () =>
+      ipcRenderer.off(CHANNELS.FILE.RAW_RESPONSES_RESPONSE, listener);
   },
 } satisfies Window["file"]);
 
@@ -78,7 +89,7 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.ELECTRON, {
     return ipcRenderer.invoke(
       CHANNELS.ELECTRON.SHOW_MESSAGE_BOX,
       options,
-      "main"
+      "main",
     );
   },
 } satisfies Window["electron"]);
@@ -96,7 +107,7 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.PROGRESS, {
   onClusteringUpdate: (callback) => {
     const listener = (
       _: IpcRendererEvent,
-      progress: ClusteringProgressMessage
+      progress: ClusteringProgressMessage,
     ) => callback(progress);
     ipcRenderer.on(CHANNELS.CLUSTERING_PROGRESS.UPDATE, listener);
     return () => ipcRenderer.off(CHANNELS.CLUSTERING_PROGRESS.UPDATE, listener);
@@ -131,16 +142,16 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
   onReceiveCurrentClusterAssignments: (callback) => {
     const listener = (
       _: IpcRendererEvent,
-      clusterAssignments: ClusterAssignmentsMessage
+      clusterAssignments: ClusterAssignmentsMessage,
     ) => callback(clusterAssignments);
     ipcRenderer.on(
       CHANNELS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS_RESPONSE,
-      listener
+      listener,
     );
     return () =>
       ipcRenderer.off(
         CHANNELS.DATABASE.CURRENT_CLUSTER_ASSIGNMENTS_RESPONSE,
-        listener
+        listener,
       );
   },
   requestCurrentClusterSimilarities: () => {
@@ -149,16 +160,16 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.DATABASE, {
   onReceiveCurrentClusterSimilarities: (callback) => {
     const listener = (
       _: IpcRendererEvent,
-      clusterSimilarities: ClusterSimilaritiesMessage
+      clusterSimilarities: ClusterSimilaritiesMessage,
     ) => callback(clusterSimilarities);
     ipcRenderer.on(
       CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_RESPONSE,
-      listener
+      listener,
     );
     return () =>
       ipcRenderer.off(
         CHANNELS.DATABASE.CURRENT_CLUSTER_SIMILARITIES_RESPONSE,
-        listener
+        listener,
       );
   },
   updateClusterName: (payload: ClusterNamePayload) => {
@@ -223,7 +234,7 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.PLOTS, {
   onReceiveClusterPositions: (callback) => {
     const listener = (
       _: IpcRendererEvent,
-      clusterPositions: ClusterPositionsMessage
+      clusterPositions: ClusterPositionsMessage,
     ) => callback(clusterPositions);
     ipcRenderer.on(CHANNELS.PLOTS.CLUSTER_POSITIONS_RESPONSE, listener);
     return () =>
@@ -245,7 +256,7 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.MODELS, {
   onDownloadStatus: (callback) => {
     const listener = (
       _: Electron.IpcRendererEvent,
-      status: DownloadStatusMessage
+      status: DownloadStatusMessage,
     ) => callback(status);
     ipcRenderer.on(CHANNELS.MODELS.DOWNLOAD_STATUS, listener);
     return () => ipcRenderer.off(CHANNELS.MODELS.DOWNLOAD_STATUS, listener);
@@ -253,7 +264,7 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.MODELS, {
   onDefaultModelStatus: (callback) => {
     const listener = (
       _: Electron.IpcRendererEvent,
-      status: DownloadStatusMessage
+      status: DownloadStatusMessage,
     ) => callback(status);
     ipcRenderer.on(CHANNELS.MODELS.DEFAULT_MODEL_STATUS, listener);
     return () =>
@@ -271,7 +282,7 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.MODELS, {
   onReceiveCachedModels: (callback) => {
     const listener = (
       _: Electron.IpcRendererEvent,
-      models: CachedModelsMessage
+      models: CachedModelsMessage,
     ) => callback(models);
     ipcRenderer.on(CHANNELS.MODELS.CACHED_MODELS_RESPONSE, listener);
     return () =>
@@ -280,7 +291,7 @@ contextBridge.exposeInMainWorld(CHANNEL_TYPES.MODELS, {
   onReceiveAvailableModels(callback) {
     const listener = (
       _: Electron.IpcRendererEvent,
-      models: AvailableModelsMessage
+      models: AvailableModelsMessage,
     ) => callback(models);
     ipcRenderer.on(CHANNELS.MODELS.AVAILABLE_MODELS_RESPONSE, listener);
     return () =>

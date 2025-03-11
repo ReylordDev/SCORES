@@ -108,6 +108,7 @@ class Clusterer:
                         for excluded_word in excluded_words:
                             if (
                                 response == excluded_word
+                                or f" {excluded_word}" in response
                                 or f"{excluded_word} " in response
                             ):
                                 logger.info(

@@ -5,6 +5,7 @@ __pycache__
 recorder-output
 logs
 .env
+benchmark_data
 
 # Logs
 logs

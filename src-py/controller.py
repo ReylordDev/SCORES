@@ -1,8 +1,10 @@
+import csv
 import sys
 import traceback
 import uuid
 from pydantic import ValidationError
 from utils.logging import initialize_logger
+from utils.utils import preprocess_response
 from models import (
     AdvancedSettings,
     AutomaticClusterCount,
@@ -19,10 +21,10 @@ from models import (
     FilePathPayload,
     FileSettings,
     AlgorithmSettings,
-    ManualClusterCount,
     OutliersMessage,
     Pos2d,
     Pos3d,
+    RawResponsesMessage,
     ResponsePositionDetail,
     Run,
     RunNamePayload,
@@ -50,6 +52,29 @@ class Controller:
         self.embedding_cache.clear_expired_caches()
 
         print_progress("init", "complete")
+
+    def fetch_raw_responses(self):
+        assert self.app_state.file_path is not None
+        assert self.app_state.file_settings is not None
+        responses = []
+        with open(self.app_state.file_path, encoding="utf-8") as f:
+            reader = csv.reader(f, delimiter=self.app_state.file_settings.delimiter)
+            if self.app_state.file_settings.has_header:
+                reader.__next__()
+
+            for row in reader:
+                for column_index in self.app_state.file_settings.selected_columns:
+                    if column_index >= len(row):
+                        logger.warning(
+                            f"Skipping invalid column {column_index} in row {reader.line_num}"
+                        )
+                        continue
+                    # get the next entry provided by the current participant
+                    response = preprocess_response(row[column_index])
+                    if response == "" or response is None:
+                        continue
+                    responses.append(response)
+        return responses
 
     def handle_command(self, command: Command):
         logger.info(f"Received command: {command}")
@@ -398,6 +423,10 @@ class Controller:
                 AvailableModelsMessage(models=[model for model in models]),
             )
 
+        elif command.action == "fetch_raw_responses":
+            responses = self.fetch_raw_responses()
+            print_message("raw_responses", RawResponsesMessage(responses=responses))
+
         else:
             logger.error(f"Invalid action: {command.action}")
             print_message("error", Error(error=f"Invalid action: {command.action}"))
@@ -451,6 +480,7 @@ if __name__ == "__main__":
                 ),
             )
         )
-        controller.handle_command(Command(action="run_clustering"))
+        # controller.handle_command(Command(action="run_clustering"))
+        controller.handle_command(Command(action="fetch_raw_responses"))
     else:
         main()

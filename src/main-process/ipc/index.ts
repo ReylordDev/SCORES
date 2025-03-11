@@ -7,7 +7,6 @@ import {
   dialog,
   ipcMain,
   MessageBoxOptions,
-  OpenDialogOptions,
   shell,
 } from "electron";
 import {
@@ -17,7 +16,7 @@ import {
   ClusterNamePayload,
 } from "../../lib/models";
 import fs from "fs";
-import { AppConfig, consoleLog } from "../../lib/config";
+import { AppConfig } from "../../lib/config";
 import { UUID } from "crypto";
 import { WindowManager } from "../windows/window-manager";
 import path from "path";
@@ -25,7 +24,7 @@ export function registerIpcHandlers(
   settingsService: SettingsService,
   pythonService: PythonService,
   windowManager: WindowManager,
-  config: AppConfig
+  config: AppConfig,
 ) {
   registerSettingsHandlers(settingsService);
 
@@ -61,7 +60,7 @@ export function registerIpcHandlers(
         action: "set_algorithm_settings",
         data: settings,
       });
-    }
+    },
   );
 
   ipcMain.on(CHANNELS.ALGORITHM.RUN_CLUSTERING, () => {
@@ -116,7 +115,7 @@ export function registerIpcHandlers(
         window = windowManager.getDownloadWindow();
       }
       return dialog.showMessageBox(window, options);
-    }
+    },
   );
 
   ipcMain.on(CHANNELS.DATABASE.ALL_RUNS_REQUEST, () => {
@@ -150,8 +149,14 @@ export function registerIpcHandlers(
         action: "update_cluster_name",
         data: payload,
       });
-    }
+    },
   );
+
+  ipcMain.on(CHANNELS.FILE.RAW_RESPONSES_REQUEST, () => {
+    pythonService.sendCommand({
+      action: "fetch_raw_responses",
+    });
+  });
 
   ipcMain.on(CHANNELS.STATE.SET_RUN_ID, (_, runId: UUID) => {
     pythonService.sendCommand({
@@ -178,7 +183,7 @@ export function registerIpcHandlers(
           name,
         },
       });
-    }
+    },
   );
 
   ipcMain.on(CHANNELS.DATABASE.DELETE_RUN, (_, runId: UUID) => {

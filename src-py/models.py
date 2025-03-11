@@ -1,4 +1,3 @@
-from datetime import datetime
 import os
 from typing import Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, computed_field
@@ -39,6 +38,7 @@ ActionType = Literal[
     "download_model",
     "get_cached_models",
     "get_available_models",
+    "fetch_raw_responses",
 ]
 StatusType = Literal["todo", "start", "complete", "error"]
 ClusteringStepType = Literal[
@@ -216,6 +216,10 @@ class AvailableModelsMessage(BaseModel):
     models: list["EmbeddingModel"]
 
 
+class RawResponsesMessage(BaseModel):
+    responses: list[str]
+
+
 MessageType = Literal[
     "progress",
     "file_path",
@@ -231,6 +235,7 @@ MessageType = Literal[
     "download_status",
     "cached_models",
     "available_models",
+    "raw_responses",
 ]
 MessageDataType = Union[
     ProgressMessage,
@@ -246,6 +251,7 @@ MessageDataType = Union[
     DownloadStatusMessage,
     CachedModelsMessage,
     AvailableModelsMessage,
+    RawResponsesMessage,
     str,
     None,
 ]
