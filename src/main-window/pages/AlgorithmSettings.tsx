@@ -68,7 +68,7 @@ export default function AlgorithmSettings() {
   const [iterativeAggClustering, setIterativeAggClustering] = useState(false);
   const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettings>({
     embedding_model: null,
-    kmeans_method: "spherical_kmeans",
+    kmeans_method: "kmeans",
   });
   const [randomState, setRandomState] = useState<number | null>(null);
 
@@ -935,22 +935,20 @@ function AdvancedSettingsDialog({
           </div>
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <label htmlFor="kmeansMethod">
-                Use Traditional KMeans Method
-              </label>
+              <label htmlFor="kmeansMethod">Use Spherical K-Means Method</label>
               <Switch
                 id="kmeansMethod"
-                checked={advancedSettings.kmeans_method === "kmeans"}
+                checked={advancedSettings.kmeans_method === "spherical_kmeans"}
                 onCheckedChange={(isOn) =>
                   setAdvancedSettings({
                     ...advancedSettings,
-                    kmeans_method: isOn ? "kmeans" : "spherical_kmeans",
+                    kmeans_method: isOn ? "spherical_kmeans" : "kmeans",
                   })
                 }
               />
             </div>
             <p className="text-sm text-gray-500">
-              Use traditional K-Means instead of Spherical K-Means Clustering.
+              Use spherical K-Means instead of traditional K-Means Clustering.
             </p>
           </div>
           <DialogClose asChild>
