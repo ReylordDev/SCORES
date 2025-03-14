@@ -12,12 +12,14 @@ const TooltipTrigger = TooltipPrimitive.Trigger;
 
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> & {
+    forceShow?: boolean;
+  }
+>(({ className, sideOffset = 4, forceShow = false, ...props }, ref) => {
   const tutorialMode = useTutorialMode();
   console.log("TooltipContent", tutorialMode);
 
-  if (!tutorialMode) {
+  if (!tutorialMode && !forceShow) {
     return null;
   }
 

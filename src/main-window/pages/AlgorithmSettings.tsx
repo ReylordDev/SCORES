@@ -233,13 +233,34 @@ export default function AlgorithmSettings() {
         <div className="flex items-center justify-between">
           <h1 className="text-5xl">Algorithm Settings</h1>
           <div className="flex justify-end">
-            <Button
-              onClick={submitAlgorithmSettings}
-              disabled={!settingsAreValid}
-            >
-              <ChartScatter size={24} />
-              Start Clustering
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button
+                    onClick={submitAlgorithmSettings}
+                    disabled={!settingsAreValid}
+                  >
+                    <ChartScatter size={24} />
+                    Start Clustering
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent
+                forceShow={!settingsAreValid}
+                align="start"
+                side="left"
+              >
+                {!settingsAreValid && (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-lg font-semibold">Invalid Settings</p>
+                    <p>
+                      Some settings are invalid. Please correct the marked input
+                      fields.
+                    </p>
+                  </div>
+                )}
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
         <div className="scrollbar flex flex-grow flex-col gap-4 overflow-y-auto pr-4 pt-0 text-lg">
