@@ -24,6 +24,7 @@ import { Switch } from "../../components/ui/switch";
 import { Separator } from "../../components/ui/separator";
 import { cn } from "../../lib/utils";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const getClusterColor = (index: number, totalClusters: number) => {
   if (totalClusters === 0) return "#cccccc";
@@ -319,17 +320,24 @@ export default function ClusterVisualization() {
         </div>
         <Card>
           <CardContent>
-            <div className="h-[70vh] w-full">
-              {use3d ? (
-                <Plot3d plotData={plotData3d as Data[]} range3d={range3d} />
-              ) : (
-                <Plot2d
-                  plotData={plotData2d as Data[]}
-                  range2d={range2d}
-                  setRange2d={setRange2d}
-                />
-              )}
-            </div>
+            {clusters.length === 0 ? (
+              <div className="flex h-[70vh] w-full items-center justify-center">
+                <p>Loading Cluster Positions</p>
+                <Loader2 className="ml-2 animate-spin" />
+              </div>
+            ) : (
+              <div className="h-[70vh] w-full">
+                {use3d ? (
+                  <Plot3d plotData={plotData3d as Data[]} range3d={range3d} />
+                ) : (
+                  <Plot2d
+                    plotData={plotData2d as Data[]}
+                    range2d={range2d}
+                    setRange2d={setRange2d}
+                  />
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
