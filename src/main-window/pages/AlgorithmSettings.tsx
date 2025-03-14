@@ -272,7 +272,7 @@ export default function AlgorithmSettings() {
                     </label>
                     <div className="flex items-center gap-2">
                       {minClusters !== null && minClusters < 2 && (
-                        <AlertTriangle className="text-red-600" size={28} />
+                        <AlertTriangle className="text-rose-500" size={28} />
                       )}
                       <Input
                         type="number"
@@ -283,7 +283,10 @@ export default function AlgorithmSettings() {
                         id="minClusterCount"
                         className={cn(
                           "w-24",
-                          minClusters && minClusters < 2 && "text-red-600",
+                          minClusters && minClusters < 2 && "text-rose-500",
+                          autoChooseClusters &&
+                            !minClusters &&
+                            "border-rose-500 focus-visible:ring-rose-500 focus-visible:ring-offset-1 dark:border-rose-500 dark:focus-visible:ring-rose-500",
                         )}
                         placeholder="5"
                         disabled={!autoChooseClusters}
@@ -301,7 +304,7 @@ export default function AlgorithmSettings() {
                     </label>
                     <div className="flex items-center gap-2">
                       {maxClusters !== null && minClusters > maxClusters && (
-                        <AlertTriangle className="text-red-600" size={28} />
+                        <AlertTriangle className="text-rose-500" size={28} />
                       )}
                       <Input
                         type="number"
@@ -314,7 +317,10 @@ export default function AlgorithmSettings() {
                           "w-24",
                           maxClusters &&
                             minClusters > maxClusters &&
-                            "text-red-600",
+                            "text-rose-500",
+                          autoChooseClusters &&
+                            !maxClusters &&
+                            "border-rose-500 focus-visible:ring-rose-500 focus-visible:ring-offset-1 dark:border-rose-500 dark:focus-visible:ring-rose-500",
                         )}
                         placeholder="100"
                         disabled={!autoChooseClusters}
@@ -342,7 +348,7 @@ export default function AlgorithmSettings() {
                   range.
                 </p>
                 <div className="flex gap-2">
-                  <AlertTriangle className="size-6 shrink-0 text-red-600" />
+                  <AlertTriangle className="size-6 shrink-0 text-rose-500" />
                   <p>
                     The minimum number of clusters must be at least 2, and the
                     maximum number of clusters must be greater than or equal to
@@ -376,7 +382,12 @@ export default function AlgorithmSettings() {
                   min={1}
                   value={clusterCount || ""}
                   onChange={(e) => setClusterCount(e.target.valueAsNumber)}
-                  className="w-24"
+                  className={cn(
+                    "w-24",
+                    !autoChooseClusters &&
+                      !clusterCount &&
+                      "border-rose-500 focus-visible:ring-rose-500 focus-visible:ring-offset-1 dark:border-rose-500 dark:focus-visible:ring-rose-500",
+                  )}
                   disabled={autoChooseClusters}
                 />
               </div>
@@ -391,7 +402,7 @@ export default function AlgorithmSettings() {
                   option instead of the automatic cluster count selection.
                 </p>
                 <div className="flex gap-2">
-                  <AlertTriangle className="text-red-600" size={24} />
+                  <AlertTriangle className="text-rose-500" size={24} />
                   <p>
                     This option is required when the automatic cluster count
                     setting is disabled.
@@ -471,7 +482,12 @@ export default function AlgorithmSettings() {
                       onChange={(e) =>
                         setNearestNeighbors(e.target.valueAsNumber)
                       }
-                      className="w-24"
+                      className={cn(
+                        "w-24",
+                        useOutlierDetection &&
+                          !nearestNeighbors &&
+                          "border-rose-500 focus-visible:ring-rose-500 focus-visible:ring-offset-1 dark:border-rose-500 dark:focus-visible:ring-rose-500",
+                      )}
                       disabled={!useOutlierDetection}
                       placeholder="3"
                     />
@@ -487,11 +503,16 @@ export default function AlgorithmSettings() {
                       type="number"
                       min={0}
                       step={0.1}
-                      value={zScoreThreshold || ""}
+                      value={zScoreThreshold === 0 ? 0 : zScoreThreshold || ""}
                       onChange={(e) =>
                         setZScoreThreshold(e.target.valueAsNumber)
                       }
-                      className="w-24"
+                      className={cn(
+                        "w-24",
+                        useOutlierDetection &&
+                          !zScoreThreshold &&
+                          "border-rose-500 focus-visible:ring-rose-500 focus-visible:ring-offset-1 dark:border-rose-500 dark:focus-visible:ring-rose-500",
+                      )}
                       disabled={!useOutlierDetection}
                       placeholder="2.5"
                     />
@@ -609,7 +630,12 @@ export default function AlgorithmSettings() {
                       onChange={(e) =>
                         setSimilarityThreshold(e.target.valueAsNumber)
                       }
-                      className="w-24"
+                      className={cn(
+                        "w-24",
+                        useAgglomerativeClustering &&
+                          !similarityThreshold &&
+                          "border-rose-500 focus-visible:ring-rose-500 focus-visible:ring-offset-1 dark:border-rose-500 dark:focus-visible:ring-rose-500",
+                      )}
                       disabled={!useAgglomerativeClustering}
                       placeholder="0.9"
                     />
