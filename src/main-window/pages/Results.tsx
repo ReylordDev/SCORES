@@ -51,7 +51,6 @@ export default function Results() {
   const [timesteps, setTimesteps] = useState<Timesteps | null>(null);
   const [algorithmSettings, setAlgorithmSettings] =
     useState<AlgorithmSettings | null>(null);
-  const [runName, setRunName] = useState<string | null>(null);
   const [runNameInput, setRunNameInput] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isValidRunName, setIsValidRunName] = useState(false);
@@ -66,7 +65,6 @@ export default function Results() {
   const updateRunName = (newName: string) => {
     if (!isValidRunName) return;
     window.database.updateRunName(run.id, newName);
-    setRunName(newName);
     setIsEditing(false);
   };
 
@@ -95,7 +93,6 @@ export default function Results() {
       ({ run, timesteps }) => {
         console.log("Received current run", run);
         setRun(run);
-        setRunName(run.name);
         setRunNameInput(run.name);
 
         setTimesteps(timesteps);
@@ -105,7 +102,7 @@ export default function Results() {
       },
     );
     return () => {
-      unsubscribe(); // Assuming the subscription returns a cleanup function
+      unsubscribe();
     };
   }, []);
 
@@ -166,7 +163,7 @@ export default function Results() {
                   </div>
                 ) : (
                   <div className="flex items-center gap-4">
-                    <h1 className="text-4xl">{runName}</h1>
+                    <h1 className="text-4xl">{runNameInput}</h1>
                     <Button
                       variant="ghost"
                       onClick={(e) => {

@@ -47,7 +47,6 @@ function ClusterAssignment({
       clusterId: cluster.id,
       name: nameInput,
     });
-    window.database.requestCurrentClusterAssignments();
     setIsEditing(false);
   };
 
@@ -87,7 +86,7 @@ function ClusterAssignment({
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <CardTitle>{cluster.name}</CardTitle>
+                <CardTitle>{nameInput}</CardTitle>
                 <Button
                   variant="ghost"
                   size="icon"
