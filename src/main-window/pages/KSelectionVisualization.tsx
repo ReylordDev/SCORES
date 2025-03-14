@@ -2,8 +2,17 @@ import { KSelectionStatistic } from "../../lib/models";
 import { TitleBar } from "../../components/TitleBar";
 import { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
-import { Data, ScatterData } from "plotly.js";
+import { Data } from "plotly.js";
 import { Card, CardContent } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogHeader,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "../../components/ui/dialog";
 
 export default function KSelectionVisualization() {
   const [stats, setStats] = useState<KSelectionStatistic[]>([]);
@@ -95,13 +104,45 @@ export default function KSelectionVisualization() {
         id="mainContent"
         className="dark:dark flex select-none flex-col gap-8 bg-background px-32 pb-8 pt-6 text-text"
       >
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl">Cluster Count Visualization</h1>
-          <p>
-            The selected number of clusters is{" "}
-            <span className="font-bold">{optimalK}</span>, based on the combined
-            score of the evaluation metrics.
-          </p>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-4xl">Cluster Count Visualization</h1>
+            <p>
+              The selected number of clusters is{" "}
+              <span className="font-bold">{optimalK}</span>, based on the{" "}
+              <span className="font-bold text-primary">combined score</span> of
+              the evaluation metrics.
+            </p>
+            <p>
+              Use this view to find other viable cluster counts based on the
+              peaks of the combined score metric.
+            </p>
+          </div>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="default">Show Interaction Instructions</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="text-xl">Interaction</DialogTitle>
+                <DialogDescription>
+                  How to interact with the plot.
+                </DialogDescription>
+              </DialogHeader>
+              <ul className="flex list-inside list-disc flex-col items-start gap-2">
+                <li>Click and drag to select an area to zoom into.</li>
+                <li>Double-click to reset the zoom.</li>
+                <li>
+                  Hover over a point on a metric curve to see the tested cluster
+                  count and metric's score for that cluster count.
+                </li>
+                <li>
+                  Click on the legend to toggle the visibility of a metric
+                  curve.
+                </li>
+              </ul>
+            </DialogContent>
+          </Dialog>
         </div>
         <Card>
           <CardContent>
