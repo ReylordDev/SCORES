@@ -4,6 +4,7 @@ import {
   ChevronUp,
   GitMerge,
   List,
+  Loader2,
   Pencil,
   Save,
 } from "lucide-react";
@@ -55,17 +56,17 @@ function ClusterAssignment({
       onClick={() => handleClusterClick(cluster.id)}
       className={cn(
         "cursor-default",
-        isExpanded && "border-accent border-2 border-dashed",
-        !isExpanded && "hover:bg-background-50 dark:hover:bg-background-100"
+        isExpanded && "border-2 border-dashed border-accent",
+        !isExpanded && "hover:bg-background-50 dark:hover:bg-background-100",
       )}
     >
       <CardHeader>
-        <div className="flex justify-between items-center w-full">
+        <div className="flex w-full items-center justify-between">
           <div className="flex flex-col gap-1">
             {isEditing ? (
               <div
                 onClick={(e) => e.stopPropagation()}
-                className="flex gap-4 items-center"
+                className="flex items-center gap-4"
               >
                 <Input
                   value={nameInput}
@@ -125,11 +126,11 @@ function ClusterAssignment({
           {cluster.responses.slice(0, previewCount).map((response, index) => (
             <div
               key={index}
-              className="flex flex-col gap-3 justify-start items-center p-4 cursor-default"
+              className="flex cursor-default flex-col items-center justify-start gap-3 p-4"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between w-full">
-                <p className="line-clamp-2 bg-background px-2 select-text cursor-text">
+              <div className="flex w-full items-center justify-between">
+                <p className="line-clamp-2 cursor-text select-text bg-background px-2">
                   "
                   {response.text
                     .toLowerCase()
@@ -141,7 +142,7 @@ function ClusterAssignment({
                           0,
                           response.text
                             .toLowerCase()
-                            .indexOf(searchTerm.toLowerCase())
+                            .indexOf(searchTerm.toLowerCase()),
                         )}
                       </span>
                       <span className="font-bold text-primary">
@@ -152,7 +153,7 @@ function ClusterAssignment({
                           response.text
                             .toLowerCase()
                             .indexOf(searchTerm.toLowerCase()) +
-                            searchTerm.length
+                            searchTerm.length,
                         )}
                       </span>
                       <span>
@@ -160,7 +161,7 @@ function ClusterAssignment({
                           response.text
                             .toLowerCase()
                             .indexOf(searchTerm.toLowerCase()) +
-                            searchTerm.length
+                            searchTerm.length,
                         )}
                       </span>
                     </>
@@ -175,12 +176,12 @@ function ClusterAssignment({
                   </p>
                 )}
               </div>
-              <div className="flex justify-between items-end gap-4 w-full">
-                <div className="flex flex-col gap-1 w-full">
+              <div className="flex w-full items-end justify-between gap-4">
+                <div className="flex w-full flex-col gap-1">
                   <p>Similarity to cluster center:</p>
-                  <div className="h-2.5 bg-primary-100 rounded-full">
+                  <div className="h-2.5 rounded-full bg-primary-100">
                     <div
-                      className="h-2.5 bg-primary rounded-full"
+                      className="h-2.5 rounded-full bg-primary"
                       style={{ width: `${response.similarity * 100}%` }}
                     ></div>
                   </div>
@@ -193,7 +194,7 @@ function ClusterAssignment({
           ))}
           {cluster.count > previewCount && (
             <div
-              className="flex items-center justify-center p-4 cursor-default"
+              className="flex cursor-default items-center justify-center p-4"
               onClick={(e) => e.stopPropagation()}
             >
               <Button onClick={() => setPreviewCount(previewCount + 25)}>
@@ -219,7 +220,7 @@ export default function ClusterAssignments() {
     return clusters.filter((cluster) => {
       return (
         cluster.responses.some((response) =>
-          response.text.toLowerCase().includes(lowerSearchTerm)
+          response.text.toLowerCase().includes(lowerSearchTerm),
         ) || cluster.name.toLowerCase().includes(lowerSearchTerm)
       );
     });
@@ -236,7 +237,7 @@ export default function ClusterAssignments() {
           cluster.responses.sort((a, b) => b.similarity - a.similarity);
         });
         setClusters(clusterAssignments.clusters);
-      }
+      },
     );
 
     return () => unsubscribe();
@@ -263,16 +264,16 @@ export default function ClusterAssignments() {
     setExpandedClusters((prev) =>
       prev.includes(clusterId)
         ? prev.filter((i) => i !== clusterId)
-        : [...prev, clusterId]
+        : [...prev, clusterId],
     );
   };
 
   return (
-    <div className="w-screen h-screen">
+    <div className="h-screen w-screen">
       <TitleBar index={5} />
       <div
         id="mainContent"
-        className="dark:dark flex flex-col bg-background px-32 pt-6 pb-8 gap-8 text-text select-none"
+        className="dark:dark flex select-none flex-col gap-8 bg-background px-32 pb-8 pt-6 text-text"
       >
         <div className="flex items-center justify-between">
           <h1 className="text-4xl">Cluster Assignments</h1>
@@ -294,30 +295,39 @@ export default function ClusterAssignments() {
             placeholder={"Search by response content or cluster name"}
           />
           <div className="flex items-center justify-between">
-            <p className="px-4 text-xl">{previewClusters.length} Clusters</p>
+            {clusters.length > 0 && (
+              <p className="px-4 text-xl">{previewClusters.length} Clusters</p>
+            )}
             {searchTerm && (
               <p className="px-4 text-xl">
                 {previewClusters.reduce(
                   (acc, cluster) => acc + cluster.count,
-                  0
+                  0,
                 )}{" "}
                 matching responses
               </p>
             )}
           </div>
         </div>
-        <div className="scrollbar pr-4 flex flex-grow flex-col gap-4 overflow-y-auto pt-0">
-          {previewClusters.map((cluster) => (
-            <div key={cluster.id}>
-              <ClusterAssignment
-                cluster={cluster}
-                searchTerm={searchTerm}
-                isExpanded={expandedClusters.includes(cluster.id)}
-                handleClusterClick={toggleCluster}
-              />
-            </div>
-          ))}
-        </div>
+        {clusters.length === 0 ? (
+          <div className="flex w-full items-start justify-center p-4">
+            <p className="text-lg">Loading Cluster Assignments</p>
+            <Loader2 className="ml-2 animate-spin" />
+          </div>
+        ) : (
+          <div className="scrollbar flex flex-grow flex-col gap-4 overflow-y-auto pr-4 pt-0">
+            {previewClusters.map((cluster) => (
+              <div key={cluster.id}>
+                <ClusterAssignment
+                  cluster={cluster}
+                  searchTerm={searchTerm}
+                  isExpanded={expandedClusters.includes(cluster.id)}
+                  handleClusterClick={toggleCluster}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
