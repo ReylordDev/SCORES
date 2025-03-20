@@ -292,6 +292,9 @@ class AgglomerativeClusteringSettings(CamelModel):
 class AdvancedSettings(CamelModel):
     embedding_model: Optional[str] = None
     kmeans_method: Literal["kmeans", "spherical_kmeans"] = "kmeans"
+    kselection_metrics: list[
+        Literal["silhouette", "davies_bouldin", "calinski_harabasz"]
+    ] = Field(default=["silhouette", "davies_bouldin", "calinski_harabasz"])
 
 
 class AlgorithmSettings(CamelModel):
@@ -539,7 +542,7 @@ class KSelectionStatistic(SQLModel, table=True):
     silhouette: Optional[float] = None
     davies_bouldin: Optional[float] = None
     calinski_harabasz: Optional[float] = None
-    combined: Optional[float] = None
+    combined: float
 
     result_id: Optional[uuid.UUID] = Field(
         default=None, foreign_key="clusteringresult.id"

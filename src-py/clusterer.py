@@ -296,9 +296,9 @@ class Clusterer:
             max_clusters = len(embeddings)
 
         # Calculate metrics for each cluster count
-        silhouttes = []
-        ch_scores = []
-        db_scores = []
+        silhouttes: list[float] = []
+        ch_scores: list[float] = []
+        db_scores: list[float] = []
         k_values = [k for k in range(min_clusters, max_clusters + 1)]
         for k in k_values:
             # Fit K-means with sample weights
@@ -314,46 +314,79 @@ class Clusterer:
             kmeans.fit(embeddings, sample_weight=weights)
             labels = kmeans.labels_
 
-            silhouette_avg = silhouette_score(
-                X=embeddings, labels=labels, random_state=self._random_state
-            )
-            silhouttes.append(silhouette_avg)
+            if (
+                "silhouette"
+                in self.algorithm_settings.advanced_settings.kselection_metrics
+            ):
+                silhouette_avg = silhouette_score(
+                    X=embeddings, labels=labels, random_state=self._random_state
+                )
+                silhouttes.append(float(silhouette_avg))
 
-            ch_score = calinski_harabasz_score(X=embeddings, labels=labels)
-            ch_scores.append(ch_score)
+            if (
+                "calinski_harabasz"
+                in self.algorithm_settings.advanced_settings.kselection_metrics
+            ):
+                ch_score = calinski_harabasz_score(X=embeddings, labels=labels)
+                ch_scores.append(ch_score)
 
-            db_score = davies_bouldin_score(X=embeddings, labels=labels)
-            db_scores.append(db_score)
-
-        # Normalize scores for comparison
-        silhouttes_normalized = (silhouttes - np.min(silhouttes)) / (
-            np.max(silhouttes) - np.min(silhouttes)
-        )
-        ch_scores_normalized = (ch_scores - np.min(ch_scores)) / (
-            np.max(ch_scores) - np.min(ch_scores)
-        )
-        db_scores_normalized = (db_scores - np.min(db_scores)) / (
-            np.max(db_scores) - np.min(db_scores)
-        )
-
-        combined_scores = (
-            1 / 3 * ch_scores_normalized
-            + 1 / 3 * silhouttes_normalized
-            + 1 / 3 * (1 - db_scores_normalized)
-        )
-
-        optimal_k = k_values[np.argmax(combined_scores)]
+            if (
+                "davies_bouldin"
+                in self.algorithm_settings.advanced_settings.kselection_metrics
+            ):
+                db_score = davies_bouldin_score(X=embeddings, labels=labels)
+                db_scores.append(db_score)
 
         # Plot the metrics
         plt.figure(figsize=(10, 6))
-        plt.plot(k_values, silhouttes_normalized, "b-", label="Normalized Silhouette")
-        plt.plot(
-            k_values, ch_scores_normalized, "g-", label="Normalized Calinski-Harabasz"
-        )
-        plt.plot(
-            k_values, db_scores_normalized, "y-", label="Normalized Davies-Bouldin"
-        )
-        plt.plot(k_values, combined_scores, "r-", label="Combined Score")
+
+        combined_scores = np.zeros(len(k_values))
+        metric_count = 0
+        # Normalize scores for comparison
+        if len(silhouttes) > 0:
+            silhouttes_normalized: np.ndarray = (silhouttes - np.min(silhouttes)) / (
+                np.max(silhouttes) - np.min(silhouttes)
+            )
+            combined_scores += silhouttes_normalized
+            metric_count += 1
+            plt.plot(
+                k_values, silhouttes_normalized, "b-", label="Normalized Silhouette"
+            )
+        else:
+            silhouttes_normalized = np.zeros(len(k_values))
+
+        if len(ch_scores) > 0:
+            ch_scores_normalized = (ch_scores - np.min(ch_scores)) / (
+                np.max(ch_scores) - np.min(ch_scores)
+            )
+            combined_scores += ch_scores_normalized
+            metric_count += 1
+            plt.plot(
+                k_values,
+                ch_scores_normalized,
+                "g-",
+                label="Normalized Calinski-Harabasz",
+            )
+        else:
+            ch_scores_normalized = np.zeros(len(k_values))
+
+        if len(db_scores) > 0:
+            db_scores_normalized = 1 - (db_scores - np.min(db_scores)) / (
+                np.max(db_scores) - np.min(db_scores)
+            )
+            combined_scores += db_scores_normalized
+            metric_count += 1
+            plt.plot(
+                k_values, db_scores_normalized, "y-", label="Normalized Davies-Bouldin"
+            )
+        else:
+            db_scores_normalized = np.zeros(len(k_values))
+
+        combined_scores /= metric_count
+        optimal_k = k_values[np.argmax(combined_scores)]
+
+        if metric_count > 1:
+            plt.plot(k_values, combined_scores, "r-", label="Combined Score")
         plt.xlabel("Number of Clusters (K)")
         plt.ylabel("Score")
         plt.title("Cluster Count Selection Metrics")
@@ -369,9 +402,9 @@ class Clusterer:
             selection_stats.append(
                 KSelectionStatistic(
                     k=k,
-                    silhouette=silhouttes_normalized[i],
-                    calinski_harabasz=ch_scores_normalized[i],
-                    davies_bouldin=db_scores_normalized[i],
+                    silhouette=silhouttes_normalized[i] if silhouttes else None,
+                    calinski_harabasz=ch_scores_normalized[i] if ch_scores else None,
+                    davies_bouldin=db_scores_normalized[i] if db_scores else None,
                     combined=combined_scores[i],
                 )
             )

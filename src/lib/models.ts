@@ -266,9 +266,12 @@ export interface AgglomerativeClusteringSettings {
   iterative: boolean;
 }
 
+type kselection_metric = "silhouette" | "davies_bouldin" | "calinski_harabasz";
+
 export interface AdvancedSettings {
   embedding_model?: string;
   kmeans_method: "spherical_kmeans" | "kmeans";
+  kselection_metrics: kselection_metric[];
 }
 
 export interface AlgorithmSettings {

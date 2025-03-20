@@ -50,6 +50,8 @@ import {
   PopoverTrigger,
 } from "../../components/ui/popover";
 import { toast } from "sonner";
+import { Separator } from "../../components/ui/separator";
+import { Checkbox } from "../../components/ui/checkbox";
 
 export default function AlgorithmSettings() {
   const [autoChooseClusters, setAutoChooseClusters] = useState(true);
@@ -69,6 +71,7 @@ export default function AlgorithmSettings() {
   const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettings>({
     embedding_model: null,
     kmeans_method: "kmeans",
+    kselection_metrics: ["silhouette", "davies_bouldin", "calinski_harabasz"],
   });
   const [randomState, setRandomState] = useState<number | null>(null);
 
@@ -177,6 +180,10 @@ export default function AlgorithmSettings() {
       }
     }
 
+    if (advancedSettings.kselection_metrics.length === 0) {
+      return false;
+    }
+
     return true;
   }, [
     autoChooseClusters,
@@ -189,6 +196,7 @@ export default function AlgorithmSettings() {
     zScoreThreshold,
     useAgglomerativeClustering,
     similarityThreshold,
+    advancedSettings,
   ]);
 
   const submitAlgorithmSettings = () => {
@@ -980,6 +988,7 @@ function AdvancedSettingsDialog({
               Leave empty to use the default model.
             </p>
           </div>
+          <Separator orientation="horizontal" />
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label htmlFor="kmeansMethod">Use Spherical K-Means Method</label>
@@ -997,6 +1006,105 @@ function AdvancedSettingsDialog({
             <p className="text-sm text-gray-500">
               Use spherical K-Means instead of traditional K-Means Clustering.
             </p>
+          </div>
+          <Separator orientation="horizontal" />
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-lg font-medium">K-Selection Metrics</h3>
+              <p className="text-sm text-gray-500">
+                Select the metrics to use for K-selection (You must select at
+                least one).
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <label htmlFor="silhouette">Silhouette Score</label>
+              <Checkbox
+                id="silhouette"
+                checked={advancedSettings.kselection_metrics.includes(
+                  "silhouette",
+                )}
+                onCheckedChange={(isOn) => {
+                  if (isOn) {
+                    setAdvancedSettings({
+                      ...advancedSettings,
+                      kselection_metrics: [
+                        ...advancedSettings.kselection_metrics,
+                        "silhouette",
+                      ],
+                    });
+                  } else {
+                    setAdvancedSettings({
+                      ...advancedSettings,
+                      kselection_metrics:
+                        advancedSettings.kselection_metrics.filter(
+                          (metric) => metric !== "silhouette",
+                        ),
+                    });
+                  }
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <label htmlFor="calinski_harabasz">
+                <p>Calinski-Harabasz Score</p>
+                <p className="text-sm text-gray-500">
+                  (aka Variance Ratio Criterion)
+                </p>
+              </label>
+              <Checkbox
+                id="calinski_harabasz"
+                checked={advancedSettings.kselection_metrics.includes(
+                  "calinski_harabasz",
+                )}
+                onCheckedChange={(isOn) => {
+                  if (isOn) {
+                    setAdvancedSettings({
+                      ...advancedSettings,
+                      kselection_metrics: [
+                        ...advancedSettings.kselection_metrics,
+                        "calinski_harabasz",
+                      ],
+                    });
+                  } else {
+                    setAdvancedSettings({
+                      ...advancedSettings,
+                      kselection_metrics:
+                        advancedSettings.kselection_metrics.filter(
+                          (metric) => metric !== "calinski_harabasz",
+                        ),
+                    });
+                  }
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <label htmlFor="davies_bouldin">Davies-Bouldin Score</label>
+              <Checkbox
+                id="davies_bouldin"
+                checked={advancedSettings.kselection_metrics.includes(
+                  "davies_bouldin",
+                )}
+                onCheckedChange={(isOn) => {
+                  if (isOn) {
+                    setAdvancedSettings({
+                      ...advancedSettings,
+                      kselection_metrics: [
+                        ...advancedSettings.kselection_metrics,
+                        "davies_bouldin",
+                      ],
+                    });
+                  } else {
+                    setAdvancedSettings({
+                      ...advancedSettings,
+                      kselection_metrics:
+                        advancedSettings.kselection_metrics.filter(
+                          (metric) => metric !== "davies_bouldin",
+                        ),
+                    });
+                  }
+                }}
+              />
+            </div>
           </div>
           <DialogClose asChild>
             <Button onClick={handleSave}>Save Changes</Button>
