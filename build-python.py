@@ -1,6 +1,6 @@
 import PyInstaller.__main__ as pyinstaller
 
-controller_path = "./src-py/controller.py"
+controller_path = "./src_py/controller.py"
 
 
 def main():

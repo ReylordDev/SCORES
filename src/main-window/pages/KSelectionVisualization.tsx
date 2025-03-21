@@ -82,7 +82,7 @@ export default function KSelectionVisualization() {
       y: stats.filter((s) => s.silhouette !== null).map((s) => s.silhouette),
       type: "scatter",
       mode: "lines+markers",
-      name: `Silhouette Score (Weight: ${silhouetteWeight})`,
+      name: `Silhouette Score (Weight: ${(silhouetteWeight * 100).toFixed(0)}%)`,
       opacity: 0.5,
     },
     {
@@ -92,7 +92,7 @@ export default function KSelectionVisualization() {
         .map((s) => s.davies_bouldin),
       type: "scatter",
       mode: "lines+markers",
-      name: `Davies-Bouldin Score (Weight: ${daviesBouldinWeight})`,
+      name: `Davies-Bouldin Score (Weight: ${(daviesBouldinWeight * 100).toFixed(0)}%)`,
       opacity: 0.5,
     },
     {
@@ -102,7 +102,9 @@ export default function KSelectionVisualization() {
         .map((s) => s.calinski_harabasz),
       type: "scatter",
       mode: "lines+markers",
-      name: `Calinski-Harabasz Score (Weight: ${calinskiHarabaszWeight})`,
+      name: `Calinski-Harabasz Score (Weight: ${(
+        calinskiHarabaszWeight * 100
+      ).toFixed(0)}%)`,
       opacity: 0.5,
     },
     {

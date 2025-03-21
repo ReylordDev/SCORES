@@ -898,76 +898,51 @@ function AdvancedSettingsDialog({
   const [useSphericalKMeans, setUseSphericalKMeans] = useState(
     advancedSettings.kmeans_method === "spherical_kmeans",
   );
-  const [useSilhouette, setUseSilhouette] = useState(
-    advancedSettings.kselection_metrics.filter(
-      (metric) => metric.name === "silhouette",
-    ).length > 0,
-  );
-  const [useCalinski, setUseCalinski] = useState(
-    advancedSettings.kselection_metrics.filter(
-      (metric) => metric.name === "calinski_harabasz",
-    ).length > 0,
-  );
-  const [useDaviesBouldin, setUseDaviesBouldin] = useState(
-    advancedSettings.kselection_metrics.filter(
-      (metric) => metric.name === "davies_bouldin",
-    ).length > 0,
-  );
+  const [useSilhouette, setUseSilhouette] = useState(true);
+  const [useCalinski, setUseCalinski] = useState(true);
+  const [useDaviesBouldin, setUseDaviesBouldin] = useState(false);
 
-  const [silhouetteWeight, setSilhouetteWeight] = useState(
-    advancedSettings.kselection_metrics.filter(
-      (metric) => metric.name === "silhouette",
-    ).length > 0
-      ? advancedSettings.kselection_metrics.filter(
-          (metric) => metric.name === "silhouette",
-        )[0].weight
-      : 0,
-  );
-  const [calinskiHarabaszWeight, setCalinskiHarabaszWeight] = useState(
-    advancedSettings.kselection_metrics.filter(
-      (metric) => metric.name === "calinski_harabasz",
-    ).length > 0
-      ? advancedSettings.kselection_metrics.filter(
-          (metric) => metric.name === "calinski_harabasz",
-        )[0].weight
-      : 0,
-  );
-  const [daviesBouldinWeight, setDaviesBouldinWeight] = useState(
-    advancedSettings.kselection_metrics.filter(
-      (metric) => metric.name === "davies_bouldin",
-    ).length > 0
-      ? advancedSettings.kselection_metrics.filter(
-          (metric) => metric.name === "davies_bouldin",
-        )[0].weight
-      : 0,
-  );
+  const [silhouetteWeight, setSilhouetteWeight] = useState(0);
+  const [calinskiHarabaszWeight, setCalinskiHarabaszWeight] = useState(0);
+  const [daviesBouldinWeight, setDaviesBouldinWeight] = useState(0);
+  const epsilon = 0.005;
 
   useEffect(() => {
-    setAdvancedSettings(advancedSettings);
-    setSilhouetteWeight(
+    const localUseSilhouette =
       advancedSettings.kselection_metrics.filter(
         (metric) => metric.name === "silhouette",
-      ).length > 0
+      ).length > 0;
+    setUseSilhouette(localUseSilhouette);
+    setSilhouetteWeight(
+      localUseSilhouette
         ? advancedSettings.kselection_metrics.filter(
             (metric) => metric.name === "silhouette",
           )[0].weight
         : 0,
     );
-    setCalinskiHarabaszWeight(
+
+    const localUseDaviesBouldin =
       advancedSettings.kselection_metrics.filter(
-        (metric) => metric.name === "calinski_harabasz",
-      ).length > 0
+        (metric) => metric.name === "davies_bouldin",
+      ).length > 0;
+    setUseDaviesBouldin(localUseDaviesBouldin);
+    setDaviesBouldinWeight(
+      localUseDaviesBouldin
         ? advancedSettings.kselection_metrics.filter(
-            (metric) => metric.name === "calinski_harabasz",
+            (metric) => metric.name === "davies_bouldin",
           )[0].weight
         : 0,
     );
-    setDaviesBouldinWeight(
+
+    const localUseCalinskiHarabasz =
       advancedSettings.kselection_metrics.filter(
-        (metric) => metric.name === "davies_bouldin",
-      ).length > 0
+        (metric) => metric.name === "calinski_harabasz",
+      ).length > 0;
+    setUseCalinski(localUseCalinskiHarabasz);
+    setCalinskiHarabaszWeight(
+      localUseCalinskiHarabasz
         ? advancedSettings.kselection_metrics.filter(
-            (metric) => metric.name === "davies_bouldin",
+            (metric) => metric.name === "calinski_harabasz",
           )[0].weight
         : 0,
     );
@@ -1015,7 +990,7 @@ function AdvancedSettingsDialog({
       useCalinski ? calinskiHarabaszWeight : 0,
       useDaviesBouldin ? daviesBouldinWeight : 0,
     ];
-    const total = weights.reduce((a, b) => a + b, 0) + 0.005;
+    const total = weights.reduce((a, b) => a + b, 0) + epsilon;
     console.log("Total weight", total);
     return total;
   }, [
@@ -1028,7 +1003,7 @@ function AdvancedSettingsDialog({
   ]);
 
   const advancedSettingsAreValid = useMemo(() => {
-    if (totalWeight > 1 + 0.005 || totalWeight - 0.005 <= 0) {
+    if (totalWeight > 1 + epsilon || totalWeight - epsilon <= 0) {
       return false;
     }
 
@@ -1296,7 +1271,7 @@ function AdvancedSettingsDialog({
                     }}
                     className="w-[200px]"
                   />
-                  <p className="min-w-5 text-sm text-gray-500">
+                  <p className="w-8 text-sm text-gray-500">
                     {Math.round(silhouetteWeight * 100)}%
                   </p>
                 </div>
@@ -1342,7 +1317,7 @@ function AdvancedSettingsDialog({
                     }}
                     className="w-[200px]"
                   />
-                  <p className="min-w-5 text-sm text-gray-500">
+                  <p className="w-8 text-sm text-gray-500">
                     {Math.round(calinskiHarabaszWeight * 100)}%
                   </p>
                 </div>
@@ -1384,7 +1359,7 @@ function AdvancedSettingsDialog({
                   }}
                   className="w-[200px]"
                 />
-                <p className="min-w-5 text-sm text-gray-500">
+                <p className="w-8 bg-blue-500 text-sm text-gray-500">
                   {Math.round(daviesBouldinWeight * 100)}%
                 </p>
               </div>

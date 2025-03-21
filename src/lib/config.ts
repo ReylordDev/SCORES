@@ -54,7 +54,7 @@ export class AppConfig {
             this.rootDir,
             "dist",
             scriptName,
-            scriptName + ".exe"
+            scriptName + ".exe",
           );
         case "linux":
           return path.join(this.rootDir, "dist", scriptName, scriptName);
@@ -62,7 +62,7 @@ export class AppConfig {
           throw new Error("Unsupported platform: " + process.platform);
       }
     }
-    return path.join(this.rootDir, "src-py", scriptName + ".py");
+    return path.join(this.rootDir, "src_py", scriptName + ".py");
   }
 
   get settingsPath() {
