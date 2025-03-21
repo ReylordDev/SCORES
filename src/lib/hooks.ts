@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AlgorithmSettings as AlgorithmSettingsType } from "../lib/models";
 
 export function useTutorialMode() {
   const [tutorialMode, setTutorialMode] = useState(false);
@@ -14,4 +15,28 @@ export function useTutorialMode() {
   }, []);
 
   return tutorialMode;
+}
+
+export function useAlgorithmSettings() {
+  const [algorithmSettings, setAlgorithmSettings] =
+    useState<AlgorithmSettingsType>(null);
+
+  useEffect(() => {
+    window.database.requestCurrentRun();
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = window.database.onReceiveCurrentRun((runMessage) => {
+      // Parse the stored algorithm settings
+      const settings = JSON.parse(
+        runMessage.run.algorithm_settings,
+      ) as AlgorithmSettingsType;
+
+      // Update the state with the parsed settings
+      setAlgorithmSettings(settings);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  return algorithmSettings;
 }

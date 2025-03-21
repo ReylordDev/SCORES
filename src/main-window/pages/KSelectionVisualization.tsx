@@ -13,10 +13,43 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../../components/ui/dialog";
+import { useAlgorithmSettings } from "../../lib/hooks";
 
 export default function KSelectionVisualization() {
   const [stats, setStats] = useState<KSelectionStatistic[]>([]);
   const [optimalK, setOptimalK] = useState<number | null>(null);
+  const algorithmSettings = useAlgorithmSettings();
+
+  // Very nasty solution
+  const silhouetteWeight = algorithmSettings
+    ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+        (m) => m.name === "silhouette",
+      ).length > 0
+      ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+          (m) => m.name === "silhouette",
+        )[0].weight || 0
+      : 0
+    : 0;
+
+  const daviesBouldinWeight = algorithmSettings
+    ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+        (m) => m.name === "davies_bouldin",
+      ).length > 0
+      ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+          (m) => m.name === "davies_bouldin",
+        )[0].weight || 0
+      : 0
+    : 0;
+
+  const calinskiHarabaszWeight = algorithmSettings
+    ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+        (m) => m.name === "calinski_harabasz",
+      ).length > 0
+      ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+          (m) => m.name === "calinski_harabasz",
+        )[0].weight || 0
+      : 0
+    : 0;
 
   useEffect(() => {
     const unsubscribe = window.plots.onReceiveSelectionStats(
@@ -49,7 +82,7 @@ export default function KSelectionVisualization() {
       y: stats.filter((s) => s.silhouette !== null).map((s) => s.silhouette),
       type: "scatter",
       mode: "lines+markers",
-      name: "Silhouette Score",
+      name: `Silhouette Score (Weight: ${silhouetteWeight})`,
       opacity: 0.5,
     },
     {
@@ -59,7 +92,7 @@ export default function KSelectionVisualization() {
         .map((s) => s.davies_bouldin),
       type: "scatter",
       mode: "lines+markers",
-      name: "Davies-Bouldin Index",
+      name: `Davies-Bouldin Score (Weight: ${daviesBouldinWeight})`,
       opacity: 0.5,
     },
     {
@@ -69,7 +102,7 @@ export default function KSelectionVisualization() {
         .map((s) => s.calinski_harabasz),
       type: "scatter",
       mode: "lines+markers",
-      name: "Calinski-Harabasz Score",
+      name: `Calinski-Harabasz Score (Weight: ${calinskiHarabaszWeight})`,
       opacity: 0.5,
     },
     {

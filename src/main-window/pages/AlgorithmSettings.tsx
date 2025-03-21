@@ -25,6 +25,7 @@ import {
   AlgorithmSettings as AlgorithmSettingsType,
   AdvancedSettings,
   CachedModel,
+  KSelectionMetric,
 } from "../../lib/models";
 import {
   Dialog,
@@ -52,6 +53,7 @@ import {
 import { toast } from "sonner";
 import { Separator } from "../../components/ui/separator";
 import { Checkbox } from "../../components/ui/checkbox";
+import { Slider } from "../../components/ui/slider";
 
 export default function AlgorithmSettings() {
   const [autoChooseClusters, setAutoChooseClusters] = useState(true);
@@ -71,7 +73,16 @@ export default function AlgorithmSettings() {
   const [advancedSettings, setAdvancedSettings] = useState<AdvancedSettings>({
     embedding_model: null,
     kmeans_method: "kmeans",
-    kselection_metrics: ["silhouette", "davies_bouldin", "calinski_harabasz"],
+    kselection_metrics: [
+      {
+        name: "silhouette",
+        weight: 0.5,
+      },
+      {
+        name: "calinski_harabasz",
+        weight: 0.5,
+      },
+    ],
   });
   const [randomState, setRandomState] = useState<number | null>(null);
 
@@ -83,6 +94,8 @@ export default function AlgorithmSettings() {
       toast.info("Loading previous run settings. Please wait...");
     }
   }, []); // Show toast when the component mounts
+
+  console.log("AlgorithmSettings.AdvancedSettings", advancedSettings);
 
   useEffect(() => {
     const unsubscribe = window.database.onReceiveCurrentRun(({ run }) => {
@@ -181,6 +194,14 @@ export default function AlgorithmSettings() {
     }
 
     if (advancedSettings.kselection_metrics.length === 0) {
+      return false;
+    }
+
+    if (
+      advancedSettings.kselection_metrics
+        .map((metric) => metric.weight)
+        .reduce((a, b) => a + b, 0) === 0
+    ) {
       return false;
     }
 
@@ -874,15 +895,159 @@ function AdvancedSettingsDialog({
   const [modelComboboxOpen, setModelComboboxOpen] = useState(false);
   const [modelComboboxValue, setModelComboboxValue] = useState("");
   const [cachedModels, setCachedModels] = useState<CachedModel[]>([]);
+  const [useSphericalKMeans, setUseSphericalKMeans] = useState(
+    advancedSettings.kmeans_method === "spherical_kmeans",
+  );
+  const [useSilhouette, setUseSilhouette] = useState(
+    advancedSettings.kselection_metrics.filter(
+      (metric) => metric.name === "silhouette",
+    ).length > 0,
+  );
+  const [useCalinski, setUseCalinski] = useState(
+    advancedSettings.kselection_metrics.filter(
+      (metric) => metric.name === "calinski_harabasz",
+    ).length > 0,
+  );
+  const [useDaviesBouldin, setUseDaviesBouldin] = useState(
+    advancedSettings.kselection_metrics.filter(
+      (metric) => metric.name === "davies_bouldin",
+    ).length > 0,
+  );
+
+  const [silhouetteWeight, setSilhouetteWeight] = useState(
+    advancedSettings.kselection_metrics.filter(
+      (metric) => metric.name === "silhouette",
+    ).length > 0
+      ? advancedSettings.kselection_metrics.filter(
+          (metric) => metric.name === "silhouette",
+        )[0].weight
+      : 0,
+  );
+  const [calinskiHarabaszWeight, setCalinskiHarabaszWeight] = useState(
+    advancedSettings.kselection_metrics.filter(
+      (metric) => metric.name === "calinski_harabasz",
+    ).length > 0
+      ? advancedSettings.kselection_metrics.filter(
+          (metric) => metric.name === "calinski_harabasz",
+        )[0].weight
+      : 0,
+  );
+  const [daviesBouldinWeight, setDaviesBouldinWeight] = useState(
+    advancedSettings.kselection_metrics.filter(
+      (metric) => metric.name === "davies_bouldin",
+    ).length > 0
+      ? advancedSettings.kselection_metrics.filter(
+          (metric) => metric.name === "davies_bouldin",
+        )[0].weight
+      : 0,
+  );
+
+  useEffect(() => {
+    setAdvancedSettings(advancedSettings);
+    setSilhouetteWeight(
+      advancedSettings.kselection_metrics.filter(
+        (metric) => metric.name === "silhouette",
+      ).length > 0
+        ? advancedSettings.kselection_metrics.filter(
+            (metric) => metric.name === "silhouette",
+          )[0].weight
+        : 0,
+    );
+    setCalinskiHarabaszWeight(
+      advancedSettings.kselection_metrics.filter(
+        (metric) => metric.name === "calinski_harabasz",
+      ).length > 0
+        ? advancedSettings.kselection_metrics.filter(
+            (metric) => metric.name === "calinski_harabasz",
+          )[0].weight
+        : 0,
+    );
+    setDaviesBouldinWeight(
+      advancedSettings.kselection_metrics.filter(
+        (metric) => metric.name === "davies_bouldin",
+      ).length > 0
+        ? advancedSettings.kselection_metrics.filter(
+            (metric) => metric.name === "davies_bouldin",
+          )[0].weight
+        : 0,
+    );
+  }, [advancedSettings.kselection_metrics]);
 
   useEffect(() => {
     setModelComboboxValue(advancedSettings.embedding_model);
   }, [advancedSettings.embedding_model]);
 
+  const kselectionMetrics = useMemo(() => {
+    const metrics = [] as KSelectionMetric[];
+    if (useSilhouette) {
+      metrics.push({
+        name: "silhouette",
+        weight: silhouetteWeight,
+      });
+    }
+
+    if (useCalinski) {
+      metrics.push({
+        name: "calinski_harabasz",
+        weight: calinskiHarabaszWeight,
+      });
+    }
+
+    if (useDaviesBouldin) {
+      metrics.push({
+        name: "davies_bouldin",
+        weight: daviesBouldinWeight,
+      });
+    }
+    return metrics;
+  }, [
+    useSilhouette,
+    silhouetteWeight,
+    useCalinski,
+    calinskiHarabaszWeight,
+    useDaviesBouldin,
+    daviesBouldinWeight,
+  ]);
+
+  const totalWeight = useMemo(() => {
+    const weights = [
+      useSilhouette ? silhouetteWeight : 0,
+      useCalinski ? calinskiHarabaszWeight : 0,
+      useDaviesBouldin ? daviesBouldinWeight : 0,
+    ];
+    const total = weights.reduce((a, b) => a + b, 0) + 0.005;
+    console.log("Total weight", total);
+    return total;
+  }, [
+    useSilhouette,
+    silhouetteWeight,
+    useCalinski,
+    calinskiHarabaszWeight,
+    useDaviesBouldin,
+    daviesBouldinWeight,
+  ]);
+
+  const advancedSettingsAreValid = useMemo(() => {
+    if (totalWeight > 1 + 0.005 || totalWeight - 0.005 <= 0) {
+      return false;
+    }
+
+    if (kselectionMetrics.length === 0) {
+      return false;
+    }
+
+    if (modelComboboxValue === "") {
+      return false;
+    }
+    return true;
+  }, [modelComboboxValue, totalWeight]);
+
   const handleSave = () => {
     setAdvancedSettings({
       ...advancedSettings,
       embedding_model: modelComboboxValue,
+      kmeans_method: useSphericalKMeans ? "spherical_kmeans" : "kmeans",
+      kselection_metrics: kselectionMetrics,
     });
   };
 
@@ -899,8 +1064,84 @@ function AdvancedSettingsDialog({
     return () => unsubscribe();
   }, []);
 
+  function updateMetricWeight(weight: number, metricName: string) {
+    console.log("Updating metric weight", weight, metricName);
+
+    if (totalWeight > 1) {
+      const remainingWeight = 1 - weight;
+
+      let metricCount = 0;
+      if (useSilhouette) metricCount++;
+      if (useCalinski) metricCount++;
+      if (useDaviesBouldin) metricCount++;
+      if (metricCount === 0) return;
+
+      const balancingWeight = remainingWeight / (metricCount - 1);
+      console.log(
+        "Remaining weight",
+        remainingWeight,
+        "Balancing weight",
+        balancingWeight,
+      );
+      if (metricName === "silhouette") {
+        if (useCalinski && balancingWeight < calinskiHarabaszWeight) {
+          setCalinskiHarabaszWeight(balancingWeight);
+        }
+        if (useDaviesBouldin && balancingWeight < daviesBouldinWeight) {
+          setDaviesBouldinWeight(balancingWeight);
+        }
+      } else if (metricName === "calinski_harabasz") {
+        if (useSilhouette && balancingWeight < silhouetteWeight) {
+          setSilhouetteWeight(balancingWeight);
+        }
+        if (useDaviesBouldin && balancingWeight < daviesBouldinWeight) {
+          setDaviesBouldinWeight(balancingWeight);
+        }
+      } else if (metricName === "davies_bouldin") {
+        if (useSilhouette && balancingWeight < silhouetteWeight) {
+          setSilhouetteWeight(balancingWeight);
+        }
+        if (useCalinski && balancingWeight < calinskiHarabaszWeight) {
+          setCalinskiHarabaszWeight(balancingWeight);
+        }
+      }
+    }
+    if (metricName === "silhouette") {
+      setSilhouetteWeight(weight);
+    }
+    if (metricName === "calinski_harabasz") {
+      setCalinskiHarabaszWeight(weight);
+    }
+    if (metricName === "davies_bouldin") {
+      setDaviesBouldinWeight(weight);
+    }
+  }
+
+  const balanceWeights = () => {
+    let metricCount = 0;
+    if (useSilhouette) metricCount++;
+    if (useCalinski) metricCount++;
+    if (useDaviesBouldin) metricCount++;
+    if (metricCount === 0) return;
+
+    const weight = 1 / metricCount;
+
+    if (useSilhouette) {
+      setSilhouetteWeight(weight);
+    }
+    if (useCalinski) {
+      setCalinskiHarabaszWeight(weight);
+    }
+    if (useDaviesBouldin) {
+      setDaviesBouldinWeight(weight);
+    }
+  };
+
   console.log("Advanced settings", advancedSettings);
-  console.log(advancedSettings.embedding_model);
+  console.log("Silhouette weight", silhouetteWeight);
+  console.log("Calinski weight", calinskiHarabaszWeight);
+  console.log("Davies-Bouldin weight", daviesBouldinWeight);
+
   console.log("modelComboboxValue", modelComboboxValue);
   console.log("cachedModels", cachedModels);
 
@@ -994,13 +1235,8 @@ function AdvancedSettingsDialog({
               <label htmlFor="kmeansMethod">Use Spherical K-Means Method</label>
               <Switch
                 id="kmeansMethod"
-                checked={advancedSettings.kmeans_method === "spherical_kmeans"}
-                onCheckedChange={(isOn) =>
-                  setAdvancedSettings({
-                    ...advancedSettings,
-                    kmeans_method: isOn ? "spherical_kmeans" : "kmeans",
-                  })
-                }
+                checked={useSphericalKMeans}
+                onCheckedChange={(isOn) => setUseSphericalKMeans(isOn)}
               />
             </div>
             <p className="text-sm text-gray-500">
@@ -1010,104 +1246,154 @@ function AdvancedSettingsDialog({
           <Separator orientation="horizontal" />
           <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-1">
-              <h3 className="text-lg font-medium">K-Selection Metrics</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium">K-Selection Metrics</h3>
+                <Button
+                  variant="outline"
+                  onClick={() => balanceWeights()}
+                  className="text-sm text-gray-500"
+                >
+                  Balance Weights
+                </Button>
+              </div>
               <p className="text-sm text-gray-500">
                 Select the metrics to use for K-selection (You must select at
                 least one).
               </p>
             </div>
-            <div className="flex items-center justify-between gap-2">
-              <label htmlFor="silhouette">Silhouette Score</label>
-              <Checkbox
-                id="silhouette"
-                checked={advancedSettings.kselection_metrics.includes(
-                  "silhouette",
-                )}
-                onCheckedChange={(isOn) => {
-                  if (isOn) {
-                    setAdvancedSettings({
-                      ...advancedSettings,
-                      kselection_metrics: [
-                        ...advancedSettings.kselection_metrics,
-                        "silhouette",
-                      ],
-                    });
-                  } else {
-                    setAdvancedSettings({
-                      ...advancedSettings,
-                      kselection_metrics:
-                        advancedSettings.kselection_metrics.filter(
-                          (metric) => metric !== "silhouette",
-                        ),
-                    });
-                  }
-                }}
-              />
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="silhouette">Silhouette Score</label>
+                <Checkbox
+                  id="silhouette"
+                  checked={useSilhouette}
+                  onCheckedChange={(isOn) => {
+                    if (isOn) {
+                      setUseSilhouette(true);
+                    } else {
+                      setUseSilhouette(false);
+                      setSilhouetteWeight(0);
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between pl-4">
+                <label
+                  className="text-sm text-gray-500"
+                  htmlFor="silhouette_weight"
+                >
+                  Weight
+                </label>
+                <div className="flex w-full items-center justify-end gap-2">
+                  <Slider
+                    disabled={!useSilhouette}
+                    max={1}
+                    min={0}
+                    step={0.01}
+                    value={[silhouetteWeight]}
+                    onValueChange={(value) => {
+                      updateMetricWeight(value[0], "silhouette");
+                    }}
+                    className="w-[200px]"
+                  />
+                  <p className="min-w-5 text-sm text-gray-500">
+                    {Math.round(silhouetteWeight * 100)}%
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center justify-between gap-2">
-              <label htmlFor="calinski_harabasz">
-                <p>Calinski-Harabasz Score</p>
-                <p className="text-sm text-gray-500">
-                  (aka Variance Ratio Criterion)
-                </p>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="calinski_harabasz">
+                  <p>Calinski-Harabasz Score</p>
+                  <p className="text-sm text-gray-500">
+                    (aka Variance Ratio Criterion)
+                  </p>
+                </label>
+                <Checkbox
+                  id="calinski_harabasz"
+                  checked={useCalinski}
+                  onCheckedChange={(isOn) => {
+                    if (isOn) {
+                      setUseCalinski(true);
+                    } else {
+                      setUseCalinski(false);
+                      setCalinskiHarabaszWeight(0);
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex items-center justify-between pl-4">
+                <label
+                  className="text-sm text-gray-500"
+                  htmlFor="calinski_weight"
+                >
+                  Weight
+                </label>
+                <div className="flex w-full items-center justify-end gap-2">
+                  <Slider
+                    disabled={!useCalinski}
+                    max={1}
+                    min={0}
+                    step={0.01}
+                    value={[calinskiHarabaszWeight]}
+                    onValueChange={(value) => {
+                      updateMetricWeight(value[0], "calinski_harabasz");
+                    }}
+                    className="w-[200px]"
+                  />
+                  <p className="min-w-5 text-sm text-gray-500">
+                    {Math.round(calinskiHarabaszWeight * 100)}%
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="davies_bouldin">Davies-Bouldin Score</label>
+                <Checkbox
+                  id="davies_bouldin"
+                  checked={useDaviesBouldin}
+                  onCheckedChange={(isOn) => {
+                    if (isOn) {
+                      setUseDaviesBouldin(true);
+                    } else {
+                      setUseDaviesBouldin(false);
+                      setDaviesBouldinWeight(0);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between pl-4">
+              <label
+                className="text-sm text-gray-500"
+                htmlFor="davies_bouldin_weight"
+              >
+                Weight
               </label>
-              <Checkbox
-                id="calinski_harabasz"
-                checked={advancedSettings.kselection_metrics.includes(
-                  "calinski_harabasz",
-                )}
-                onCheckedChange={(isOn) => {
-                  if (isOn) {
-                    setAdvancedSettings({
-                      ...advancedSettings,
-                      kselection_metrics: [
-                        ...advancedSettings.kselection_metrics,
-                        "calinski_harabasz",
-                      ],
-                    });
-                  } else {
-                    setAdvancedSettings({
-                      ...advancedSettings,
-                      kselection_metrics:
-                        advancedSettings.kselection_metrics.filter(
-                          (metric) => metric !== "calinski_harabasz",
-                        ),
-                    });
-                  }
-                }}
-              />
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <label htmlFor="davies_bouldin">Davies-Bouldin Score</label>
-              <Checkbox
-                id="davies_bouldin"
-                checked={advancedSettings.kselection_metrics.includes(
-                  "davies_bouldin",
-                )}
-                onCheckedChange={(isOn) => {
-                  if (isOn) {
-                    setAdvancedSettings({
-                      ...advancedSettings,
-                      kselection_metrics: [
-                        ...advancedSettings.kselection_metrics,
-                        "davies_bouldin",
-                      ],
-                    });
-                  } else {
-                    setAdvancedSettings({
-                      ...advancedSettings,
-                      kselection_metrics:
-                        advancedSettings.kselection_metrics.filter(
-                          (metric) => metric !== "davies_bouldin",
-                        ),
-                    });
-                  }
-                }}
-              />
+              <div className="flex w-full items-center justify-end gap-2">
+                <Slider
+                  disabled={!useDaviesBouldin}
+                  max={1}
+                  min={0}
+                  step={0.01}
+                  value={[daviesBouldinWeight]}
+                  onValueChange={(value) => {
+                    updateMetricWeight(value[0], "davies_bouldin");
+                  }}
+                  className="w-[200px]"
+                />
+                <p className="min-w-5 text-sm text-gray-500">
+                  {Math.round(daviesBouldinWeight * 100)}%
+                </p>
+              </div>
             </div>
           </div>
           <DialogClose asChild>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button disabled={!advancedSettingsAreValid} onClick={handleSave}>
+              Save Changes
+            </Button>
           </DialogClose>
         </div>
       </DialogContent>

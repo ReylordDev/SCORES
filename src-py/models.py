@@ -289,12 +289,20 @@ class AgglomerativeClusteringSettings(CamelModel):
     iterative: bool = False
 
 
+class KSelectionMetric(CamelModel):
+    name: Literal["silhouette", "davies_bouldin", "calinski_harabasz"]
+    weight: float = Field(ge=0.0, le=1.0)
+
+
 class AdvancedSettings(CamelModel):
     embedding_model: Optional[str] = None
     kmeans_method: Literal["kmeans", "spherical_kmeans"] = "kmeans"
-    kselection_metrics: list[
-        Literal["silhouette", "davies_bouldin", "calinski_harabasz"]
-    ] = Field(default=["silhouette", "davies_bouldin", "calinski_harabasz"])
+    kselection_metrics: list[KSelectionMetric] = Field(
+        default=[
+            KSelectionMetric(name="silhouette", weight=0.5),
+            KSelectionMetric(name="calinski_harabasz", weight=0.5),
+        ]
+    )
 
 
 class AlgorithmSettings(CamelModel):

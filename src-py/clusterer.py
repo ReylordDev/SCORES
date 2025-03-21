@@ -295,6 +295,21 @@ class Clusterer:
             )
             max_clusters = len(embeddings)
 
+        use_silhouette_scores, silhouette_weight = False, 0.0
+        use_ch_scores, ch_weight = False, 0.0
+        use_db_scores, db_weight = False, 0.0
+
+        for metric in self.algorithm_settings.advanced_settings.kselection_metrics:
+            if metric.name == "silhouette":
+                use_silhouette_scores = True
+                silhouette_weight = metric.weight
+            elif metric.name == "calinski_harabasz":
+                use_ch_scores = True
+                ch_weight = metric.weight
+            elif metric.name == "davies_bouldin":
+                use_db_scores = True
+                db_weight = metric.weight
+
         # Calculate metrics for each cluster count
         silhouttes: list[float] = []
         ch_scores: list[float] = []
@@ -314,26 +329,17 @@ class Clusterer:
             kmeans.fit(embeddings, sample_weight=weights)
             labels = kmeans.labels_
 
-            if (
-                "silhouette"
-                in self.algorithm_settings.advanced_settings.kselection_metrics
-            ):
+            if use_silhouette_scores:
                 silhouette_avg = silhouette_score(
                     X=embeddings, labels=labels, random_state=self._random_state
                 )
                 silhouttes.append(float(silhouette_avg))
 
-            if (
-                "calinski_harabasz"
-                in self.algorithm_settings.advanced_settings.kselection_metrics
-            ):
+            if use_ch_scores:
                 ch_score = calinski_harabasz_score(X=embeddings, labels=labels)
                 ch_scores.append(ch_score)
 
-            if (
-                "davies_bouldin"
-                in self.algorithm_settings.advanced_settings.kselection_metrics
-            ):
+            if use_db_scores:
                 db_score = davies_bouldin_score(X=embeddings, labels=labels)
                 db_scores.append(db_score)
 
@@ -343,11 +349,11 @@ class Clusterer:
         combined_scores = np.zeros(len(k_values))
         metric_count = 0
         # Normalize scores for comparison
-        if len(silhouttes) > 0:
+        if use_silhouette_scores:
             silhouttes_normalized: np.ndarray = (silhouttes - np.min(silhouttes)) / (
                 np.max(silhouttes) - np.min(silhouttes)
             )
-            combined_scores += silhouttes_normalized
+            combined_scores += silhouttes_normalized * silhouette_weight
             metric_count += 1
             plt.plot(
                 k_values, silhouttes_normalized, "b-", label="Normalized Silhouette"
@@ -355,11 +361,11 @@ class Clusterer:
         else:
             silhouttes_normalized = np.zeros(len(k_values))
 
-        if len(ch_scores) > 0:
+        if use_ch_scores:
             ch_scores_normalized = (ch_scores - np.min(ch_scores)) / (
                 np.max(ch_scores) - np.min(ch_scores)
             )
-            combined_scores += ch_scores_normalized
+            combined_scores += ch_scores_normalized * ch_weight
             metric_count += 1
             plt.plot(
                 k_values,
@@ -370,11 +376,11 @@ class Clusterer:
         else:
             ch_scores_normalized = np.zeros(len(k_values))
 
-        if len(db_scores) > 0:
+        if use_db_scores:
             db_scores_normalized = 1 - (db_scores - np.min(db_scores)) / (
                 np.max(db_scores) - np.min(db_scores)
             )
-            combined_scores += db_scores_normalized
+            combined_scores += db_scores_normalized * db_weight
             metric_count += 1
             plt.plot(
                 k_values, db_scores_normalized, "y-", label="Normalized Davies-Bouldin"
@@ -397,7 +403,7 @@ class Clusterer:
 
         logger.debug(f"Optimal K: {optimal_k}")
 
-        selection_stats = []
+        selection_stats: list[KSelectionStatistic] = []
         for i, k in enumerate(k_values):
             selection_stats.append(
                 KSelectionStatistic(
@@ -426,9 +432,9 @@ class Clusterer:
         print_progress("cluster", "start")
         if len(embeddings) < K:
             logger.warning(
-                f"Number of clusters ({K}) exceeds number of responses ({len(embeddings)}); reducing to {len(embeddings)}"
+                f"Number of clusters ({K}) exceeds number of responses ({len(embeddings)}); reducing to {len(embeddings) - 1}"
             )
-            K = len(embeddings)
+            K = len(embeddings) - 1
         # Side Effect: Assigns cluster IDs to responses
         if (
             self.algorithm_settings.advanced_settings.kmeans_method
