@@ -1359,7 +1359,7 @@ function AdvancedSettingsDialog({
                   }}
                   className="w-[200px]"
                 />
-                <p className="w-8 bg-blue-500 text-sm text-gray-500">
+                <p className="w-8 text-sm text-gray-500">
                   {Math.round(daviesBouldinWeight * 100)}%
                 </p>
               </div>

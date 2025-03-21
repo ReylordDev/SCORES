@@ -32,6 +32,7 @@ export function useAlgorithmSettings() {
         runMessage.run.algorithm_settings,
       ) as AlgorithmSettingsType;
 
+      console.log("Algorithm settings:", settings);
       // Update the state with the parsed settings
       setAlgorithmSettings(settings);
     });
