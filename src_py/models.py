@@ -6,7 +6,9 @@ from sqlmodel import JSON, Column, SQLModel, Field, Relationship
 import numpy as np
 import time
 import uuid
+
 from utils.utils import get_user_data_path
+# from src_py.utils.utils import get_user_data_path # only uncomment for migrations
 
 
 class CamelModel(BaseModel):

@@ -22,30 +22,30 @@ export default function KSelectionVisualization() {
 
   // Very nasty solution
   const silhouetteWeight = algorithmSettings
-    ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+    ? algorithmSettings.advanced_settings.kselection_metrics?.filter(
         (m) => m.name === "silhouette",
       ).length > 0
-      ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+      ? algorithmSettings.advanced_settings.kselection_metrics?.filter(
           (m) => m.name === "silhouette",
         )[0].weight || 0
       : 0
     : 0;
 
   const daviesBouldinWeight = algorithmSettings
-    ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+    ? algorithmSettings.advanced_settings.kselection_metrics?.filter(
         (m) => m.name === "davies_bouldin",
       ).length > 0
-      ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+      ? algorithmSettings.advanced_settings.kselection_metrics?.filter(
           (m) => m.name === "davies_bouldin",
         )[0].weight || 0
       : 0
     : 0;
 
   const calinskiHarabaszWeight = algorithmSettings
-    ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+    ? algorithmSettings.advanced_settings.kselection_metrics?.filter(
         (m) => m.name === "calinski_harabasz",
       ).length > 0
-      ? algorithmSettings.advanced_settings.kselection_metrics.filter(
+      ? algorithmSettings.advanced_settings.kselection_metrics?.filter(
           (m) => m.name === "calinski_harabasz",
         )[0].weight || 0
       : 0

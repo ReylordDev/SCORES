@@ -193,7 +193,11 @@ export default function AlgorithmSettings() {
       }
     }
 
-    if (advancedSettings.kselection_metrics.length === 0) {
+    if (!advancedSettings.kselection_metrics) {
+      return false;
+    }
+
+    if (advancedSettings.kselection_metrics?.length === 0) {
       return false;
     }
 
@@ -909,39 +913,39 @@ function AdvancedSettingsDialog({
 
   useEffect(() => {
     const localUseSilhouette =
-      advancedSettings.kselection_metrics.filter(
+      advancedSettings.kselection_metrics?.filter(
         (metric) => metric.name === "silhouette",
       ).length > 0;
     setUseSilhouette(localUseSilhouette);
     setSilhouetteWeight(
       localUseSilhouette
-        ? advancedSettings.kselection_metrics.filter(
+        ? advancedSettings.kselection_metrics?.filter(
             (metric) => metric.name === "silhouette",
           )[0].weight
         : 0,
     );
 
     const localUseDaviesBouldin =
-      advancedSettings.kselection_metrics.filter(
+      advancedSettings.kselection_metrics?.filter(
         (metric) => metric.name === "davies_bouldin",
       ).length > 0;
     setUseDaviesBouldin(localUseDaviesBouldin);
     setDaviesBouldinWeight(
       localUseDaviesBouldin
-        ? advancedSettings.kselection_metrics.filter(
+        ? advancedSettings.kselection_metrics?.filter(
             (metric) => metric.name === "davies_bouldin",
           )[0].weight
         : 0,
     );
 
     const localUseCalinskiHarabasz =
-      advancedSettings.kselection_metrics.filter(
+      advancedSettings.kselection_metrics?.filter(
         (metric) => metric.name === "calinski_harabasz",
       ).length > 0;
     setUseCalinski(localUseCalinskiHarabasz);
     setCalinskiHarabaszWeight(
       localUseCalinskiHarabasz
-        ? advancedSettings.kselection_metrics.filter(
+        ? advancedSettings.kselection_metrics?.filter(
             (metric) => metric.name === "calinski_harabasz",
           )[0].weight
         : 0,
@@ -1007,7 +1011,7 @@ function AdvancedSettingsDialog({
       return false;
     }
 
-    if (kselectionMetrics.length === 0) {
+    if (kselectionMetrics?.length === 0) {
       return false;
     }
 
