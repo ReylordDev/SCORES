@@ -293,7 +293,7 @@ class Clusterer:
             )
         if max_clusters >= len(embeddings):
             logger.info(
-                f"Number of clusters ({max_clusters}) exceeds number of responses ({len(embeddings)}); reducing to {len(embeddings)}"
+                f"Number of clusters ({max_clusters}) exceeds number of responses ({len(embeddings)}); reducing to {len(embeddings) - 1}"
             )
             max_clusters = len(embeddings)
 

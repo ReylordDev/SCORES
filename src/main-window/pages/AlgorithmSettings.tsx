@@ -76,11 +76,15 @@ export default function AlgorithmSettings() {
     kselection_metrics: [
       {
         name: "silhouette",
-        weight: 0.5,
+        weight: 0.4,
       },
       {
         name: "calinski_harabasz",
-        weight: 0.5,
+        weight: 0.4,
+      },
+      {
+        name: "davies_bouldin",
+        weight: 0.2,
       },
     ],
   });
