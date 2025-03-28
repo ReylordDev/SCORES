@@ -241,7 +241,7 @@ export function TitleBar({ index }: { index: number }) {
                 </div>
                 <div className="mt-4 flex items-center justify-between border-t pt-4 text-sm text-muted-foreground">
                   <span>Made by Luis Klocke</span>
-                  <span>Version 1.1.4</span>
+                  <span>Version 1.1.5</span>
                   <Button
                     className="cursor-pointer hover:text-text"
                     variant="ghost"

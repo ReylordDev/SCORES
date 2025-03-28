@@ -1129,7 +1129,7 @@ wheels = [
 
 [[package]]
 name = "scores"
-version = "1.1.4"
+version = "1.1.5"
 source = { virtual = "." }
 dependencies = [
     { name = "alembic" },

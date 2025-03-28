@@ -1,7 +1,7 @@
 {
   "name": "scores",
   "productName": "scores",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Desktop interface for clustering free-text survey response data, using large language model embeddings and clustering algorithms. Includes functionality to determine the optimal number of clusters automatically and visualize the results.",
   "main": ".webpack/main",
   "repository": {
