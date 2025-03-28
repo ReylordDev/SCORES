@@ -8,7 +8,7 @@ import { WindowManager } from "../windows/window-manager";
 export const DEFAULT_SETTINGS: AppSettings = {
   darkMode: false,
   tutorialMode: true,
-  defaultModel: "BAAI/bge-large-en-v1.5",
+  defaultModel: "intfloat/multilingual-e5-large-instruct",
 };
 
 export class SettingsService extends EventEmitter {
@@ -17,7 +17,7 @@ export class SettingsService extends EventEmitter {
 
   constructor(
     private config: AppConfig,
-    private windowManager: WindowManager
+    private windowManager: WindowManager,
   ) {
     super();
     this.settingsPath = path.join(config.dataDir, "settings.json");

@@ -36,6 +36,8 @@ from models import (
 from utils.utils import preprocess_response
 from app_cache import EmbeddingCache
 
+DEFAULT_EMBEDDING_MODEL_NAME = "intfloat/multilingual-e5-large-instruct"
+
 
 class Clusterer:
     def __init__(self, app_state: ApplicationState):
@@ -60,7 +62,7 @@ class Clusterer:
                 algorithm_settings.advanced_settings.embedding_model
             )
         else:
-            self.embedding_model_name = "BAAI/bge-large-en-v1.5"
+            self.embedding_model_name = DEFAULT_EMBEDDING_MODEL_NAME
 
         # Initialize the embedding cache
         self.embedding_cache = EmbeddingCache()
