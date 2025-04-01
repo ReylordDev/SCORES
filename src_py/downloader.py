@@ -1,5 +1,6 @@
 import os
 import threading
+import time
 from loguru import logger
 from huggingface_hub import scan_cache_dir, HfApi
 from sentence_transformers import SentenceTransformer
@@ -16,6 +17,7 @@ class DownloadManager:
         self.offline_mode = os.getenv("HF_HUB_OFFLINE", "0") == "1"
 
         self.api = HfApi()
+        start_time = time.time()
         try:
             self.compatible_models = list(
                 self.api.list_models(
@@ -30,6 +32,11 @@ class DownloadManager:
             self.compatible_models = []
             self.offline_mode = True
             logger.warning("Running in offline mode due to error fetching models")
+        if time.time() - start_time > 5:
+            logger.warning(
+                "Fetching models from Hugging Face Hub took longer than expected. "
+                "This may be due to network issues or a large number of models."
+            )
         self.active_downloads = {}  # Track active download threads
         logger.debug("DownloadManager initialized")
         logger.debug(f"Found {len(self.compatible_models)} compatible models")
