@@ -1380,6 +1380,10 @@ video {
   text-wrap: nowrap;
 }
 
+.text-balance {
+  text-wrap: balance;
+}
+
 .rounded {
   border-radius: 0.25rem;
 }
@@ -1418,6 +1422,10 @@ video {
 
 .border-4 {
   border-width: 4px;
+}
+
+.border-0 {
+  border-width: 0px;
 }
 
 .border-x {
@@ -2473,8 +2481,21 @@ body {
   color: rgb(113 113 122 / var(--tw-text-opacity));
 }
 
+.hover\:border:hover {
+  border-width: 1px;
+}
+
 .hover\:border-accent:hover {
   border-color: var(--accent);
+}
+
+.hover\:border-inherit:hover {
+  border-color: inherit;
+}
+
+.hover\:border-gray-300:hover {
+  --tw-border-opacity: 1;
+  border-color: rgb(209 213 219 / var(--tw-border-opacity));
 }
 
 .hover\:bg-accent-200:hover {

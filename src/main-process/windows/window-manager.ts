@@ -50,6 +50,9 @@ export class WindowManager {
       show: false,
     });
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    if (this.config.isDev) {
+      mainWindow.webContents.openDevTools({ mode: "detach" });
+    }
     mainWindow.once("ready-to-show", () => {
       mainWindow.show();
       mainWindow.focus();
@@ -68,7 +71,7 @@ export class WindowManager {
           : this.maskedDarkModeHex,
       });
       this.mainWindow.setBackgroundColor(
-        this.darkMode ? this.maskedDarkModeHex : this.maskedLightModeHex
+        this.darkMode ? this.maskedDarkModeHex : this.maskedLightModeHex,
       );
     } else {
       this.mainWindow.setTitleBarOverlay({
@@ -76,7 +79,7 @@ export class WindowManager {
         symbolColor: this.darkMode ? this.lightModeHex : this.darkModeHex,
       });
       this.mainWindow.setBackgroundColor(
-        this.darkMode ? this.darkModeHex : this.lightModeHex
+        this.darkMode ? this.darkModeHex : this.lightModeHex,
       );
     }
   }

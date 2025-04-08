@@ -1047,57 +1047,69 @@ function AdvancedSettingsDialog({
     return () => unsubscribe();
   }, []);
 
-  function updateMetricWeight(weight: number, metricName: string) {
+  function updateMetricWeight(
+    weight: number,
+    metricName: "silhouette" | "calinski_harabasz" | "davies_bouldin",
+  ) {
     console.log("Updating metric weight", weight, metricName);
 
-    if (totalWeight > 1) {
-      const remainingWeight = 1 - weight;
+    const metrics: {
+      metricName: string;
+      weight: number;
+      set: (x: number) => void;
+    }[] = [
+      {
+        metricName: "silhouette",
+        weight: silhouetteWeight,
+        set: setSilhouetteWeight,
+      },
+      {
+        metricName: "calinski_harabasz",
+        weight: calinskiHarabaszWeight,
+        set: setCalinskiHarabaszWeight,
+      },
+      {
+        metricName: "davies_bouldin",
+        weight: daviesBouldinWeight,
+        set: setDaviesBouldinWeight,
+      },
+    ];
 
-      let metricCount = 0;
-      if (useSilhouette) metricCount++;
-      if (useCalinski) metricCount++;
-      if (useDaviesBouldin) metricCount++;
-      if (metricCount === 0) return;
+    if (!weight) return;
+    if (weight < 0) {
+      weight = 0;
+    } else if (weight > 1) {
+      weight = 1;
+    }
 
-      const balancingWeight = remainingWeight / (metricCount - 1);
-      console.log(
-        "Remaining weight",
-        remainingWeight,
-        "Balancing weight",
-        balancingWeight,
-      );
-      if (metricName === "silhouette") {
-        if (useCalinski && balancingWeight < calinskiHarabaszWeight) {
-          setCalinskiHarabaszWeight(balancingWeight);
-        }
-        if (useDaviesBouldin && balancingWeight < daviesBouldinWeight) {
-          setDaviesBouldinWeight(balancingWeight);
-        }
-      } else if (metricName === "calinski_harabasz") {
-        if (useSilhouette && balancingWeight < silhouetteWeight) {
-          setSilhouetteWeight(balancingWeight);
-        }
-        if (useDaviesBouldin && balancingWeight < daviesBouldinWeight) {
-          setDaviesBouldinWeight(balancingWeight);
-        }
-      } else if (metricName === "davies_bouldin") {
-        if (useSilhouette && balancingWeight < silhouetteWeight) {
-          setSilhouetteWeight(balancingWeight);
-        }
-        if (useCalinski && balancingWeight < calinskiHarabaszWeight) {
-          setCalinskiHarabaszWeight(balancingWeight);
-        }
-      }
+    const otherMetrics = metrics
+      .filter((metric) => metric.metricName !== metricName)
+      .sort((a, b) => b.weight - a.weight);
+
+    const newTotalWeight = otherMetrics.reduce(
+      (total, metric) => total + metric.weight,
+      weight,
+    );
+    console.log("New total weight", newTotalWeight);
+
+    if (newTotalWeight > 1) {
+      let overflow = newTotalWeight - 1;
+      if (overflow < 0) overflow = 0;
+      console.log("Overflow", overflow);
+
+      otherMetrics.forEach((metric) => {
+        const reduction = Math.max(
+          Math.min(metric.weight, overflow) + epsilon,
+          0,
+        );
+        metric.set(metric.weight - reduction);
+        overflow -= reduction;
+        console.log("Reducing", metric.metricName, reduction);
+        console.log("Remaining overflow", overflow);
+      });
     }
-    if (metricName === "silhouette") {
-      setSilhouetteWeight(weight);
-    }
-    if (metricName === "calinski_harabasz") {
-      setCalinskiHarabaszWeight(weight);
-    }
-    if (metricName === "davies_bouldin") {
-      setDaviesBouldinWeight(weight);
-    }
+
+    metrics.filter((metric) => metric.metricName === metricName)[0].set(weight);
   }
 
   const balanceWeights = () => {
@@ -1239,9 +1251,11 @@ function AdvancedSettingsDialog({
                   Balance Weights
                 </Button>
               </div>
-              <p className="text-sm text-gray-500">
-                Select the metrics to use for K-selection (You must select at
-                least one).
+              <p className="text-balance text-sm text-gray-500">
+                Select at least one metric to use for K-Selection.<br></br>Use
+                the sliders to adjust the weight of each metric.<br></br>For
+                finer tuning, hover over the weight number and use the arrows to
+                adjust the value.
               </p>
             </div>
             <div className="flex flex-col gap-2">
@@ -1279,9 +1293,27 @@ function AdvancedSettingsDialog({
                     }}
                     className="w-[200px]"
                   />
-                  <p className="w-8 text-sm text-gray-500">
-                    {Math.round(silhouetteWeight * 100)}%
-                  </p>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={
+                      silhouetteWeight <= 0 ? 0 : silhouetteWeight.toFixed(2)
+                    }
+                    onKeyDown={(e) => e.preventDefault()}
+                    onChange={(e) =>
+                      updateMetricWeight(e.target.valueAsNumber, "silhouette")
+                    }
+                    className={cn(
+                      "w-20 cursor-default border-transparent bg-transparent text-sm text-gray-500 hover:border-gray-300",
+                      useSilhouette &&
+                        !silhouetteWeight &&
+                        "border-rose-500 focus-visible:ring-rose-500 focus-visible:ring-offset-1 dark:border-rose-500 dark:focus-visible:ring-rose-500",
+                    )}
+                    disabled={!useSilhouette}
+                    placeholder="0.5"
+                  />
                 </div>
               </div>
             </div>
@@ -1325,9 +1357,32 @@ function AdvancedSettingsDialog({
                     }}
                     className="w-[200px]"
                   />
-                  <p className="w-8 text-sm text-gray-500">
-                    {Math.round(calinskiHarabaszWeight * 100)}%
-                  </p>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    value={
+                      calinskiHarabaszWeight <= 0
+                        ? 0
+                        : calinskiHarabaszWeight.toFixed(2)
+                    }
+                    onKeyDown={(e) => e.preventDefault()}
+                    onChange={(e) =>
+                      updateMetricWeight(
+                        e.target.valueAsNumber,
+                        "calinski_harabasz",
+                      )
+                    }
+                    className={cn(
+                      "w-20 cursor-default border-transparent bg-transparent text-sm text-gray-500 hover:border-gray-300",
+                      useCalinski &&
+                        !calinskiHarabaszWeight &&
+                        "border-rose-500 focus-visible:ring-rose-500 focus-visible:ring-offset-1 dark:border-rose-500 dark:focus-visible:ring-rose-500",
+                    )}
+                    disabled={!useCalinski}
+                    placeholder="0.5"
+                  />
                 </div>
               </div>
             </div>
@@ -1367,9 +1422,29 @@ function AdvancedSettingsDialog({
                   }}
                   className="w-[200px]"
                 />
-                <p className="w-8 text-sm text-gray-500">
-                  {Math.round(daviesBouldinWeight * 100)}%
-                </p>
+                <Input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={
+                    daviesBouldinWeight <= 0
+                      ? 0
+                      : daviesBouldinWeight.toFixed(2)
+                  }
+                  onKeyDown={(e) => e.preventDefault()}
+                  onChange={(e) =>
+                    updateMetricWeight(e.target.valueAsNumber, "davies_bouldin")
+                  }
+                  className={cn(
+                    "w-20 cursor-default border-transparent bg-transparent text-sm text-gray-500 hover:border-gray-300",
+                    useDaviesBouldin &&
+                      !daviesBouldinWeight &&
+                      "border-rose-500 focus-visible:ring-rose-500 focus-visible:ring-offset-1 dark:border-rose-500 dark:focus-visible:ring-rose-500",
+                  )}
+                  disabled={!useDaviesBouldin}
+                  placeholder="0.5"
+                />
               </div>
             </div>
           </div>
