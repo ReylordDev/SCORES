@@ -315,16 +315,18 @@ export default function ClusterAssignments() {
           </div>
         ) : (
           <div className="scrollbar flex flex-grow flex-col gap-4 overflow-y-auto pr-4 pt-0">
-            {previewClusters.map((cluster) => (
-              <div key={cluster.id}>
-                <ClusterAssignment
-                  cluster={cluster}
-                  searchTerm={searchTerm}
-                  isExpanded={expandedClusters.includes(cluster.id)}
-                  handleClusterClick={toggleCluster}
-                />
-              </div>
-            ))}
+            {previewClusters
+              .sort((a, b) => b.count - a.count)
+              .map((cluster) => (
+                <div key={cluster.id}>
+                  <ClusterAssignment
+                    cluster={cluster}
+                    searchTerm={searchTerm}
+                    isExpanded={expandedClusters.includes(cluster.id)}
+                    handleClusterClick={toggleCluster}
+                  />
+                </div>
+              ))}
           </div>
         )}
       </div>
